@@ -28,9 +28,9 @@ class ImageRequestProcessor():
         self.data_directory = data_directory
         
         # initialize directories
-        for dir in [self.cache_directory(), self.original_directory()]:
-            if not os.path.exists(dir):
-                os.makedirs(dir)
+        for directory in [self.cache_directory(), self.original_directory()]:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
     def cache_directory(self):
         return '%s/%s' % (self.data_directory, CacheDirectory)
