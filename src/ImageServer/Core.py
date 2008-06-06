@@ -40,7 +40,8 @@ class ImageRequestProcessor():
     
     def prepare_request(self, image_request):
         """ Takes an ImageRequest and prepare the output for it.
-            @return: nothing for now... The prepared image will be available in data_directory/cache"""
+            @return: nothing for now... The prepared image will be available in data_directory/cache
+            """
         img = Image.open('../samples/%s.jpg' % image_request.image_id)
         target_image = ImageOps.fit(image=img, size=image_request.size, centering=(0.5,0.5))
         try:
