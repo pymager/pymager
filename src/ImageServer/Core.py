@@ -37,30 +37,36 @@ class ImageRequestProcessor():
     def __init_directories(self):
         """ Creates the work directories needed to run this processor """
         for directory in \
-            [self.__cache_directory(), self.__original_directory()]:
+            [self.__absolute_cache_directory(), self.__absolute_original_directory()]:
             if not os.path.exists(directory):
                 os.makedirs(directory)
         
-    def __cache_directory(self):
+    def __absolute_cache_directory(self):
         """ @return: the directory that will be used for caching image processing 
         results """
         return '%s/%s' % (self.data_directory, CACHE_DIRECTORY)
     
-    def __original_directory(self):
+    def __absolute_original_directory(self):
         """ @return. the directory that will be used to store original files, 
         before processing"""
         return '%s/%s' % (self.data_directory, ORIGINAL_DIRECTORY)
     
-    def __original_filename(self, image_id):
+    def __absolute_original_filename(self, image_id):
         """ returns the filename of the original file """
-        return "%s/%s" % (self.__original_directory(), image_id)
+        return "%s/%s" % (self.__absolute_original_directory(), image_id)
     
-    def __cached_filename(self, image_id, size, format):
-        return '%s/%s-%sx%s.%s' % (  self.__cache_directory(),
-                                     image_id, 
-                                     size[0], 
-                                     size[1], 
-                                     self.__extension_for_format(format))
+    def __absolute_cached_filename(self, image_id, size, format):
+        return '%s/%s' % (  self.data_directory,
+                            self.__relative_cached_filename(image_id, size, format))
+    
+    def __relative_cached_filename(self, image_id, size, format):
+        """ relative to the base directory """
+        return '%s/%s-%sx%s.%s' % ( CACHE_DIRECTORY, 
+                                    image_id, 
+                                    size[0], 
+                                    size[1], 
+                                    self.__extension_for_format(format))
+        
     def __extension_for_format(self, format):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
     
@@ -72,22 +78,22 @@ class ImageRequestProcessor():
         Image.open(filename).verify()
         
         try:
-            shutil.copyfile(filename, self.__original_filename(image_id))
+            shutil.copyfile(filename, self.__absolute_original_filename(image_id))
         except IOError, ex:
             raise ImageProcessingException, ex
     
     def prepare_transformation(self, image_request):
         """ Takes an ImageRequest and prepare the output for it.
-            @return: nothing for now... The prepared image will be available in data_directory/cache
+            @return: the path to the generated file (relative to the cache directory) 
             """ 
-        img = Image.open(self.__original_filename(image_request.image_id))
+        img = Image.open(self.__absolute_original_filename(image_request.image_id))
         
-        cached_filename = self.__cached_filename(image_request.image_id, 
+        cached_filename = self.__absolute_cached_filename(image_request.image_id, 
                                                  image_request.size, 
                                                  image_request.target_format)
         if image_request.size == img.size and image_request.target_format.upper() == img.format.upper():
             try:
-                shutil.copyfile(self.__original_filename(image_request.image_id), 
+                shutil.copyfile(self.__absolute_original_filename(image_request.image_id), 
                                 cached_filename)
             except IOError, ex:
                 raise ImageProcessingException, ex
@@ -100,6 +106,8 @@ class ImageRequestProcessor():
             except IOError, ex:
                 raise ImageProcessingException, ex
         
-        return cached_filename
+        return self.__relative_cached_filename(image_request.image_id, 
+                                               image_request.size, 
+                                               image_request.target_format)
         
 
