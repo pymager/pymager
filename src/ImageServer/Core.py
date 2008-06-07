@@ -14,7 +14,7 @@ FORMAT_EXTENSIONS = { "JPEG" : "jpg" }
 
 def check_id(image_id):
     if not image_id.isalnum():
-        raise ImageProcessingException
+        raise ImageProcessingException, 'ID contains non alpha numeric characters: %s' % image_id
         
 class ImageProcessingException(Exception):
     """Thrown when errors happen while processing images """
@@ -82,6 +82,9 @@ class ImageRequestProcessor():
         
         check_id(image_id)
         
+        if os.path.exists(self.__absolute_original_filename(image_id)):
+            raise ImageProcessingException, 'an image with the given ID already exists in the repository'
+        
         # Check that the image is not broken
         Image.open(filename).verify()
         
@@ -109,6 +112,7 @@ class ImageRequestProcessor():
         else:   
             target_image = ImageOps.fit(image=img, 
                                         size=transformation_request.size, 
+                                        method=Image.ANTIALIAS,
                                         centering=(0.5,0.5)) 
             try:
                 target_image.save(cached_filename)
