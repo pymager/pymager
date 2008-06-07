@@ -1,6 +1,6 @@
 import Image, ImageOps
 import mimetypes
-import os, os.path
+import os, os.path, shutil
 
 # Relative to the data_directory
 CACHE_DIRECTORY = "cache"
@@ -16,7 +16,7 @@ class ImageProcessingException(Exception):
     def __init__(self, message):
         Exception.__init__(self, message)
 
-class ImageRequest():
+class TransformationRequest():
     """ Stores the parameters of an image processing request """
     def __init__(self, image_id, size, target_format):
         """ @param size: a (width, height) tuple
@@ -50,7 +50,19 @@ class ImageRequestProcessor():
         before processing"""
         return '%s/%s' % (self.data_directory, ORIGINAL_DIRECTORY)
     
-    def prepare_request(self, image_request):
+    def __original_filename(self, image_id):
+        """ returns the filename of the original file """
+        return "%s/%s" % (self.__original_directory(), image_id)
+    
+    def save_file_to_repository(self, filename, image_id):
+        """ save the given file to the image server repository. 
+        It will then be available for transformations"""
+        try:
+            shutil.copyfile(filename, self.__original_filename(image_id))
+        except IOError, ex:
+            raise ImageProcessingException, ex
+    
+    def prepare_transformation(self, image_request):
         """ Takes an ImageRequest and prepare the output for it.
             @return: nothing for now... The prepared image will be available in data_directory/cache
             """ 
@@ -64,6 +76,6 @@ class ImageRequestProcessor():
                                                      image_request.size[0], 
                                                      image_request.size[1], 
                                                      image_request.target_format))
-        except IOError, exception:
-            raise ImageProcessingException, exception
+        except IOError, ex:
+            raise ImageProcessingException, ex
 

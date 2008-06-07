@@ -1,7 +1,7 @@
 from ImageServer import Core
 
 def main():
-    request = Core.ImageRequest('sami', (800,800), 'jpg')
     img_processor = Core.ImageRequestProcessor('/tmp')
-    
-    img_processor.prepare_request(request);
+    img_processor.save_file_to_repository('../samples/sami.jpg', 'sami')
+    request = Core.TransformationRequest('sami', (100,100), 'jpg')
+    img_processor.prepare_transformation(request);
