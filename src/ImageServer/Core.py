@@ -113,8 +113,6 @@ class ImageRequestProcessor():
         except IOError, ex: 
             raise ImageProcessingException, ex
         
-        
-        
         if transformation_request.size == img.size and transformation_request.target_format.upper() == img.format.upper():
             try:
                 shutil.copyfile(self.__absolute_original_filename(transformation_request.image_id), 
