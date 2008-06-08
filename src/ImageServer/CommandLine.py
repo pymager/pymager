@@ -1,9 +1,9 @@
-from ImageServer import Core
+from ImageServer import Factory, Core
 
 def main():
-    img_processor = Core.ImageRequestProcessor('/tmp/imgserver')
-    img_processor.save_file_to_repository('../samples/sami.jpg', 'sami')
+    img_processor = Factory.create_image_server('/tmp/imgserver', [(100,100), (800,800)])
+    # uncomment if not already done once
+    #img_processor.save_file_to_repository('../samples/sami.jpg', 'sami')
     request = Core.TransformationRequest('sami', (100,100), 'jpg')
     print img_processor.prepare_transformation(request);
-    #request = Core.TransformationRequest('sami', (3264,2448), 'JPEG')
     

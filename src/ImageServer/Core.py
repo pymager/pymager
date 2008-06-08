@@ -10,12 +10,10 @@ FORMAT_EXTENSIONS = { "JPEG" : "jpg" }
 # Layout
 # data/original/image_id.format
 # data/cache/image_id/800x600/format
- 
 
 def check_id(image_id):
     if not image_id.isalnum():
         raise ImageProcessingException, 'ID contains non alpha numeric characters: %s' % image_id
-
             
 class ImageProcessingException(Exception):
     """Thrown when errors happen while processing images """
@@ -34,13 +32,14 @@ class TransformationRequest():
         self.target_format = target_format
 
 class ImageRequestProcessor():
+    
     """ Processes ImageRequest objects and does the required work to prepare the images """
     def __init__(self, data_directory):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
         self.data_directory = data_directory 
         self.__init_directories()
-
+        
     def __init_directories(self):
         """ Creates the work directories needed to run this processor """
         for directory in \
@@ -94,19 +93,23 @@ class ImageRequestProcessor():
         except IOError, ex:
             raise ImageProcessingException, ex
     
-    
     def prepare_transformation(self, transformation_request):
         """ Takes an ImageRequest and prepare the output for it.
             @return: the path to the generated file (relative to the cache directory) 
             """
+        cached_filename = self.__absolute_cached_filename(transformation_request.image_id, 
+                                                 transformation_request.size, 
+                                                 transformation_request.target_format)
+        relative_cached_filename = self.__relative_cached_filename(transformation_request.image_id, 
+                                               transformation_request.size, 
+                                               transformation_request.target_format)
+
+        if os.path.exists(cached_filename):
+            return relative_cached_filename
         
         cached_filename = self.__absolute_cached_filename(transformation_request.image_id, 
                                                  transformation_request.size, 
                                                  transformation_request.target_format)
-        if os.path.exists(cached_filename):
-            print 'file exists, skipping transformation'
-            return cached_filename
-        
         original_filename = self.__absolute_original_filename(transformation_request.image_id)
         try:
             img = Image.open(original_filename)
@@ -129,8 +132,7 @@ class ImageRequestProcessor():
             except IOError, ex:
                 raise ImageProcessingException, ex
         
-        return self.__relative_cached_filename(transformation_request.image_id, 
-                                               transformation_request.size, 
-                                               transformation_request.target_format)
-        
+        return 
+    
+    
 
