@@ -15,7 +15,8 @@ FORMAT_EXTENSIONS = { "JPEG" : "jpg" }
 def check_id(image_id):
     if not image_id.isalnum():
         raise ImageProcessingException, 'ID contains non alpha numeric characters: %s' % image_id
-        
+
+            
 class ImageProcessingException(Exception):
     """Thrown when errors happen while processing images """
     def __init__(self, message):
@@ -93,16 +94,27 @@ class ImageRequestProcessor():
         except IOError, ex:
             raise ImageProcessingException, ex
     
+    
     def prepare_transformation(self, transformation_request):
         """ Takes an ImageRequest and prepare the output for it.
             @return: the path to the generated file (relative to the cache directory) 
             """
-         
-        img = Image.open(self.__absolute_original_filename(transformation_request.image_id))
         
         cached_filename = self.__absolute_cached_filename(transformation_request.image_id, 
                                                  transformation_request.size, 
                                                  transformation_request.target_format)
+        if os.path.exists(cached_filename):
+            print 'file exists, skipping transformation'
+            return cached_filename
+        
+        original_filename = self.__absolute_original_filename(transformation_request.image_id)
+        try:
+            img = Image.open(original_filename)
+        except IOError, ex: 
+            raise ImageProcessingException, ex
+        
+        
+        
         if transformation_request.size == img.size and transformation_request.target_format.upper() == img.format.upper():
             try:
                 shutil.copyfile(self.__absolute_original_filename(transformation_request.image_id), 
