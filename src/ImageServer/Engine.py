@@ -34,11 +34,12 @@ class TransformationRequest():
 class ImageRequestProcessor():
     
     """ Processes ImageRequest objects and does the required work to prepare the images """
-    def __init__(self, data_directory):
+    def __init__(self, persistence_provider, data_directory):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
-        self.data_directory = data_directory 
+        self.__data_directory = data_directory 
         self.__init_directories()
+        self.__persistence_provider = persistence_provider
         
     def __init_directories(self):
         """ Creates the work directories needed to run this processor """
@@ -50,28 +51,26 @@ class ImageRequestProcessor():
     def __absolute_cache_directory(self):
         """ @return: the directory that will be used for caching image processing 
         results """
-        return '%s/%s' % (self.data_directory, CACHE_DIRECTORY)
+        return os.path.join(self.__data_directory, CACHE_DIRECTORY)
     
     def __absolute_original_directory(self):
         """ @return. the directory that will be used to store original files, 
         before processing"""
-        return '%s/%s' % (self.data_directory, ORIGINAL_DIRECTORY)
+        return os.path.join (self.__data_directory, ORIGINAL_DIRECTORY)
     
     def __absolute_original_filename(self, image_id):
         """ returns the filename of the original file """
-        return "%s/%s" % (self.__absolute_original_directory(), image_id)
+        return os.path.join (self.__absolute_original_directory(), image_id)
     
     def __absolute_cached_filename(self, image_id, size, format):
-        return '%s/%s' % (  self.data_directory,
+        
+        return os.path.join( self.__data_directory,
                             self.__relative_cached_filename(image_id, size, format))
     
     def __relative_cached_filename(self, image_id, size, format):
         """ relative to the base directory """
-        return '%s/%s-%sx%s.%s' % ( CACHE_DIRECTORY, 
-                                    image_id, 
-                                    size[0], 
-                                    size[1], 
-                                    self.__extension_for_format(format))
+        return os.path.join ( CACHE_DIRECTORY, 
+                              '%s-%sx%s.%s' % (image_id, size[0], size[1],self.__extension_for_format(format)) )
         
     def __extension_for_format(self, format):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
