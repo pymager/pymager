@@ -132,7 +132,7 @@ class ImageRequestProcessor():
             except IOError, ex:
                 raise ImageProcessingException, ex
         
-        return 
+        return cached_filename
     
     
 
