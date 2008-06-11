@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-# requirements: python-imaging
+# requirements: 
+# - python-imaging
+# - python-pysqlite2
 from ImageServer.CommandLine import main
 
 if __name__ == '__main__':    
