@@ -6,6 +6,8 @@ def create_image_server(data_directory, allowed_sizes):
         os.makedirs(data_directory)
     
     persistence_provider = Persistence.SQLitePersistenceProvider(Persistence.create_connection(data_directory))
+    persistence_provider.create_or_upgrade_schema()
+    
     img_processor = Engine.ImageRequestProcessor(persistence_provider, data_directory)
     img_processor.prepare_transformation =  Security.imageTransformationSecurityDecorator(allowed_sizes)(img_processor.prepare_transformation)
     return img_processor
