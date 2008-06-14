@@ -1,31 +1,66 @@
-class AbstractItem():
-    def __init__(self, id, status, width, height, format):
-        self.__id = id
+# The possible statuses of a domain object
+STATUS_INCONSISTENT = 'INCONSISTENT'
+STATUS_OK = 'OK'
+
+class AbstractItem(object):
+    def __init__(self, itemId, status, size, format):
+        super(AbstractItem, self).__init__()
+        
+        assert status is not None
+        assert size is not None
+        assert size[0] is not None
+        assert size[1] is not None
+        assert format is not None
+        
+        self.__id = itemId
         self.__status = status
-        self.__width = width
-        self.__height = height
+        self.__width = size[0] if type(size[0]) == int else int(size[0])
+        self.__height = size[1] if type(size[1]) == int else int(size[1])
         self.__format = format
-    
-    def get_status(self):
+
+    def getId(self):
+        return self.__id
+
+
+    def getStatus(self):
         return self.__status
-    
-    def get_width(self):
+
+
+    def getWidth(self):
         return self.__width
-    
-    def get_height(self):
+
+
+    def getHeight(self):
         return self.__height
-    
-    def get_format(self):
+
+
+    def getFormat(self):
         return self.__format
+    
+    def getSize(self):
+        return (self.__width, self.__height)
+    
+    id = property(getId, None, None, "Id's Docstring")
+    status = property(getStatus, None, None, "Status's Docstring")
+    width = property(getWidth, None, None, "Width's Docstring")
+    height = property(getHeight, None, None, "Height's Docstring")
+    format = property(getFormat, None, None, "Format's Docstring")
+    size = property(getSize, None, None, "Size's Docstring")
 
 class OriginalItem(AbstractItem):
-    def __init__(self, id, status, width, height, format):
-        AbstractItem.__init__(self, id, status, width, height, format)
+    def __init__(self, itemId, status, size, format):
+        assert itemId is not None
+        super(OriginalItem, self).__init__(itemId, status, size, format)
         
 class DerivedItem(AbstractItem):
-    def __init__(self, id, status, width, height, format, original_item):
-        AbstractItem.__init__(self, id, status, width, height, format)
-        self.__original_item = original_item
+    def __init__(self, status, size, format, originalItem):
+        assert originalItem is not None
+        self.__originalItem = originalItem
+        
+        super(DerivedItem, self).__init__("%s-%sx%s" % (originalItem.id, size[0], size[1]),status, size, format)
+        
+
+    def getOriginalItem(self):
+        return self.__originalItem
     
-    def get_original_item(self):
-        return self.__original_item
+    originalItem = property(getOriginalItem, None, None, "OriginalItem's Docstring")

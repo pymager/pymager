@@ -11,9 +11,9 @@ FORMAT_EXTENSIONS = { "JPEG" : "jpg" }
 # data/original/image_id.format
 # data/cache/image_id/800x600/format
 
-def check_id(image_id):
-    if not image_id.isalnum():
-        raise ImageProcessingException, 'ID contains non alpha numeric characters: %s' % image_id
+def checkid(imageId):
+    if not imageId.isalnum():
+        raise ImageProcessingException, 'ID contains non alpha numeric characters: %s' % imageId
             
 class ImageProcessingException(Exception):
     """Thrown when errors happen while processing images """
@@ -25,7 +25,7 @@ class TransformationRequest():
     def __init__(self, image_id, size, target_format):
         """ @param size: a (width, height) tuple
         """
-        check_id(image_id)
+        checkid(image_id)
         
         self.image_id = image_id
         self.size = size
@@ -34,82 +34,82 @@ class TransformationRequest():
 class ImageRequestProcessor():
     
     """ Processes ImageRequest objects and does the required work to prepare the images """
-    def __init__(self, persistence_provider, data_directory):
+    def __init__(self, itemRepository, dataDirectory):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
-        self.__data_directory = data_directory 
-        self.__init_directories()
-        self.__persistence_provider = persistence_provider
+        self.__dataDirectory = dataDirectory 
+        self.__initDirectories()
+        self.__itemRepository = itemRepository
         
-    def __init_directories(self):
+    def __initDirectories(self):
         """ Creates the work directories needed to run this processor """
         for directory in \
-            [self.__absolute_cache_directory(), self.__absolute_original_directory()]:
+            [self.__absoluteCacheDirectory(), self.__absoluteOriginalDirectory()]:
             if not os.path.exists(directory):
                 os.makedirs(directory)
         
-    def __absolute_cache_directory(self):
+    def __absoluteCacheDirectory(self):
         """ @return: the directory that will be used for caching image processing 
         results """
-        return os.path.join(self.__data_directory, CACHE_DIRECTORY)
+        return os.path.join(self.__dataDirectory, CACHE_DIRECTORY)
     
-    def __absolute_original_directory(self):
+    def __absoluteOriginalDirectory(self):
         """ @return. the directory that will be used to store original files, 
         before processing"""
-        return os.path.join (self.__data_directory, ORIGINAL_DIRECTORY)
+        return os.path.join (self.__dataDirectory, ORIGINAL_DIRECTORY)
     
-    def __absolute_original_filename(self, image_id):
+    def __absoluteOriginalFilename(self, image_id):
         """ returns the filename of the original file """
-        return os.path.join (self.__absolute_original_directory(), image_id)
+        return os.path.join (self.__absoluteOriginalDirectory(), image_id)
     
-    def __absolute_cached_filename(self, image_id, size, format):
+    def __absoluteCachedFilename(self, image_id, size, format):
         
-        return os.path.join( self.__data_directory,
-                            self.__relative_cached_filename(image_id, size, format))
+        return os.path.join( self.__dataDirectory,
+                            self.__relativeCachedFilename(image_id, size, format))
     
-    def __relative_cached_filename(self, image_id, size, format):
+    def __relativeCachedFilename(self, image_id, size, format):
         """ relative to the base directory """
         return os.path.join ( CACHE_DIRECTORY, 
-                              '%s-%sx%s.%s' % (image_id, size[0], size[1],self.__extension_for_format(format)) )
+                              '%s-%sx%s.%s' % (image_id, size[0], size[1],self.__extensionForFormat(format)) )
         
-    def __extension_for_format(self, format):
+    def __extensionForFormat(self, format):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
 
-    def save_file_to_repository(self, filename, image_id):
+    def saveFileToRepository(self, filename, image_id):
         """ save the given file to the image server repository. 
         It will then be available for transformations"""
         
-        check_id(image_id)
+        checkid(image_id)
         
-        if os.path.exists(self.__absolute_original_filename(image_id)):
+        if os.path.exists(self.__absoluteOriginalFilename(image_id)):
             raise ImageProcessingException, 'an image with the given ID already exists in the repository'
         
         # Check that the image is not broken
         Image.open(filename).verify()
         
         try:
-            shutil.copyfile(filename, self.__absolute_original_filename(image_id))
+            shutil.copyfile(filename, self.__absoluteOriginalFilename(image_id))
         except IOError, ex:
             raise ImageProcessingException, ex
     
-    def prepare_transformation(self, transformation_request):
+    def prepareTransformation(self, transformation_request):
         """ Takes an ImageRequest and prepare the output for it.
             @return: the path to the generated file (relative to the cache directory) 
             """
-        cached_filename = self.__absolute_cached_filename(transformation_request.image_id, 
+        cached_filename = self.__absoluteCachedFilename(transformation_request.image_id, 
                                                  transformation_request.size, 
                                                  transformation_request.target_format)
-        relative_cached_filename = self.__relative_cached_filename(transformation_request.image_id, 
+        relative_cached_filename = self.__relativeCachedFilename(transformation_request.image_id, 
                                                transformation_request.size, 
                                                transformation_request.target_format)
 
         if os.path.exists(cached_filename):
             return relative_cached_filename
         
-        cached_filename = self.__absolute_cached_filename(transformation_request.image_id, 
+        cached_filename = self.__absoluteCachedFilename(transformation_request.image_id, 
                                                  transformation_request.size, 
                                                  transformation_request.target_format)
-        original_filename = self.__absolute_original_filename(transformation_request.image_id)
+        original_filename = self.__absoluteOriginalFilename(transformation_request.image_id)
         try:
             img = Image.open(original_filename)
         except IOError, ex: 
@@ -117,7 +117,7 @@ class ImageRequestProcessor():
         
         if transformation_request.size == img.size and transformation_request.target_format.upper() == img.format.upper():
             try:
-                shutil.copyfile(self.__absolute_original_filename(transformation_request.image_id), 
+                shutil.copyfile(self.__absoluteOriginalFilename(transformation_request.image_id), 
                                 cached_filename)
             except IOError, ex:
                 raise ImageProcessingException, ex
