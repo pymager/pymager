@@ -38,9 +38,6 @@ class ImageServerFactory(object):
         return self.__imageProcessor
     
     persistenceProvider = property(getPersistenceProvider, None, None, "PersistenceProvider's Docstring")
-
     itemRepository = property(getItemRepository, None, None, "ItemRepository's Docstring")
-
     imageProcessor = property(getImageProcessor, None, None, "ImageProcessor's Docstring")
-
     connection = property(getConnection, None, None, "Connection's Docstring")
