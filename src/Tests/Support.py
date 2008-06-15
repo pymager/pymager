@@ -1,5 +1,5 @@
 import unittest
-from ImageServer import Factory, Engine
+from ImageServer import Factory, ImageEngine
 import os, shutil
  
 class AbstractIntegrationTestCase(unittest.TestCase):
