@@ -26,6 +26,12 @@ def insertAbstractItemCallback(item):
         cursor.execute(sql, (item.id, item.status, item.width, item.height, item.format))
     return insertAbstractItem
 
+def updateAbstractItemCallback(item):
+    def updateAbstractItem(cursor):
+        sql = """ UPDATE abstract_item SET status=?, width=?, height=?, format=? """
+        cursor.execute(sql, (item.status, item.width, item.height, item.format))
+    return updateAbstractItem
+
 class ItemRepository():
     """ DDD repository for Original and Derived Items """
     def __init__(self, persistenceProvider):
@@ -80,6 +86,24 @@ class ItemRepository():
                 raise ValueError("Item not recognized: %s" % type(item))
         except sqlite3.IntegrityError:
             raise DuplicateEntryException, item.id
+    
+    def update(self, item):
+        if type(item) == Domain.OriginalItem:
+            self.__updateOriginalItem(item)
+        elif type(item) == Domain.DerivedItem:
+            self.__updateDerivedItem(item)
+        else:
+            raise ValueError("Item not recognized: %s" % type(item))
+    
+    def __updateOriginalItem(self, item):
+        self.__persistenceProvider.doWithCursor(updateAbstractItemCallback(item))
+    
+    def __updateDerivedItem(self, item):
+        def updateDerivedItem(cursor):
+            sql = """ UPDATE derived_item SET original_item_id=? """
+            cursor.execute(sql, (item.originalItem.id,))
+            
+        self.__persistenceProvider.doWithCursor(updateAbstractItemCallback(item), updateDerivedItem)
     
     def __createOriginalItem(self, item):
         def insertOriginalItem(cursor):
