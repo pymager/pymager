@@ -101,6 +101,15 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         self.itemRepository.create(item)
         foundItem = self.itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('ANOTHERID', (100,100),'JPEG')
         assert foundItem is None
+        
+    def testShouldNotFindAnyDerivedItemIfFormatNotMatch(self):
+        originalItem = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), 'JPEG')
+        self.itemRepository.create(originalItem)
+        
+        item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), 'JPEG', originalItem)
+        self.itemRepository.create(item)
+        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (100,100),'JPEG2')
+        assert foundItem is None
     
     def testSaveTwoOriginalItemsWithSameIDShouldThrowException(self):
         item = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), 'JPEG')
@@ -127,6 +136,8 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
             assert 'MYID12435-100x100-JPEG' == ex.duplicateId
         else:
             self.fail()
+            
+        
         
 
 def suite():
