@@ -24,7 +24,6 @@ class AbstractIntegrationTestCase(unittest.TestCase):
     def tearDown(self):
         unittest.TestCase.tearDown(self)
         (getattr(self, 'onTearDown') if hasattr(self, 'onTearDown') else (lambda: None))()
-        self.__cleanup__()
         
         #self.imageServerFactory.getConnection().close()
     
