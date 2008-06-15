@@ -17,12 +17,28 @@ LOCK_WAIT_SECONDS = 1
 
 def checkid(imageId):
     if not imageId.isalnum():
-        raise ImageProcessingException, 'ID contains non alpha numeric characters: %s' % imageId
+        raise IDNotAuthorized, imageId
             
 class ImageProcessingException(Exception):
     """Thrown when errors happen while processing images """
     def __init__(self, message):
-        Exception.__init__(self, message)
+        super(ImageProcessingException, self).__init__(message)
+        
+
+class IDNotAuthorized(ImageProcessingException):
+    def __init__(self, imageId):
+        super(IDNotAuthorized, self).__init__('ID contains non alpha numeric characters: %s' % (imageId,))
+        self.imageId = imageId
+
+class ImageFileNotRecognized(ImageProcessingException):
+    def __init__(self, ex):
+        super(ImageFileNotRecognized, self).__init__(ex)
+
+class ImageIDAlreadyExistingException(ImageProcessingException):
+    def __init__(self, imageId):
+        super(ImageIDAlreadyExistingException, self).__init__('An image with the given ID already exists in the repository: %s' % imageId)
+        self.imageId = imageId
+
 
 class TransformationRequest(object):
     """ Stores the parameters of an image processing request """
@@ -84,18 +100,20 @@ class ImageRequestProcessor(object):
         It will then be available for transformations"""
         
         checkid(imageId)
-        img = Image.open(filename)
-        
         # Check that the image is not broken
-        img = Image.open(filename)
-        img.verify()
+        try:
+            img = Image.open(filename)
+            img.verify()
+        except IOError, ex:
+            raise ImageFileNotRecognized, ex
         
         item = Domain.OriginalItem(imageId, Domain.STATUS_INCONSISTENT, img.size, img.format)
 
         try:
+            # atomic creation
             self.__itemRepository.create(item)
         except Persistence.DuplicateEntryException, ex:
-            raise ImageProcessingException, 'an image with the given ID already exists in the repository'
+            raise ImageIDAlreadyExistingException, item.id
         else:
             try:
                 shutil.copyfile(filename, self.__absoluteOriginalFilename(item))

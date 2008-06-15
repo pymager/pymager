@@ -15,8 +15,10 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         unittest.TestCase.setUp(self)
         self.__cleanup__()
         
+        
         self.imageServerFactory = Factory.ImageServerFactory()
         self.imgProcessor = self.imageServerFactory.createImageServer(AbstractIntegrationTestCase.DATA_DIRECTORY, [(100,100), (800,800)])
+        self.itemRepository = self.imageServerFactory.getItemRepository()
     
         (getattr(self, 'onSetUp') if hasattr(self, 'onSetUp') else (lambda: None))()  
         
