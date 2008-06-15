@@ -71,7 +71,7 @@ class ImageRequestProcessor(object):
     def __relativeCachedFilename(self, derivedItem):
         """ relative to the base directory """
         return os.path.join ( CACHE_DIRECTORY, 
-                              '%s-%sx%s.%s' % (derivedItem.id, derivedItem.size[0], derivedItem.size[1],self.__extensionForFormat(derivedItem.format)))
+                              '%s-%sx%s.%s' % (derivedItem.originalItem.id, derivedItem.size[0], derivedItem.size[1],self.__extensionForFormat(derivedItem.format)))
         
     def __extensionForFormat(self, format):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
@@ -88,7 +88,7 @@ class ImageRequestProcessor(object):
         img.verify()
         
         item = Domain.OriginalItem(image_id, Domain.STATUS_INCONSISTENT, img.size, img.format)
-        
+
         try:
             self.__itemRepository.create(item)
         except Persistence.DuplicateEntryException, ex:
@@ -101,6 +101,7 @@ class ImageRequestProcessor(object):
         
         item.status = Domain.STATUS_OK
         self.__itemRepository.update(item)
+        
     
     def prepareTransformation(self, transformation_request):
         """ Takes an ImageRequest and prepare the output for it.
@@ -120,6 +121,7 @@ class ImageRequestProcessor(object):
             return relative_cached_filename
         
         # otherwise, c'est parti to convert the stuff
+        self.__itemRepository.create(derivedItem)
         original_filename = self.__absoluteOriginalFilename(originalItem)
         try:
             img = Image.open(original_filename)
