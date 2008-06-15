@@ -106,11 +106,13 @@ class ImageRequestProcessor(object):
         self.__itemRepository.update(item)
         
     
-    def __waitForStatusOk(self, pollingCallback):
-        o = pollingCallback()
-        while o is not None and o.status != Domain.STATUS_OK:
+    def __waitForItemStatusOk(self, pollingCallback):
+        item = pollingCallback()
+        i = 0
+        while i < LOCK_MAX_RETRIES and item is not None and item.status != Domain.STATUS_OK:
             time.sleep(LOCK_WAIT_SECONDS)
-            o = pollingCallback()
+            item = pollingCallback()
+            i=i+1
         
     def prepareTransformation(self, transformationRequest):
         """ Takes an ImageRequest and prepare the output for it.
@@ -119,7 +121,7 @@ class ImageRequestProcessor(object):
         originalItem = self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
         assert originalItem is not None
         
-        self.__waitForStatusOk(lambda: self.__itemRepository.findOriginalItemById(transformationRequest.imageId))
+        self.__waitForItemStatusOk(lambda: self.__itemRepository.findOriginalItemById(transformationRequest.imageId))
         
         derivedItem = Domain.DerivedItem(Domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, originalItem)
         
@@ -135,7 +137,7 @@ class ImageRequestProcessor(object):
             self.__itemRepository.create(derivedItem)
             original_filename = self.__absoluteOriginalFilename(originalItem)
         except Persistence.DuplicateEntryException :
-            self.__waitForStatusOk(lambda: self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)) 
+            self.__waitForItemStatusOk(lambda: self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)) 
             
         try:
             img = Image.open(original_filename)
