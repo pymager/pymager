@@ -4,10 +4,13 @@ import os
 
 DB_FILENAME='db.sqlite'
 
-def createConnection(data_directory):
+def createConnectionFactoryMethod(data_directory):
     if not os.path.exists(data_directory):
         os.makedirs(data_directory)
-    return sqlite3.connect(os.path.join(data_directory, DB_FILENAME))
+    path = os.path.join(data_directory, DB_FILENAME)
+    def createConnectionCallback():
+        return sqlite3.connect(path)
+    return createConnectionCallback
 
 class DuplicateEntryException(Exception):
     """Thrown when errors happen while processing images """
@@ -121,48 +124,52 @@ class ItemRepository():
     
                            
 class SQLitePersistenceProvider():
-    def __init__(self, connection):
-        self.__connection = connection
+    def __init__(self, connectionFactoryMethod):
+        self.__connectionFactoryMethod = connectionFactoryMethod
     
     def createOrUpgradeSchema(self):
-        c = self.__connection.cursor()
+        connection = self.__connectionFactoryMethod() 
+        c = connection.cursor()
         c.execute("select count(*) from sqlite_master where type='table' and name='version'");
         val = c.fetchone()
         if val is None or val[0] == 0:
-            self.__createSchema()
+            self.__createSchema(c)
         
         c.close()
+        connection.commit()
+        connection.close()
     
     def doWithCursor(self, *callbacks):
-        c = self.__connection.cursor()
+        connection = self.__connectionFactoryMethod() 
+        c = connection.cursor()
         #c.execute('BEGIN')
         for callback in callbacks:
             obj = callback(c)
         #c.execute('COMMIT')
         c.close()
+        connection.commit()
+        connection.close()
         return obj
         
-    def __createSchema(self):
-        c = self.__connection.cursor()
-        c.execute(""" CREATE TABLE version (
+    def __createSchema(self, cursor):
+        cursor.execute(""" CREATE TABLE version (
             name    TEXT
             value    INTEGER) """)
         
-        c.execute(""" CREATE TABLE abstract_item (
+        cursor.execute(""" CREATE TABLE abstract_item (
             id    TEXT PRIMARY KEY,
             status TEXT,
             width    INTEGER,
             height    INTEGER,
             format    TEXT) """)
         
-        c.execute(""" CREATE TABLE original_item (
+        cursor.execute(""" CREATE TABLE original_item (
             id    TEXT PRIMARY KEY,
             FOREIGN KEY(id) REFERENCES abstract_item(id)) """)
         
-        c.execute(""" CREATE TABLE derived_item (
+        cursor.execute(""" CREATE TABLE derived_item (
             id    TEXT PRIMARY KEY,
             original_item_id  TEXT,
             FOREIGN KEY(id) REFERENCES abstract_item(id),
             FOREIGN KEY(original_item_id) REFERENCES original_item(id)) """)
-        c.close()
         
