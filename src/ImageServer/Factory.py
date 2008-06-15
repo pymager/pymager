@@ -1,4 +1,4 @@
-from ImageServer import Engine, Security, Persistence
+from ImageServer import ImageEngine, Security, Persistence
 import os
 
 class ImageServerFactory(object):
@@ -33,7 +33,7 @@ class ImageServerFactory(object):
         
         self.__itemRepository = Persistence.ItemRepository(self.__persistenceProvider)
         
-        self.__imageProcessor = Engine.ImageRequestProcessor(self.__itemRepository, data_directory)
+        self.__imageProcessor = ImageEngine.ImageRequestProcessor(self.__itemRepository, data_directory)
         self.__imageProcessor.prepareTransformation =  Security.imageTransformationSecurityDecorator(allowed_sizes)(self.__imageProcessor.prepareTransformation)
         return self.__imageProcessor
     
