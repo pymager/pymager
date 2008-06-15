@@ -23,14 +23,14 @@ class ImageProcessingException(Exception):
 
 class TransformationRequest(object):
     """ Stores the parameters of an image processing request """
-    def __init__(self, image_id, size, target_format):
+    def __init__(self, imageId, size, target_format):
         """ @param size: a (width, height) tuple
         """
-        checkid(image_id)
+        checkid(imageId)
         
-        self.image_id = image_id
+        self.imageId = imageId
         self.size = size
-        self.target_format = target_format
+        self.targetFormat = target_format
 
 class ImageRequestProcessor(object):
     
@@ -76,18 +76,18 @@ class ImageRequestProcessor(object):
     def __extensionForFormat(self, format):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
 
-    def saveFileToRepository(self, filename, image_id):
+    def saveFileToRepository(self, filename, imageId):
         """ save the given file to the image server repository. 
         It will then be available for transformations"""
         
-        checkid(image_id)
+        checkid(imageId)
         img = Image.open(filename)
         
         # Check that the image is not broken
         img = Image.open(filename)
         img.verify()
         
-        item = Domain.OriginalItem(image_id, Domain.STATUS_INCONSISTENT, img.size, img.format)
+        item = Domain.OriginalItem(imageId, Domain.STATUS_INCONSISTENT, img.size, img.format)
 
         try:
             self.__itemRepository.create(item)
@@ -103,15 +103,20 @@ class ImageRequestProcessor(object):
         self.__itemRepository.update(item)
         
     
-    def prepareTransformation(self, transformation_request):
+    def prepareTransformation(self, transformationRequest):
         """ Takes an ImageRequest and prepare the output for it.
             @return: the path to the generated file (relative to the cache directory) 
             """
-        originalItem = self.__itemRepository.findOriginalItemById(transformation_request.image_id)
+        originalItem = self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
         assert originalItem is not None
-        assert originalItem.status == Domain.STATUS_OK
         
-        derivedItem = Domain.DerivedItem(Domain.STATUS_INCONSISTENT, transformation_request.size, transformation_request.target_format, originalItem)
+        def doFetchOriginalItem():
+            return self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
+        
+        while(doFetchOriginalItem()  is not None and doFetchOriginalItem().status != Domain.STATUS_OK):
+            print 'supposed to wait'
+        
+        derivedItem = Domain.DerivedItem(Domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, originalItem)
         
         cached_filename = self.__absoluteCachedFilename(derivedItem)
         relative_cached_filename = self.__relativeCachedFilename(derivedItem)
@@ -121,21 +126,29 @@ class ImageRequestProcessor(object):
             return relative_cached_filename
         
         # otherwise, c'est parti to convert the stuff
-        self.__itemRepository.create(derivedItem)
-        original_filename = self.__absoluteOriginalFilename(originalItem)
+        try:
+            self.__itemRepository.create(derivedItem)
+            original_filename = self.__absoluteOriginalFilename(originalItem)
+        except Persistence.DuplicateEntryException :
+            def doGet():
+                return self.__itemRepository.findDerivedItemByOriginalItemIdAndSize(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)
+                
+            while doGet() is not None and doGet().status != Domain.STATUS_OK:
+                print 'we are supposed to wait here...'
+            
         try:
             img = Image.open(original_filename)
         except IOError, ex: 
             raise ImageProcessingException, ex
         
-        if transformation_request.size == img.size and transformation_request.target_format.upper() == img.format.upper():
+        if transformationRequest.size == img.size and transformationRequest.target_format.upper() == img.format.upper():
             try:
                 shutil.copyfile(self.__absoluteOriginalFilename(originalItem), cached_filename)
             except IOError, ex:
                 raise ImageProcessingException, ex
         else:   
             target_image = ImageOps.fit(image=img, 
-                                        size=transformation_request.size, 
+                                        size=transformationRequest.size, 
                                         method=Image.ANTIALIAS,
                                         centering=(0.5,0.5)) 
             try:
