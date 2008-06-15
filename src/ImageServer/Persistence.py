@@ -9,6 +9,19 @@ def createConnection(data_directory):
         os.makedirs(data_directory)
     return sqlite3.connect(os.path.join(data_directory, DB_FILENAME))
 
+class DuplicateEntryException(Exception):
+    """Thrown when errors happen while processing images """
+    def __init__(self, duplicateId):
+        self.__duplicateId = duplicateId
+        Exception.__init__(self, 'Duplicated ID: %s' % duplicateId)
+
+    def getDuplicateId(self):
+        return self.__duplicateId
+    
+    duplicateId = property(getDuplicateId, None, None, "DuplicateId's Docstring")
+
+    
+
 class ItemRepository():
     """ DDD repository for Original and Derived Items """
     def __init__(self, persistenceProvider):
@@ -54,12 +67,16 @@ class ItemRepository():
     
     
     def create(self, item):
-        if type(item) == Domain.OriginalItem:
-            self.__createOriginalItem(item)
-        elif type(item) == Domain.DerivedItem:
-            self.__createDerivedItem(item)
-        else:
-            raise ValueError("Item not recognized: %s" % type(item))
+        try:
+            if type(item) == Domain.OriginalItem:
+                self.__createOriginalItem(item)
+            elif type(item) == Domain.DerivedItem:
+                self.__createDerivedItem(item)
+            else:
+                raise ValueError("Item not recognized: %s" % type(item))
+        except sqlite3.IntegrityError:
+            raise DuplicateEntryException, item.id
+        
     
     def __createOriginalItem(self, item):
         def insertAbstractItem(cursor):

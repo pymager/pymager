@@ -29,7 +29,6 @@ class AbstractItem(object):
     def getWidth(self):
         return self.__width
 
-
     def getHeight(self):
         return self.__height
 

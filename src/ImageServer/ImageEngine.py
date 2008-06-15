@@ -20,7 +20,7 @@ class ImageProcessingException(Exception):
     def __init__(self, message):
         Exception.__init__(self, message)
 
-class TransformationRequest():
+class TransformationRequest(object):
     """ Stores the parameters of an image processing request """
     def __init__(self, image_id, size, target_format):
         """ @param size: a (width, height) tuple
@@ -31,7 +31,7 @@ class TransformationRequest():
         self.size = size
         self.target_format = target_format
 
-class ImageRequestProcessor():
+class ImageRequestProcessor(object):
     
     """ Processes ImageRequest objects and does the required work to prepare the images """
     def __init__(self, itemRepository, dataDirectory):
