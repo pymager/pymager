@@ -76,7 +76,6 @@ class ItemRepository():
                 raise ValueError("Item not recognized: %s" % type(item))
         except sqlite3.IntegrityError:
             raise DuplicateEntryException, item.id
-        
     
     def __createOriginalItem(self, item):
         def insertAbstractItem(cursor):
