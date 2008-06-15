@@ -1,6 +1,7 @@
 import Image, ImageOps
 import mimetypes
 import os, os.path, shutil
+from ImageServer import Domain, Persistence
 
 # Relative to the data_directory
 CACHE_DIRECTORY = "cache"
@@ -58,19 +59,19 @@ class ImageRequestProcessor(object):
         before processing"""
         return os.path.join (self.__dataDirectory, ORIGINAL_DIRECTORY)
     
-    def __absoluteOriginalFilename(self, image_id):
+    def __absoluteOriginalFilename(self, originalItem):
         """ returns the filename of the original file """
-        return os.path.join (self.__absoluteOriginalDirectory(), image_id)
+        return os.path.join (self.__absoluteOriginalDirectory(), '%s.%s' % (originalItem.id, self.__extensionForFormat(originalItem.format)))
     
-    def __absoluteCachedFilename(self, image_id, size, format):
+    def __absoluteCachedFilename(self, derivedItem):
         
         return os.path.join( self.__dataDirectory,
-                            self.__relativeCachedFilename(image_id, size, format))
+                            self.__relativeCachedFilename(derivedItem))
     
-    def __relativeCachedFilename(self, image_id, size, format):
+    def __relativeCachedFilename(self, derivedItem):
         """ relative to the base directory """
         return os.path.join ( CACHE_DIRECTORY, 
-                              '%s-%sx%s.%s' % (image_id, size[0], size[1],self.__extensionForFormat(format)) )
+                              '%s-%sx%s.%s' % (derivedItem.id, derivedItem.size[0], derivedItem.size[1],self.__extensionForFormat(derivedItem.format)))
         
     def __extensionForFormat(self, format):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
@@ -80,36 +81,46 @@ class ImageRequestProcessor(object):
         It will then be available for transformations"""
         
         checkid(image_id)
-        
-        if os.path.exists(self.__absoluteOriginalFilename(image_id)):
-            raise ImageProcessingException, 'an image with the given ID already exists in the repository'
+        img = Image.open(filename)
         
         # Check that the image is not broken
-        Image.open(filename).verify()
+        img = Image.open(filename)
+        img.verify()
+        
+        item = Domain.OriginalItem(image_id, Domain.STATUS_INCONSISTENT, img.size, img.format)
         
         try:
-            shutil.copyfile(filename, self.__absoluteOriginalFilename(image_id))
-        except IOError, ex:
-            raise ImageProcessingException, ex
+            self.__itemRepository.create(item)
+        except Persistence.DuplicateEntryException, ex:
+            raise ImageProcessingException, 'an image with the given ID already exists in the repository'
+        else:
+            try:
+                shutil.copyfile(filename, self.__absoluteOriginalFilename(item))
+            except IOError, ex:
+                raise ImageProcessingException, ex
+        
+        item.status = Domain.STATUS_OK
+        self.__itemRepository.update(item)
     
     def prepareTransformation(self, transformation_request):
         """ Takes an ImageRequest and prepare the output for it.
             @return: the path to the generated file (relative to the cache directory) 
             """
-        cached_filename = self.__absoluteCachedFilename(transformation_request.image_id, 
-                                                 transformation_request.size, 
-                                                 transformation_request.target_format)
-        relative_cached_filename = self.__relativeCachedFilename(transformation_request.image_id, 
-                                               transformation_request.size, 
-                                               transformation_request.target_format)
+        originalItem = self.__itemRepository.findOriginalItemById(transformation_request.image_id)
+        assert originalItem is not None
+        assert originalItem.status == Domain.STATUS_OK
+        
+        derivedItem = Domain.DerivedItem(Domain.STATUS_INCONSISTENT, transformation_request.size, transformation_request.target_format, originalItem)
+        
+        cached_filename = self.__absoluteCachedFilename(derivedItem)
+        relative_cached_filename = self.__relativeCachedFilename(derivedItem)
 
+        # if image is already cached...
         if os.path.exists(cached_filename):
             return relative_cached_filename
         
-        cached_filename = self.__absoluteCachedFilename(transformation_request.image_id, 
-                                                 transformation_request.size, 
-                                                 transformation_request.target_format)
-        original_filename = self.__absoluteOriginalFilename(transformation_request.image_id)
+        # otherwise, c'est parti to convert the stuff
+        original_filename = self.__absoluteOriginalFilename(originalItem)
         try:
             img = Image.open(original_filename)
         except IOError, ex: 
@@ -117,8 +128,7 @@ class ImageRequestProcessor(object):
         
         if transformation_request.size == img.size and transformation_request.target_format.upper() == img.format.upper():
             try:
-                shutil.copyfile(self.__absoluteOriginalFilename(transformation_request.image_id), 
-                                cached_filename)
+                shutil.copyfile(self.__absoluteOriginalFilename(originalItem), cached_filename)
             except IOError, ex:
                 raise ImageProcessingException, ex
         else:   
@@ -130,6 +140,9 @@ class ImageRequestProcessor(object):
                 target_image.save(cached_filename)
             except IOError, ex:
                 raise ImageProcessingException, ex
+        
+        derivedItem.status = Domain.STATUS_OK
+        self.__itemRepository.update(derivedItem)
         
         return cached_filename
     
