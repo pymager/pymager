@@ -1,12 +1,15 @@
 import Image, ImageOps
 import mimetypes
-import os, os.path, shutil
+import os, os.path, shutil, time
 from ImageServer import Domain, Persistence
 
 # Relative to the data_directory
 CACHE_DIRECTORY = "cache"
 ORIGINAL_DIRECTORY = "pictures"
 FORMAT_EXTENSIONS = { "JPEG" : "jpg" }
+
+LOCK_MAX_RETRIES = 10
+LOCK_WAIT_SECONDS = 1
 
 # Layout
 # data/original/image_id.format
@@ -103,6 +106,12 @@ class ImageRequestProcessor(object):
         self.__itemRepository.update(item)
         
     
+    def __waitForStatusOk(self, pollingCallback):
+        o = pollingCallback()
+        while o is not None and o.status != Domain.STATUS_OK:
+            time.sleep(LOCK_WAIT_SECONDS)
+            o = pollingCallback()
+        
     def prepareTransformation(self, transformationRequest):
         """ Takes an ImageRequest and prepare the output for it.
             @return: the path to the generated file (relative to the cache directory) 
@@ -110,11 +119,7 @@ class ImageRequestProcessor(object):
         originalItem = self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
         assert originalItem is not None
         
-        def doFetchOriginalItem():
-            return self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
-        
-        while(doFetchOriginalItem()  is not None and doFetchOriginalItem().status != Domain.STATUS_OK):
-            print 'supposed to wait'
+        self.__waitForStatusOk(lambda: self.__itemRepository.findOriginalItemById(transformationRequest.imageId))
         
         derivedItem = Domain.DerivedItem(Domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, originalItem)
         
@@ -130,11 +135,7 @@ class ImageRequestProcessor(object):
             self.__itemRepository.create(derivedItem)
             original_filename = self.__absoluteOriginalFilename(originalItem)
         except Persistence.DuplicateEntryException :
-            def doGet():
-                return self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)
-                
-            while doGet() is not None and doGet().status != Domain.STATUS_OK:
-                print 'we are supposed to wait here...'
+            self.__waitForStatusOk(lambda: self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)) 
             
         try:
             img = Image.open(original_filename)
