@@ -2,6 +2,8 @@
 STATUS_INCONSISTENT = 'INCONSISTENT'
 STATUS_OK = 'OK'
 
+IMAGE_FORMAT_JPEG = 'JPEG'
+
 class AbstractItem(object):
     def __init__(self, itemId, status, size, format):
         super(AbstractItem, self).__init__()

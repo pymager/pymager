@@ -184,7 +184,7 @@ class ImageRequestProcessor(object):
         derivedItem.status = Domain.STATUS_OK
         self.__itemRepository.update(derivedItem)
         
-        return cached_filename
+        return relative_cached_filename
     
     
 

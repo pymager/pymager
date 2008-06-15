@@ -129,16 +129,12 @@ class SQLitePersistenceProvider():
         self.__connectionFactoryMethod = connectionFactoryMethod
     
     def createOrUpgradeSchema(self):
-        connection = self.__connectionFactoryMethod() 
-        c = connection.cursor()
-        c.execute("select count(*) from sqlite_master where type='table' and name='version'");
-        val = c.fetchone()
-        if val is None or val[0] == 0:
-            self.__createSchema(c)
-        
-        c.close()
-        connection.commit()
-        connection.close()
+        def doIt(c):
+            c.execute("select count(*) from sqlite_master where type='table' and name='version'");
+            val = c.fetchone()
+            if val is None or val[0] == 0:
+                self.__createSchema(c)
+        self.doWithCursor(doIt)
     
     def doWithCursor(self, *callbacks):
         connection = self.__connectionFactoryMethod() 
