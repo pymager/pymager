@@ -20,7 +20,11 @@ class DuplicateEntryException(Exception):
     
     duplicateId = property(getDuplicateId, None, None, "DuplicateId's Docstring")
 
-    
+def insertAbstractItemCallback(item):
+    def insertAbstractItem(cursor):
+        sql = """ INSERT INTO abstract_item (id, status, width, height, format)  VALUES (?, ?, ?, ?, ?) """
+        cursor.execute(sql, (item.id, item.status, item.width, item.height, item.format))
+    return insertAbstractItem
 
 class ItemRepository():
     """ DDD repository for Original and Derived Items """
@@ -78,27 +82,18 @@ class ItemRepository():
             raise DuplicateEntryException, item.id
     
     def __createOriginalItem(self, item):
-        def insertAbstractItem(cursor):
-            sql = """ INSERT INTO abstract_item (id, status, width, height, format)  VALUES (?, ?, ?, ?, ?) """
-            cursor.execute(sql, (item.id, item.status, item.width, item.height, item.format))
-        
         def insertOriginalItem(cursor):
             sql = """ INSERT INTO original_item (id) VALUES (?) """
             cursor.execute(sql, (item.id,))
             
-        self.__persistenceProvider.doWithCursor(insertAbstractItem, insertOriginalItem)
+        self.__persistenceProvider.doWithCursor(insertAbstractItemCallback(item), insertOriginalItem)
     
     def __createDerivedItem(self, item):
-        def insertAbstractItem(cursor):
-            sql = """ INSERT INTO abstract_item (id, status, width, height, format) 
-                    VALUES (?, ?, ?, ?, ?) """
-            cursor.execute(sql, (item.id, item.status, item.width, item.height, item.format))
-            
         def insertDerivedItem(cursor):
             sql = """ INSERT INTO derived_item (id, original_item_id) VALUES (?,?) """
             cursor.execute(sql, (item.id, item.originalItem.id,))
             
-        self.__persistenceProvider.doWithCursor(insertAbstractItem, insertDerivedItem)
+        self.__persistenceProvider.doWithCursor(insertAbstractItemCallback(item), insertDerivedItem)
     
                            
 class SQLitePersistenceProvider():
