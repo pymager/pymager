@@ -107,6 +107,9 @@ class ImageRequestProcessor(object):
         
     
     def __waitForItemStatusOk(self, pollingCallback):
+        """ Wait for the status property of the object returned by pollingCallback() to be STATUS_OK
+        It honors LOCK_MAX_RETRIES and LOCK_WAIT_SECONDS
+        """
         item = pollingCallback()
         i = 0
         while i < LOCK_MAX_RETRIES and item is not None and item.status != Domain.STATUS_OK:
@@ -115,7 +118,8 @@ class ImageRequestProcessor(object):
             i=i+1
         
     def prepareTransformation(self, transformationRequest):
-        """ Takes an ImageRequest and prepare the output for it.
+        """ Takes an ImageRequest and prepare the output for it. 
+            Updates the database so that it is in sync with the filesystem
             @return: the path to the generated file (relative to the cache directory) 
             """
         originalItem = self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
