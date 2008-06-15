@@ -131,7 +131,7 @@ class ImageRequestProcessor(object):
             original_filename = self.__absoluteOriginalFilename(originalItem)
         except Persistence.DuplicateEntryException :
             def doGet():
-                return self.__itemRepository.findDerivedItemByOriginalItemIdAndSize(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)
+                return self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)
                 
             while doGet() is not None and doGet().status != Domain.STATUS_OK:
                 print 'we are supposed to wait here...'

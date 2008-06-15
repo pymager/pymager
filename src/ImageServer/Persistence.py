@@ -56,7 +56,7 @@ class ItemRepository():
             return item
         return self.__persistenceProvider.doWithCursor(callback)
 
-    def findDerivedItemByOriginalItemIdAndSize(self, item_id, size, format=None):
+    def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
         def callback(cursor):
             # id, status, width, height, format
             sql = """ SELECT ai.id, ai.status, ai.width, ai.height, ai.format, 
@@ -66,8 +66,9 @@ class ItemRepository():
                 AND original_item.id = di.original_item_id
                 AND original_item.id = ?
                 AND ai.width = ?
-                AND ai.height= ? """
-            cursor.execute(sql, (item_id, size[0], size[1]))
+                AND ai.height= ?
+                AND ai.format = ? """
+            cursor.execute(sql, (item_id, size[0], size[1], format))
             row = cursor.fetchone()
             item = None
             if row is not None:

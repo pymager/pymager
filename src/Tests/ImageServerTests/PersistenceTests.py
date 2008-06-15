@@ -41,7 +41,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         
         item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), 'JPEG', originalItem)
         self.itemRepository.create(item)
-        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdAndSize('MYID12435', (100,100))
+        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (100,100),'JPEG')
         assert foundItem is not None
         assert foundItem.status == Domain.STATUS_OK
         assert foundItem.width == 100
@@ -57,13 +57,13 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         foundItem = self.itemRepository.findOriginalItemById('MYID12435')
         assert foundItem is None
         
-    def testShouldSaveAndFindDerivedItemByOriginalItemIdAndSize(self):
+    def testShouldSaveAndFindDerivedItemByOriginalItemIdSizeAndFormat(self):
         originalItem = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), 'JPEG')
         self.itemRepository.create(originalItem)
         
         item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), 'JPEG', originalItem)
         self.itemRepository.create(item)
-        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdAndSize('MYID12435', (100,100))
+        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (100,100), 'JPEG')
         assert foundItem is not None
         assert foundItem.status == Domain.STATUS_OK
         assert foundItem.width == 100
@@ -81,7 +81,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         
         item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), 'JPEG', originalItem)
         self.itemRepository.create(item)
-        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdAndSize('MYID12435', (101,100))
+        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (101,100), 'JPEG')
         assert foundItem is None
         
     def testShouldNotFindAnyDerivedItemIfHeightDoesNotMatch(self):
@@ -90,7 +90,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         
         item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), 'JPEG', originalItem)
         self.itemRepository.create(item)
-        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdAndSize('MYID12435', (100,101))
+        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (100,101), 'JPEG')
         assert foundItem is None
     
     def testShouldNotFindAnyDerivedItemIfIdDoesNotMatch(self):
@@ -99,7 +99,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         
         item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), 'JPEG', originalItem)
         self.itemRepository.create(item)
-        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdAndSize('ANOTHERID', (100,100))
+        foundItem = self.itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('ANOTHERID', (100,100),'JPEG')
         assert foundItem is None
     
     def testSaveTwoOriginalItemsWithSameIDShouldThrowException(self):
