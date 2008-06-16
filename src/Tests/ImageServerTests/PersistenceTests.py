@@ -137,8 +137,23 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         else:
             self.fail()
             
+    def testShouldFindInconsistentItems(self):
+        for i in range(1,15):
+            item = Domain.OriginalItem('MYID%s' %i, Domain.STATUS_INCONSISTENT, (800, 600), Domain.IMAGE_FORMAT_JPEG)
+            self.itemRepository.create(item)
         
+        for i in range(16,20):
+            item = Domain.OriginalItem('MYID%s' %i, Domain.STATUS_OK, (900, 400), Domain.IMAGE_FORMAT_JPEG)
+            self.itemRepository.create(item)    
         
+        items =  self.itemRepository.findInconsistentOriginalItems(10)
+        assert len(items) == 10
+        for i in items:
+            assert i.id in ['MYID%s' %n for n in range(1,15) ]
+            assert i.status == Domain.STATUS_INCONSISTENT
+            assert i.width == 800
+            assert i.height == 600
+            assert i.format == Domain.IMAGE_FORMAT_JPEG
 
 def suite():
     return unittest.makeSuite(PersistenceTestCase, 'test')

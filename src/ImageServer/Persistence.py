@@ -56,6 +56,18 @@ class ItemRepository():
             return item
         return self.__persistenceProvider.doWithCursor(callback)
 
+    def findInconsistentOriginalItems(self, maxResults=100):
+        def callback(cursor):
+            # id, status, width, height, format
+            sql = """ SELECT ai.id, ai.status, ai.width, ai.height, ai.format
+                FROM abstract_item ai, original_item i
+                WHERE ai.id = i.id
+                AND ai.status != 'STATUS_OK' LIMIT ?"""
+            cursor.execute(sql, (maxResults,))
+            return [Domain.OriginalItem(row[0], row[1], (row[2], row[3]), row[4]) for row in cursor]
+            
+        return self.__persistenceProvider.doWithCursor(callback)
+
     def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
         def callback(cursor):
             # id, status, width, height, format
