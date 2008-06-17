@@ -1,10 +1,10 @@
-import unittest, os, time
+import unittest, os, time, random
 from Tests import Support
 from ImageServer import ImageEngine, Domain
 from threading import Thread
 
 
-NB_THREADS = 5
+NB_THREADS = 15
 
 JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', '..','samples', 'sami.jpg')
 JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
@@ -71,11 +71,20 @@ class ImageEngineTestsCase(Support.AbstractIntegrationTestCase):
     
     def testImageRequestProcessorMultithreadedTestCase(self):
         
+        listThread = []
         for i in range(NB_THREADS):
-            MyThread(self.imgProcessor, "sami%s" %(i)).start()
-            time.sleep(1)
-            assert os.path.exists(os.path.join(Support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sami%s.jpg' %(i))) == True
-
+            currentThread = MyThread(self.imgProcessor, "sami%s" %(i))
+            currentThread.start()
+            listThread.append(currentThread)
+        
+        #Randomize sleeping float , 0.0 <= x < 1.0
+        time.sleep(random.random())
+        
+        k = 0
+        for thread in listThread:
+            thread.join()
+            assert os.path.exists(os.path.join(Support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sami%s.jpg' %(k))) == True
+            k=k+1
     
     
 
@@ -86,8 +95,10 @@ class MyThread(Thread):
         self.__imgProcessor = imgProcessor
         self.__args = args
 
+
     def run(self):
-        self.__imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, self.__args)
+            self.__imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, self.__args)
+
         
     
 def suite():
