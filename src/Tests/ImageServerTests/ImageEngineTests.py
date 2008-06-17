@@ -4,7 +4,7 @@ from ImageServer import ImageEngine, Domain
 from threading import Thread
 
 
-NB_THREADS = 50
+NB_THREADS = 5
 
 JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', '..','samples', 'sami.jpg')
 JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
@@ -73,7 +73,7 @@ class ImageEngineTestsCase(Support.AbstractIntegrationTestCase):
         
         for i in range(NB_THREADS):
             MyThread(self.imgProcessor, "sami%s" %(i)).start()
-        time.sleep(2);
+            time.sleep(1);
     
 
 class MyThread(Thread):
