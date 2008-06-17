@@ -73,7 +73,10 @@ class ImageEngineTestsCase(Support.AbstractIntegrationTestCase):
         
         for i in range(NB_THREADS):
             MyThread(self.imgProcessor, "sami%s" %(i)).start()
-            time.sleep(1);
+            time.sleep(1)
+            assert os.path.exists(os.path.join(Support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sami%s.jpg' %(i))) == True
+
+    
     
 
 class MyThread(Thread):
