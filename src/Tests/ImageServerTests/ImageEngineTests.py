@@ -1,8 +1,10 @@
-import unittest, os
+import unittest, os, time
 from Tests import Support
 from ImageServer import ImageEngine, Domain
+from threading import Thread
 
-NB_THREAD = 1
+
+NB_THREADS = 50
 
 JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', '..','samples', 'sami.jpg')
 JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
@@ -68,16 +70,22 @@ class ImageEngineTestsCase(Support.AbstractIntegrationTestCase):
         assert result2 == os.path.join('cache', 'sampleId-100x100.jpg')
     
     def testImageRequestProcessorMultithreadedTestCase(self):
-        #imageProcessor = Factory.ImageServerFactory().createImageServer('/tmp/imgserver', [(100,100), (800,800)])
+        
+        for i in range(NB_THREADS):
+            MyThread(self.imgProcessor, "sami%s" %(i)).start()
+        time.sleep(2);
+    
 
-        for i in range(NB_THREAD):
-            self.imgProcessor.saveFileToRepository('../../../samples/sami.jpg', 'sami%s' %(i))
+class MyThread(Thread):
+    
+    def __init__ (self, imgProcessor, args):
+        Thread.__init__(self)
+        self.__imgProcessor = imgProcessor
+        self.__args = args
 
-            
-                              
-       # request = ImageEngine.TransformationRequest('sami', (100,100), 'jpg')
-        #print imageProcessor.prepareTransformation(request)
-
+    def run(self):
+        self.__imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, self.__args)
+        
     
 def suite():
     return unittest.makeSuite(ImageEngineTestsCase, 'test')
