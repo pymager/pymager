@@ -3,7 +3,6 @@ import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker#, eagerload
 import logging
-
 log = logging.getLogger('Persistence')
 
 class DuplicateEntryException(Exception):
@@ -53,6 +52,14 @@ class ItemRepository(object):
         """ Find Original Items that are in an inconsistent state """
         def callback(session):
             return session.query(Domain.OriginalItem)\
+                .filter(Domain.AbstractItem._status!='STATUS_OK')\
+                .limit(maxResults).all()
+        return self.__persistenceProvider.do_with_session(callback)
+    
+    def findInconsistentDerivedItems(self, maxResults=100):
+        """ Find Derived Items that are in an inconsistent state """
+        def callback(session):
+            return session.query(Domain.DerivedItem)\
                 .filter(Domain.AbstractItem._status!='STATUS_OK')\
                 .limit(maxResults).all()
         return self.__persistenceProvider.do_with_session(callback)
