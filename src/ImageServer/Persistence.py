@@ -2,6 +2,8 @@ from ImageServer import Domain
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, eagerload
+from sqlalchemy.sql import select
+
 import os
 
 
@@ -29,7 +31,8 @@ class ItemRepository():
 
     def findInconsistentOriginalItems(self, maxResults=100):
         def callback(session):
-            return session.query(Domain.OriginalItem).filter(Domain.AbstractItem.status!='STATUS_OK').limit(maxResults).all()
+            # return session.query(Domain.OriginalItem).filter(Domain.AbstractItem.status!='STATUS_OK').limit(maxResults).all()
+            return session.query(Domain.OriginalItem).filter(Domain.OriginalItem.status!='STATUS_OK').limit(maxResults).all()
             #return session.query(Domain.OriginalItem).all()
         return self.__persistenceProvider.do_with_session(callback)    
     
@@ -37,16 +40,16 @@ class ItemRepository():
         def callback(session):
             o =  session.query(Domain.DerivedItem)\
                 .filter(Domain.OriginalItem.id==item_id)\
-                .first() 
-                #.filter_by(width=size[0])\
-                #.filter_by(height=size[1])\
-                #.filter_by(format=format)\
-                #.join('originalItem')\
-                #.filter_by(id=item_id)\
-                #.reset_joinpoint()\
+                .reset_joinpoint()\
+                .filter_by(width=size[0])\
+                .filter_by(height=size[1])\
+                .filter_by(format=format)\
+                .join('originalItem')\
+                .filter_by(id=item_id)\
+                .first()
                 
             #o =  session.query(Domain.DerivedItem).join('originalItem').first()
-            (getattr(o, 'originalItem') if hasattr(o, 'originalItem') else (lambda: None))  
+            (getattr(o, 'originalItem') if hasattr(o, 'originalItem') else (lambda: None))
             return o
         return self.__persistenceProvider.do_with_session(callback)
     
@@ -55,7 +58,7 @@ class ItemRepository():
             session.save(item)
         try:
             self.__persistenceProvider.do_with_session(callback)
-        except sqlalchemy.exceptions.IntegrityError: 
+        except sqlalchemy.exceptions.IntegrityError, ex: 
             raise DuplicateEntryException, item.id
     
     def update(self, item):
@@ -78,34 +81,44 @@ class PersistenceProvider():
             Column('value', Integer)
         )
         
-        abstract_item = Table('abstract_item', self.__metadata,
+        #abstract_item = Table('abstract_item', self.__metadata,
+        #    Column('id', String(255), primary_key=True),
+        #    Column('status', String(255), index=True, nullable=False),
+        #    Column('width', Integer, index=True, nullable=False),
+        #    Column('height', Integer, index=True, nullable=False),
+        #    Column('format', String(255), index=True, nullable=False),
+        #    Column('type', String(255), nullable=False)
+        #)
+        
+        original_item = Table('original_item', self.__metadata,
+            Column('id', String(255), primary_key=True),
+            Column('status', String(255), index=True, nullable=False),
+            Column('width', Integer, index=True, nullable=False),
+            Column('height', Integer, index=True, nullable=False),
+            Column('format', String(255), index=True, nullable=False)  
+            #Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
+            #Column('info', String(255)),
+        )
+        
+        derived_item = Table('derived_item', self.__metadata,
             Column('id', String(255), primary_key=True),
             Column('status', String(255), index=True, nullable=False),
             Column('width', Integer, index=True, nullable=False),
             Column('height', Integer, index=True, nullable=False),
             Column('format', String(255), index=True, nullable=False),
-            Column('type', String(255), nullable=False)
-        )
-        
-        original_item = Table('original_item', self.__metadata,
-            Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
-            Column('info', String(255)),
-        )
-        
-        derived_item = Table('derived_item', self.__metadata,
-            Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
             Column('original_item_id', String(255), ForeignKey('original_item.id', ondelete="CASCADE"))
         )
+        #Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
         
-        self.join = derived_item.join(original_item)
+        self.select = select([derived_item])
         
         # select_table=abstract_item.outerjoin(original_item).outerjoin(derived_item)
-        mapper(Domain.AbstractItem, abstract_item, polymorphic_on=abstract_item.c.type, polymorphic_identity='ABSTRACT_ITEM') 
-        mapper(Domain.OriginalItem, original_item, inherits=Domain.AbstractItem, polymorphic_identity='ORIGINAL_ITEM')
-        mapper(Domain.DerivedItem, derived_item, inherits=Domain.AbstractItem, 
+        #mapper(Domain.AbstractItem, abstract_item, polymorphic_on=abstract_item.c.type, polymorphic_identity='ABSTRACT_ITEM') 
+        mapper(Domain.OriginalItem, original_item) #, inherits=Domain.AbstractItem, polymorphic_identity='ORIGINAL_ITEM'
+        mapper(Domain.DerivedItem, derived_item, 
                properties={ 
                            'originalItem' : relation(Domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id)
-                           }, polymorphic_identity='DERIVED_ITEM') 
+                           }) #, inherits=Domain.AbstractItem , polymorphic_identity='DERIVED_ITEM' 
     
     def do_with_session(self, session_callback):
         session = self.__sessionmaker()
