@@ -175,10 +175,11 @@ class PersistenceProvider(object):
             
         schema_version = self.do_with_session(get_version)
         if schema_version.value == 0:
+            logging.info('Upgrading Database Schema...')
             self.__metadata.create_all(self.__engine)
             self.do_with_session(store_latest_version)
         elif schema_version == 1:
-            # nothing to do, already the latest version 
+            logging.info('Database Schema already up to date')
             pass
         else:
             raise NoUpgradeScriptError(schema_version)
