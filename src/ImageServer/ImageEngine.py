@@ -186,5 +186,6 @@ class ImageRequestProcessor(object):
         
         return relative_cached_filename
     
-    
+    def cleanupInconsistentItems(self):
+        pass
 

@@ -1,7 +1,8 @@
 from ImageServer import Domain
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
-from sqlalchemy.orm import mapper, relation, sessionmaker#, eagerload
+from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
+import threading
 import logging
 log = logging.getLogger('Persistence')
 
@@ -37,15 +38,12 @@ class ItemRepository(object):
     def __init__(self, persistenceProvider):
         self.__persistenceProvider = persistenceProvider
     
-    def findOriginalItemById(self, item_id, do_in_session=None):
+    def findOriginalItemById(self, item_id):
         """ Find an OriginalItem by its ID """
         def callback(session):
-            o =  session.query(Domain.OriginalItem)\
+            return session.query(Domain.OriginalItem)\
                 .filter(Domain.OriginalItem._id==item_id)\
                 .first()
-            if do_in_session is not None:
-                do_in_session(session, o)
-            return o
         return self.__persistenceProvider.do_with_session(callback)
 
     def findInconsistentOriginalItems(self, maxResults=100):
@@ -64,7 +62,7 @@ class ItemRepository(object):
                 .limit(maxResults).all()
         return self.__persistenceProvider.do_with_session(callback)
     
-    def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format, do_in_session=None):
+    def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
         """ Find Derived Items By :
             - the Original Item ID
             - the size of the Derived Item
@@ -79,8 +77,6 @@ class ItemRepository(object):
                     .first()
             # FIXME: http://www.sqlalchemy.org/trac/ticket/1082
             (getattr(o, '_originalItem') if hasattr(o, '_originalItem') else (lambda: None))
-            if do_in_session is not None:
-                do_in_session(session, o)
             return o
         return self.__persistenceProvider.do_with_session(callback)
     
@@ -104,6 +100,12 @@ class ItemRepository(object):
         except sqlalchemy.exceptions.IntegrityError: 
             raise DuplicateEntryException, item.id
     
+    def delete(self, item):
+        def callback(session):
+            session.refresh(item)
+            session.delete(item)
+        self.__persistenceProvider.do_with_session(callback)
+    
 
 
 class PersistenceProvider(object):
@@ -111,7 +113,8 @@ class PersistenceProvider(object):
     def __init__(self, dbstring):
         self.__engine = create_engine(dbstring, encoding='utf-8', echo=False, echo_pool=False, strategy='threadlocal')
         self.__metadata = MetaData()
-        self.__sessionmaker = sessionmaker(bind=self.__engine, autoflush=True, transactional=True)
+        self.__sessionmaker = scoped_session(sessionmaker(bind=self.__engine, autoflush=True, transactional=True))
+        self.__local = threading.local()
         
         version = Table('version', self.__metadata,
             Column('name', String(255), primary_key=True),
@@ -146,7 +149,14 @@ class PersistenceProvider(object):
                polymorphic_identity='ORIGINAL_ITEM', \
                column_prefix='_',
                properties={
-                            'derivedItems' : relation(Domain.DerivedItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id, backref='_originalItem')
+                            'derivedItems' : relation(Domain.DerivedItem, 
+                                                      primaryjoin=derived_item.c.original_item_id==original_item.c.id,
+                                                      cascade='all',
+                                                      backref='_originalItem' 
+                                                      #backref=backref('_originalItem', 
+                                                      #                cascade="refresh-expire", 
+                                                      #                primaryjoin=derived_item.c.original_item_id==original_item.c.id)
+                                                      ) 
                            }) 
         mapper(Domain.DerivedItem, derived_item, 
                properties={ 
@@ -158,10 +168,19 @@ class PersistenceProvider(object):
         self.__engine.transaction(tx_callback)
     
     def do_with_session(self, session_callback):
+        """ Simple doInTransaction method akin to Spring-JDBC/Hibernate/ORM Template
+        It doesnt't commit nor releases resources if other do_with_session() calls are pending """
         session = self.__sessionmaker()
+        self.__local.do_with_session_count = self.__local.do_with_session_count+1 if hasattr(self.__local,'do_with_session_count') and self.__local.do_with_session_count is not None else 1   
         o = session_callback(session)
-        session.commit()
-        session.close()
+        count = self.__local.do_with_session_count
+        if count == 1:
+            session.commit()
+            session.close()
+            self.__sessionmaker.remove()
+            del self.__local.do_with_session_count
+        else:
+            self.__local.do_with_session_count = count-1
         return o
     
     def createOrUpgradeSchema(self):
