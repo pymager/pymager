@@ -1,16 +1,9 @@
 from ImageServer import Domain
-import sqlite3
+import sqlalchemy
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, eagerload
 import os
 
-DB_FILENAME='db.sqlite'
-
-def createConnectionFactoryMethod(data_directory):
-    if not os.path.exists(data_directory):
-        os.makedirs(data_directory)
-    path = os.path.join(data_directory, DB_FILENAME)
-    def createConnectionCallback():
-        return sqlite3.connect(path)
-    return createConnectionCallback
 
 class DuplicateEntryException(Exception):
     """Thrown when errors happen while processing images """
@@ -23,17 +16,6 @@ class DuplicateEntryException(Exception):
     
     duplicateId = property(getDuplicateId, None, None, "DuplicateId's Docstring")
 
-def insertAbstractItemCallback(item):
-    def insertAbstractItem(cursor):
-        sql = """ INSERT INTO abstract_item (id, status, width, height, format)  VALUES (?, ?, ?, ?, ?) """
-        cursor.execute(sql, (item.id, item.status, item.width, item.height, item.format))
-    return insertAbstractItem
-
-def updateAbstractItemCallback(item):
-    def updateAbstractItem(cursor):
-        sql = """ UPDATE abstract_item SET status=?, width=?, height=?, format=? """
-        cursor.execute(sql, (item.status, item.width, item.height, item.format))
-    return updateAbstractItem
 
 class ItemRepository():
     """ DDD repository for Original and Derived Items """
@@ -41,144 +23,96 @@ class ItemRepository():
         self.__persistenceProvider = persistenceProvider
     
     def findOriginalItemById(self, item_id):
-        def callback(cursor):
-            # id, status, width, height, format
-            sql = """ SELECT ai.id, ai.status, ai.width, ai.height, ai.format
-                FROM abstract_item ai, original_item i
-                WHERE ai.id = i.id 
-                AND ai.id = ? """
-            cursor.execute(sql, (item_id,))
-            row = cursor.fetchone()
-            item = None
-            if row is not None:
-                item_id_found, item_status, item_width, item_height, item_format = row
-                item = Domain.OriginalItem(item_id_found, item_status, (item_width, item_height), item_format)
-            return item
-        return self.__persistenceProvider.doWithCursor(callback)
+        def callback(session):
+            return session.query(Domain.OriginalItem).filter(Domain.OriginalItem.id==item_id).first() 
+        return self.__persistenceProvider.do_with_session(callback)
 
     def findInconsistentOriginalItems(self, maxResults=100):
-        def callback(cursor):
-            # id, status, width, height, format
-            sql = """ SELECT ai.id, ai.status, ai.width, ai.height, ai.format
-                FROM abstract_item ai, original_item i
-                WHERE ai.id = i.id
-                AND ai.status != 'STATUS_OK' LIMIT ?"""
-            cursor.execute(sql, (maxResults,))
-            return [Domain.OriginalItem(row[0], row[1], (row[2], row[3]), row[4]) for row in cursor]
-            
-        return self.__persistenceProvider.doWithCursor(callback)
-
+        def callback(session):
+            return session.query(Domain.OriginalItem).filter(Domain.AbstractItem.status!='STATUS_OK').limit(maxResults).all()
+            #return session.query(Domain.OriginalItem).all()
+        return self.__persistenceProvider.do_with_session(callback)    
+    
     def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
-        def callback(cursor):
-            # id, status, width, height, format
-            sql = """ SELECT ai.id, ai.status, ai.width, ai.height, ai.format, 
-                            original_abstract_item.id, original_abstract_item.status, original_abstract_item.width, original_abstract_item.height, original_abstract_item.format 
-                FROM abstract_item ai, derived_item di, original_item original_item, abstract_item original_abstract_item
-                WHERE ai.id = di.id 
-                AND original_item.id = di.original_item_id
-                AND original_item.id = ?
-                AND ai.width = ?
-                AND ai.height= ?
-                AND ai.format = ? """
-            cursor.execute(sql, (item_id, size[0], size[1], format))
-            row = cursor.fetchone()
-            item = None
-            if row is not None:
-                item_id_found, item_status, item_width, item_height, item_format, original_item_id_found, original_item_status, original_item_width, original_item_height, original_item_format = row
-                original_item = Domain.OriginalItem(original_item_id_found, original_item_status, (original_item_width, original_item_height), original_item_format)
-                item = Domain.DerivedItem(item_status, (item_width, item_height), item_format, original_item)
-            return item
-        return self.__persistenceProvider.doWithCursor(callback)
-    
-    
+        def callback(session):
+            o =  session.query(Domain.DerivedItem)\
+                .filter(Domain.OriginalItem.id==item_id)\
+                .first() 
+                #.filter_by(width=size[0])\
+                #.filter_by(height=size[1])\
+                #.filter_by(format=format)\
+                #.join('originalItem')\
+                #.filter_by(id=item_id)\
+                #.reset_joinpoint()\
+                
+            #o =  session.query(Domain.DerivedItem).join('originalItem').first()
+            (getattr(o, 'originalItem') if hasattr(o, 'originalItem') else (lambda: None))  
+            return o
+        return self.__persistenceProvider.do_with_session(callback)
     
     def create(self, item):
+        def callback(session):
+            session.save(item)
         try:
-            if type(item) == Domain.OriginalItem:
-                self.__createOriginalItem(item)
-            elif type(item) == Domain.DerivedItem:
-                self.__createDerivedItem(item)
-            else:
-                raise ValueError("Item not recognized: %s" % type(item))
-        except sqlite3.IntegrityError:
+            self.__persistenceProvider.do_with_session(callback)
+        except sqlalchemy.exceptions.IntegrityError: 
             raise DuplicateEntryException, item.id
     
     def update(self, item):
-        if type(item) == Domain.OriginalItem:
-            self.__updateOriginalItem(item)
-        elif type(item) == Domain.DerivedItem:
-            self.__updateDerivedItem(item)
-        else:
-            raise ValueError("Item not recognized: %s" % type(item))
-    
-    def __updateOriginalItem(self, item):
-        self.__persistenceProvider.doWithCursor(updateAbstractItemCallback(item))
-    
-    def __updateDerivedItem(self, item):
-        def updateDerivedItem(cursor):
-            sql = """ UPDATE derived_item SET original_item_id=? """
-            cursor.execute(sql, (item.originalItem.id,))
-            
-        self.__persistenceProvider.doWithCursor(updateAbstractItemCallback(item), updateDerivedItem)
-    
-    def __createOriginalItem(self, item):
-        def insertOriginalItem(cursor):
-            sql = """ INSERT INTO original_item (id) VALUES (?) """
-            cursor.execute(sql, (item.id,))
-            
-        self.__persistenceProvider.doWithCursor(insertAbstractItemCallback(item), insertOriginalItem)
-    
-    def __createDerivedItem(self, item):
-        def insertDerivedItem(cursor):
-            sql = """ INSERT INTO derived_item (id, original_item_id) VALUES (?,?) """
-            cursor.execute(sql, (item.id, item.originalItem.id,))
-            
-        self.__persistenceProvider.doWithCursor(insertAbstractItemCallback(item), insertDerivedItem)
+        def callback(session):
+            session.save_or_update(item)
+        try:
+            self.__persistenceProvider.do_with_session(callback)
+        except sqlalchemy.exceptions.IntegrityError: 
+            raise DuplicateEntryException, item.id
     
                            
-class SQLitePersistenceProvider():
-    def __init__(self, connectionFactoryMethod):
-        self.__connectionFactoryMethod = connectionFactoryMethod
+class PersistenceProvider():
+    def __init__(self, dbstring):
+        self.__engine = create_engine(dbstring, encoding='utf-8', echo=False)
+        self.__metadata = MetaData()
+        self.__sessionmaker = sessionmaker(bind=self.__engine, autoflush=True, transactional=True)
+        
+        version = Table('version', self.__metadata,
+            Column('name', String(255), primary_key=True),
+            Column('value', Integer)
+        )
+        
+        abstract_item = Table('abstract_item', self.__metadata,
+            Column('id', String(255), primary_key=True),
+            Column('status', String(255), index=True, nullable=False),
+            Column('width', Integer, index=True, nullable=False),
+            Column('height', Integer, index=True, nullable=False),
+            Column('format', String(255), index=True, nullable=False),
+            Column('type', String(255), nullable=False)
+        )
+        
+        original_item = Table('original_item', self.__metadata,
+            Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
+            Column('info', String(255)),
+        )
+        
+        derived_item = Table('derived_item', self.__metadata,
+            Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
+            Column('original_item_id', String(255), ForeignKey('original_item.id', ondelete="CASCADE"))
+        )
+        
+        self.join = derived_item.join(original_item)
+        
+        # select_table=abstract_item.outerjoin(original_item).outerjoin(derived_item)
+        mapper(Domain.AbstractItem, abstract_item, polymorphic_on=abstract_item.c.type, polymorphic_identity='ABSTRACT_ITEM') 
+        mapper(Domain.OriginalItem, original_item, inherits=Domain.AbstractItem, polymorphic_identity='ORIGINAL_ITEM')
+        mapper(Domain.DerivedItem, derived_item, inherits=Domain.AbstractItem, 
+               properties={ 
+                           'originalItem' : relation(Domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id)
+                           }, polymorphic_identity='DERIVED_ITEM') 
+    
+    def do_with_session(self, session_callback):
+        session = self.__sessionmaker()
+        o = session_callback(session)
+        session.commit()
+        session.close()
+        return o
     
     def createOrUpgradeSchema(self):
-        def doIt(c):
-            c.execute("select count(*) from sqlite_master where type='table' and name='version'");
-            val = c.fetchone()
-            if val is None or val[0] == 0:
-                self.__createSchema(c)
-        self.doWithCursor(doIt)
-    
-    def doWithCursor(self, *callbacks):
-        connection = self.__connectionFactoryMethod() 
-        c = connection.cursor()
-        #c.execute('BEGIN')
-        for callback in callbacks:
-            obj = callback(c)
-        #c.execute('COMMIT')
-        c.close()
-        connection.commit()
-        connection.close()
-        return obj
-        
-    def __createSchema(self, cursor):
-        cursor.execute(""" CREATE TABLE version (
-            name    TEXT
-            value    INTEGER) """)
-        
-        cursor.execute(""" CREATE TABLE abstract_item (
-            id    TEXT PRIMARY KEY,
-            status TEXT,
-            width    INTEGER,
-            height    INTEGER,
-            format    TEXT) """)
-        
-        cursor.execute(""" CREATE TABLE original_item (
-            id    TEXT PRIMARY KEY,
-            FOREIGN KEY(id) REFERENCES abstract_item(id)) """)
-        
-        cursor.execute(""" CREATE TABLE derived_item (
-            id    TEXT PRIMARY KEY,
-            original_item_id  TEXT,
-            FOREIGN KEY(id) REFERENCES abstract_item(id),
-            FOREIGN KEY(original_item_id) REFERENCES original_item(id)) """)
-        
+        self.__metadata.create_all(self.__engine)

@@ -9,9 +9,6 @@ class ImageServerFactory(object):
         self.__itemRepository = None
         self.__imageProcessor = None
 
-    def getConnectionFactoryMethod(self):
-        return self.__connectionFactoryMethod
-
     def getPersistenceProvider(self):
         return self.__persistenceProvider
 
@@ -23,12 +20,11 @@ class ImageServerFactory(object):
     def getImageProcessor(self):
         return self.__imageProcessor
 
-    def createImageServer(self,data_directory, allowed_sizes):
+    def createImageServer(self,data_directory, dbstring, allowed_sizes):
         if not os.path.exists(data_directory):
             os.makedirs(data_directory)
         
-        self.__connectionFactoryMethod = Persistence.createConnectionFactoryMethod(data_directory)
-        self.__persistenceProvider = Persistence.SQLitePersistenceProvider(self.__connectionFactoryMethod)
+        self.__persistenceProvider = Persistence.PersistenceProvider(dbstring)
         self.__persistenceProvider.createOrUpgradeSchema()
         
         self.__itemRepository = Persistence.ItemRepository(self.__persistenceProvider)
@@ -40,4 +36,3 @@ class ImageServerFactory(object):
     persistenceProvider = property(getPersistenceProvider, None, None, "PersistenceProvider's Docstring")
     itemRepository = property(getItemRepository, None, None, "ItemRepository's Docstring")
     imageProcessor = property(getImageProcessor, None, None, "ImageProcessor's Docstring")
-    connectionFactoryMethod = property(getConnectionFactoryMethod, None, None, "Connection's Docstring")

@@ -3,6 +3,7 @@
 # requirements: 
 # - python2.5
 # - python-imaging
+# - python-sqlalchemy (+ python-pysqlite2 if using the SQLite backend)
 # Not yet:
 # - python-pmock ?
 # - python-configobj?
