@@ -6,6 +6,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
     
     def onSetUp(self):
         self._itemRepository = self._imageServerFactory.getItemRepository() 
+        self._persistenceProvider = self._imageServerFactory.getPersistenceProvider()
     
     def testShouldNotFindAnyItemWhenIdDoesNotExist(self):
         assert self._itemRepository.findOriginalItemById('anyId') is None
@@ -74,18 +75,21 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         assert foundItem.originalItem.width == 800
         assert foundItem.originalItem.height == 600
         assert foundItem.originalItem.format == Domain.IMAGE_FORMAT_JPEG
-    
+        
     def testShouldFindDerivedItemsFromOriginalItem(self):
         originalItem = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), Domain.IMAGE_FORMAT_JPEG)
         self._itemRepository.create(originalItem)
         
         item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), Domain.IMAGE_FORMAT_JPEG, originalItem)
         self._itemRepository.create(item)
-        foundItem = self._itemRepository.findOriginalItemById('MYID12435')
-        #assert foundItem is not None
-        #assert foundItem.derivedItems is not None
-        #assert len(foundItem.derivedItems) == 1
-        #assert foundItem.derivedItems[0].id == item.id
+        
+        def callback(session, foundItem):    
+            assert foundItem is not None
+            assert foundItem.derivedItems is not None
+            assert len(foundItem.derivedItems) == 1
+            assert foundItem.derivedItems[0].id == item.id
+        
+        self._itemRepository.findOriginalItemById('MYID12435', callback)
     
     def testShouldNotFindAnyDerivedItemIfWidthDoesNotMatch(self):
         originalItem = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), Domain.IMAGE_FORMAT_JPEG)

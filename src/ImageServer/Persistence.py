@@ -38,12 +38,15 @@ class ItemRepository(object):
     def __init__(self, persistenceProvider):
         self.__persistenceProvider = persistenceProvider
     
-    def findOriginalItemById(self, item_id):
+    def findOriginalItemById(self, item_id, do_in_session=None):
         """ Find an OriginalItem by its ID """
         def callback(session):
-            return session.query(Domain.OriginalItem)\
+            o =  session.query(Domain.OriginalItem)\
                 .filter(Domain.OriginalItem._id==item_id)\
                 .first()
+            if do_in_session is not None:
+                do_in_session(session, o)
+            return o
         return self.__persistenceProvider.do_with_session(callback)
 
     def findInconsistentOriginalItems(self, maxResults=100):
@@ -54,7 +57,7 @@ class ItemRepository(object):
                 .limit(maxResults).all()
         return self.__persistenceProvider.do_with_session(callback)
     
-    def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
+    def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format, do_in_session=None):
         """ Find Derived Items By :
             - the Original Item ID
             - the size of the Derived Item
@@ -68,7 +71,9 @@ class ItemRepository(object):
                     .filter_by(_id=item_id)\
                     .first()
             # FIXME: http://www.sqlalchemy.org/trac/ticket/1082
-            (getattr(o, '_originalItem') if hasattr(o, '_originalItem') else (lambda: None))  
+            (getattr(o, '_originalItem') if hasattr(o, '_originalItem') else (lambda: None))
+            if do_in_session is not None:
+                do_in_session(session, o)
             return o
         return self.__persistenceProvider.do_with_session(callback)
     
@@ -97,7 +102,7 @@ class ItemRepository(object):
 class PersistenceProvider(object):
     """ Manages the Schema, Metadata, and stores references to the Engine and Session Maker """
     def __init__(self, dbstring):
-        self.__engine = create_engine(dbstring, encoding='utf-8', echo=False, strategy='threadlocal')
+        self.__engine = create_engine(dbstring, encoding='utf-8', echo=False, echo_pool=False, strategy='threadlocal')
         self.__metadata = MetaData()
         self.__sessionmaker = sessionmaker(bind=self.__engine, autoflush=True, transactional=True)
         

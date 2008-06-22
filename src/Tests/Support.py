@@ -20,7 +20,7 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         self._imageServerFactory = Factory.ImageServerFactory()
         self._imgProcessor = self._imageServerFactory.createImageServer(AbstractIntegrationTestCase.DATA_DIRECTORY, 'sqlite:///:memory:', [(100,100), (800,800)])
         self._itemRepository = self._imageServerFactory.getItemRepository()
-        self._persistenceProvider = self._imageServerFactory.getPersistenceProvider()
+        
     
         (getattr(self, 'onSetUp') if hasattr(self, 'onSetUp') else (lambda: None))()  
         
