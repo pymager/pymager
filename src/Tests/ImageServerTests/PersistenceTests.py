@@ -2,6 +2,11 @@ import unittest
 from ImageServer import Domain, Persistence
 from Tests import Support
 
+def _dateTimesAreConsideredEqual(datetime1, datetime2):
+    delta = datetime1 - datetime2
+    assert delta.days == 0
+    assert delta.seconds == 0
+
 class PersistenceTestCase(Support.AbstractIntegrationTestCase):
     
     def onSetUp(self):
@@ -21,6 +26,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         assert foundItem.width == 800
         assert foundItem.height == 600
         assert foundItem.format == Domain.IMAGE_FORMAT_JPEG
+        _dateTimesAreConsideredEqual(item.lastStatusChangeDate, foundItem.lastStatusChangeDate)
     
     def testShouldUpdateOriginalItem(self):
         item = Domain.OriginalItem('MYID12435', Domain.STATUS_INCONSISTENT, (800, 600), Domain.IMAGE_FORMAT_JPEG)
@@ -34,6 +40,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         assert foundItem.width == 800
         assert foundItem.height == 600
         assert foundItem.format == Domain.IMAGE_FORMAT_JPEG
+        _dateTimesAreConsideredEqual(item.lastStatusChangeDate, foundItem.lastStatusChangeDate)
 
     
     def testShouldUpdateDerivedItem(self):
@@ -53,6 +60,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         assert foundItem.originalItem.width == 800
         assert foundItem.originalItem.height == 600
         assert foundItem.originalItem.format == Domain.IMAGE_FORMAT_JPEG
+        _dateTimesAreConsideredEqual(item.lastStatusChangeDate, foundItem.lastStatusChangeDate)
     
     def testShouldNotFindAnyOriginalItem(self):
         foundItem = self._itemRepository.findOriginalItemById('MYID12435')
@@ -75,6 +83,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         assert foundItem.originalItem.width == 800
         assert foundItem.originalItem.height == 600
         assert foundItem.originalItem.format == Domain.IMAGE_FORMAT_JPEG
+        _dateTimesAreConsideredEqual(item.lastStatusChangeDate, foundItem.lastStatusChangeDate)
         
     def testShouldFindDerivedItemsFromOriginalItem(self):
         originalItem = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), Domain.IMAGE_FORMAT_JPEG)

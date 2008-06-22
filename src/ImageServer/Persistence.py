@@ -1,6 +1,6 @@
 from ImageServer import Domain
 import sqlalchemy
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey#, UniqueConstraint
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker#, eagerload
 import logging
 
@@ -114,6 +114,7 @@ class PersistenceProvider(object):
         abstract_item = Table('abstract_item', self.__metadata,
             Column('id', String(255), primary_key=True),
             Column('status', String(255), index=True, nullable=False),
+            Column('lastStatusChangeDate', DateTime, index=True, nullable=False),
             Column('width', Integer, index=True, nullable=False),
             Column('height', Integer, index=True, nullable=False),
             Column('format', String(255), index=True, nullable=False),
