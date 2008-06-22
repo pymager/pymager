@@ -80,7 +80,7 @@ foundItem = session.query(DerivedItem)\
     .filter_by(width=100)\
     .filter_by(height=100)\
     .filter_by(format=IMAGE_FORMAT_JPEG)\
-    .join('originalItem')\
+    .join('originalItem', aliased=True)\
     .filter_by(id='MYID12435')\
     .first()
 

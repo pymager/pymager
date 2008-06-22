@@ -53,7 +53,7 @@ class ItemRepository(object):
             # FIXME: uncomment when inheritance bug is solved
             # return session.query(Domain.OriginalItem).filter(Domain.AbstractItem.status!='STATUS_OK').limit(maxResults).all()
             return session.query(Domain.OriginalItem)\
-                .filter(Domain.OriginalItem._status!='STATUS_OK')\
+                .filter(Domain.AbstractItem._status!='STATUS_OK')\
                 .limit(maxResults).all()
             #return session.query(Domain.OriginalItem).all()
         return self.__persistenceProvider.do_with_session(callback)    
@@ -64,13 +64,15 @@ class ItemRepository(object):
             - the size of the Derived Item
             - the format of the Derived Item """
         def callback(session):
-            return session.query(Domain.DerivedItem)\
+            o = session.query(Domain.DerivedItem)\
                     .filter_by(_width=size[0])\
                     .filter_by(_height=size[1])\
                     .filter_by(_format=format)\
-                    .join('_originalItem')\
+                    .join('_originalItem', aliased=True)\
                     .filter_by(_id=item_id)\
                     .first()
+            (getattr(o, '_originalItem') if hasattr(o, '_originalItem') else (lambda: None))  
+            return o
         return self.__persistenceProvider.do_with_session(callback)
     
     def create(self, item):
@@ -108,42 +110,42 @@ class PersistenceProvider(object):
         )
         
         # FIXME: inheritance bug...
-        #abstract_item = Table('abstract_item', self.__metadata,
-        #    Column('id', String(255), primary_key=True),
-        #    Column('status', String(255), index=True, nullable=False),
-        #    Column('width', Integer, index=True, nullable=False),
-        #    Column('height', Integer, index=True, nullable=False),
-        #    Column('format', String(255), index=True, nullable=False),
-        #    Column('type', String(255), nullable=False)
-        #)
-        
-        original_item = Table('original_item', self.__metadata,
-            Column('id', String(255), primary_key=True),
-            Column('status', String(255), index=True, nullable=False),
-            Column('width', Integer, index=True, nullable=False),
-            Column('height', Integer, index=True, nullable=False),
-            Column('format', String(255), index=True, nullable=False)  
-            #Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
-            #Column('info', String(255)),
-        )
-        
-        derived_item = Table('derived_item', self.__metadata,
+        abstract_item = Table('abstract_item', self.__metadata,
             Column('id', String(255), primary_key=True),
             Column('status', String(255), index=True, nullable=False),
             Column('width', Integer, index=True, nullable=False),
             Column('height', Integer, index=True, nullable=False),
             Column('format', String(255), index=True, nullable=False),
-            #Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
-            Column('original_item_id', String(255), ForeignKey('original_item.id', ondelete="CASCADE")),
-            UniqueConstraint('original_item_id', 'height', 'width', 'format')
+            Column('type', String(255), nullable=False)
+        )
+        
+        original_item = Table('original_item', self.__metadata,
+            #Column('id', String(255), primary_key=True),
+            #Column('status', String(255), index=True, nullable=False),
+            #Column('width', Integer, index=True, nullable=False),
+            #Column('height', Integer, index=True, nullable=False),
+            #Column('format', String(255), index=True, nullable=False)  
+            Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True)
+            #Column('info', String(255)),
+        )
+        
+        derived_item = Table('derived_item', self.__metadata,
+            #Column('id', String(255), primary_key=True),
+            #Column('status', String(255), index=True, nullable=False),
+            #Column('width', Integer, index=True, nullable=False),
+            #Column('height', Integer, index=True, nullable=False),
+            #Column('format', String(255), index=True, nullable=False),
+            Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
+            Column('original_item_id', String(255), ForeignKey('original_item.id', ondelete="CASCADE"))
+            #UniqueConstraint('original_item_id', 'height', 'width', 'format')
         )
 
-        #mapper(Domain.AbstractItem, abstract_item, polymorphic_on=abstract_item.c.type, polymorphic_identity='ABSTRACT_ITEM', column_prefix='_') 
-        mapper(Domain.OriginalItem, original_item, column_prefix='_') #, inherits=Domain.AbstractItem, polymorphic_identity='ORIGINAL_ITEM'
+        mapper(Domain.AbstractItem, abstract_item, polymorphic_on=abstract_item.c.type, polymorphic_identity='ABSTRACT_ITEM', column_prefix='_') 
+        mapper(Domain.OriginalItem, original_item, inherits=Domain.AbstractItem, polymorphic_identity='ORIGINAL_ITEM', column_prefix='_') 
         mapper(Domain.DerivedItem, derived_item, 
                properties={ 
                            '_originalItem' : relation(Domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id, lazy=False)
-                           }, column_prefix='_') #, inherits=Domain.AbstractItem , polymorphic_identity='DERIVED_ITEM'
+                           }, inherits=Domain.AbstractItem , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
         mapper(Version, version)
     
     def do_with_session(self, session_callback):
