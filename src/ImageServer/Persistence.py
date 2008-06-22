@@ -31,6 +31,7 @@ class ItemRepository():
 
     def findInconsistentOriginalItems(self, maxResults=100):
         def callback(session):
+            # FIXME: uncomment when inheritance bug is solved
             # return session.query(Domain.OriginalItem).filter(Domain.AbstractItem.status!='STATUS_OK').limit(maxResults).all()
             return session.query(Domain.OriginalItem).filter(Domain.OriginalItem.status!='STATUS_OK').limit(maxResults).all()
             #return session.query(Domain.OriginalItem).all()
@@ -81,6 +82,7 @@ class PersistenceProvider():
             Column('value', Integer)
         )
         
+        # FIXME: inheritance bug...
         #abstract_item = Table('abstract_item', self.__metadata,
         #    Column('id', String(255), primary_key=True),
         #    Column('status', String(255), index=True, nullable=False),
@@ -106,13 +108,10 @@ class PersistenceProvider():
             Column('width', Integer, index=True, nullable=False),
             Column('height', Integer, index=True, nullable=False),
             Column('format', String(255), index=True, nullable=False),
+            #Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
             Column('original_item_id', String(255), ForeignKey('original_item.id', ondelete="CASCADE"))
         )
-        #Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
-        
-        self.select = select([derived_item])
-        
-        # select_table=abstract_item.outerjoin(original_item).outerjoin(derived_item)
+
         #mapper(Domain.AbstractItem, abstract_item, polymorphic_on=abstract_item.c.type, polymorphic_identity='ABSTRACT_ITEM') 
         mapper(Domain.OriginalItem, original_item) #, inherits=Domain.AbstractItem, polymorphic_identity='ORIGINAL_ITEM'
         mapper(Domain.DerivedItem, derived_item, 
