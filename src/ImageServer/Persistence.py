@@ -26,30 +26,30 @@ class ItemRepository():
     
     def findOriginalItemById(self, item_id):
         def callback(session):
-            return session.query(Domain.OriginalItem).filter(Domain.OriginalItem.id==item_id).first() 
+            return session.query(Domain.OriginalItem)\
+                .filter(Domain.OriginalItem.id==item_id)\
+                .first() 
         return self.__persistenceProvider.do_with_session(callback)
 
     def findInconsistentOriginalItems(self, maxResults=100):
         def callback(session):
             # FIXME: uncomment when inheritance bug is solved
             # return session.query(Domain.OriginalItem).filter(Domain.AbstractItem.status!='STATUS_OK').limit(maxResults).all()
-            return session.query(Domain.OriginalItem).filter(Domain.OriginalItem.status!='STATUS_OK').limit(maxResults).all()
+            return session.query(Domain.OriginalItem)\
+                .filter(Domain.OriginalItem.status!='STATUS_OK')\
+                .limit(maxResults).all()
             #return session.query(Domain.OriginalItem).all()
         return self.__persistenceProvider.do_with_session(callback)    
     
     def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
         def callback(session):
-            o =  session.query(Domain.DerivedItem)\
-                .filter_by(width=size[0])\
-                .filter_by(height=size[1])\
-                .filter_by(format=format)\
-                .join('originalItem')\
-                .filter_by(id=item_id)\
-                .first()
-                
-            #o =  session.query(Domain.DerivedItem).join('originalItem').first()
-            (getattr(o, 'originalItem') if hasattr(o, 'originalItem') else (lambda: None))
-            return o
+            return session.query(Domain.DerivedItem)\
+                    .filter_by(width=size[0])\
+                    .filter_by(height=size[1])\
+                    .filter_by(format=format)\
+                    .join('originalItem')\
+                    .filter_by(id=item_id)\
+                    .first()
         return self.__persistenceProvider.do_with_session(callback)
     
     def create(self, item):
@@ -114,7 +114,7 @@ class PersistenceProvider():
         mapper(Domain.OriginalItem, original_item) #, inherits=Domain.AbstractItem, polymorphic_identity='ORIGINAL_ITEM'
         mapper(Domain.DerivedItem, derived_item, 
                properties={ 
-                           'originalItem' : relation(Domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id)
+                           'originalItem' : relation(Domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id, lazy=False)
                            }) #, inherits=Domain.AbstractItem , polymorphic_identity='DERIVED_ITEM' 
     
     def do_with_session(self, session_callback):

@@ -20,6 +20,11 @@ class AbstractItem(object):
         self.width = size[0] if type(size[0]) == int else int(size[0])
         self.height = size[1] if type(size[1]) == int else int(size[1])
         self.format = format
+        
+    def getSize(self):
+        return (self.width, self.height)
+
+    size = property(getSize, None, None, "Size's Docstring")
 
 class OriginalItem(AbstractItem):
     def __init__(self, itemId, status, size, format):
