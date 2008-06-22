@@ -28,6 +28,27 @@ class NoUpgradeScriptError(Exception):
     
     schemaVersion = property(getSchemaVersion, None, None, "The ID that lead to the DuplicateEntryException")
 
+class _SessionTemplate(object):
+    """ Simple helper class akin to Spring-JDBC/Hibernate/ORM Template.
+    It doesnt't commit nor releases resources if other do_with_session() calls are pending """
+    def __init__(self, sessionmaker):
+        self.__sessionmaker = sessionmaker
+        self.__local = threading.local()
+        
+    def do_with_session(self, session_callback):        
+        session = self.__sessionmaker()
+        self.__local.do_with_session_count = self.__local.do_with_session_count+1 if hasattr(self.__local,'do_with_session_count') and self.__local.do_with_session_count is not None else 1   
+        o = session_callback(session)
+        count = self.__local.do_with_session_count
+        if count == 1:
+            session.commit()
+            session.close()
+            self.__sessionmaker.remove()
+            del self.__local.do_with_session_count
+        else:
+            self.__local.do_with_session_count = count-1
+        return o
+    
 class Version(object):
     def __init__(self, name, value):
         self.name = name
@@ -37,6 +58,7 @@ class ItemRepository(object):
     """ DDD repository for Original and Derived Items """
     def __init__(self, persistenceProvider):
         self.__persistenceProvider = persistenceProvider
+        self.__template = persistenceProvider.session_template()
     
     def findOriginalItemById(self, item_id):
         """ Find an OriginalItem by its ID """
@@ -44,7 +66,7 @@ class ItemRepository(object):
             return session.query(Domain.OriginalItem)\
                 .filter(Domain.OriginalItem._id==item_id)\
                 .first()
-        return self.__persistenceProvider.do_with_session(callback)
+        return self.__template.do_with_session(callback)
 
     def findInconsistentOriginalItems(self, maxResults=100):
         """ Find Original Items that are in an inconsistent state """
@@ -52,7 +74,7 @@ class ItemRepository(object):
             return session.query(Domain.OriginalItem)\
                 .filter(Domain.AbstractItem._status!='STATUS_OK')\
                 .limit(maxResults).all()
-        return self.__persistenceProvider.do_with_session(callback)
+        return self.__template.do_with_session(callback)
     
     def findInconsistentDerivedItems(self, maxResults=100):
         """ Find Derived Items that are in an inconsistent state """
@@ -60,7 +82,7 @@ class ItemRepository(object):
             return session.query(Domain.DerivedItem)\
                 .filter(Domain.AbstractItem._status!='STATUS_OK')\
                 .limit(maxResults).all()
-        return self.__persistenceProvider.do_with_session(callback)
+        return self.__template.do_with_session(callback)
     
     def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
         """ Find Derived Items By :
@@ -78,14 +100,14 @@ class ItemRepository(object):
             # FIXME: http://www.sqlalchemy.org/trac/ticket/1082
             (getattr(o, '_originalItem') if hasattr(o, '_originalItem') else (lambda: None))
             return o
-        return self.__persistenceProvider.do_with_session(callback)
+        return self.__template.do_with_session(callback)
     
     def create(self, item):
         """ Create a persistent instance of an item"""
         def callback(session):
             session.save(item)
         try:
-            self.__persistenceProvider.do_with_session(callback)
+            self.__template.do_with_session(callback)
         except sqlalchemy.exceptions.IntegrityError, ex: 
             raise DuplicateEntryException, item.id
     
@@ -96,7 +118,7 @@ class ItemRepository(object):
         def callback(session):
             session.save_or_update(item)
         try:
-            self.__persistenceProvider.do_with_session(callback)
+            self.__template.do_with_session(callback)
         except sqlalchemy.exceptions.IntegrityError: 
             raise DuplicateEntryException, item.id
     
@@ -104,9 +126,7 @@ class ItemRepository(object):
         def callback(session):
             session.refresh(item)
             session.delete(item)
-        self.__persistenceProvider.do_with_session(callback)
-    
-
+        self.__template.do_with_session(callback)
 
 class PersistenceProvider(object):
     """ Manages the Schema, Metadata, and stores references to the Engine and Session Maker """
@@ -114,7 +134,7 @@ class PersistenceProvider(object):
         self.__engine = create_engine(dbstring, encoding='utf-8', echo=False, echo_pool=False, strategy='threadlocal')
         self.__metadata = MetaData()
         self.__sessionmaker = scoped_session(sessionmaker(bind=self.__engine, autoflush=True, transactional=True))
-        self.__local = threading.local()
+        self.__template = _SessionTemplate(self.__sessionmaker)
         
         version = Table('version', self.__metadata,
             Column('name', String(255), primary_key=True),
@@ -164,30 +184,15 @@ class PersistenceProvider(object):
                            }, inherits=Domain.AbstractItem , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
         mapper(Version, version)
     
-    def do_in_transaction(self, tx_callback):
-        self.__engine.transaction(tx_callback)
-    
-    def do_with_session(self, session_callback):
-        """ Simple doInTransaction method akin to Spring-JDBC/Hibernate/ORM Template
-        It doesnt't commit nor releases resources if other do_with_session() calls are pending """
-        session = self.__sessionmaker()
-        self.__local.do_with_session_count = self.__local.do_with_session_count+1 if hasattr(self.__local,'do_with_session_count') and self.__local.do_with_session_count is not None else 1   
-        o = session_callback(session)
-        count = self.__local.do_with_session_count
-        if count == 1:
-            session.commit()
-            session.close()
-            self.__sessionmaker.remove()
-            del self.__local.do_with_session_count
-        else:
-            self.__local.do_with_session_count = count-1
-        return o
+    def session_template(self):
+        return self.__template;
     
     def createOrUpgradeSchema(self):
         """ Create or Upgrade the database metadata
         @raise NoUpgradeScriptError: when no upgrade script is found for a given 
             database schema version
          """
+        
         def get_version(session):
             schema_version = None
             try:
@@ -203,12 +208,12 @@ class PersistenceProvider(object):
             version = get_version(session)
             version.value = 1
             session.save_or_update(version)
-            
-        schema_version = self.do_with_session(get_version)
+        
+        schema_version = self.__template.do_with_session(get_version)
         if schema_version.value == 0:
             log.info('Upgrading Database Schema...')
             self.__metadata.create_all(self.__engine)
-            self.do_with_session(store_latest_version)
+            self.__template.do_with_session(store_latest_version)
         elif schema_version == 1:
             log.info('Database Schema already up to date')
             pass

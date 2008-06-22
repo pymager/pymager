@@ -12,6 +12,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
     def onSetUp(self):
         self._itemRepository = self._imageServerFactory.getItemRepository() 
         self._persistenceProvider = self._imageServerFactory.getPersistenceProvider()
+        self._template = self._persistenceProvider.session_template()
     
     def testShouldNotFindAnyItemWhenIdDoesNotExist(self):
         assert self._itemRepository.findOriginalItemById('anyId') is None
@@ -102,7 +103,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         def callback(session):
             session.delete(self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (100,100), Domain.IMAGE_FORMAT_JPEG))
             
-        self._persistenceProvider.do_with_session(callback)
+        self._template.do_with_session(callback)
         
         foundItem = self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (100,100), Domain.IMAGE_FORMAT_JPEG)
         assert foundItem is None
@@ -124,7 +125,7 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
             assert len(foundItem.derivedItems) == 1
             assert foundItem.derivedItems[0].id == item.id
         
-        self._persistenceProvider.do_with_session(callback)
+        self._template.do_with_session(callback)
     
     def testShouldNotFindAnyDerivedItemIfWidthDoesNotMatch(self):
         originalItem = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), Domain.IMAGE_FORMAT_JPEG)

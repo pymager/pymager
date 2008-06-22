@@ -187,5 +187,13 @@ class ImageRequestProcessor(object):
         return relative_cached_filename
     
     def cleanupInconsistentItems(self):
+        max = 100
+        def callback():
+            items = self.__itemRepository.findInconsistentDerivedItems(max)
+            while(len(items) > 0):
+                for i in items:
+                    #self.__itemRepository.
+                    pass
+                items = self.__itemRepository.findInconsistentDerivedItems(max)
         pass
 
