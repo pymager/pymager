@@ -1,9 +1,8 @@
 from ImageServer import Domain
 import sqlalchemy
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, eagerload
-from sqlalchemy.sql import select
-import os, logging
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey#, UniqueConstraint
+from sqlalchemy.orm import mapper, relation, sessionmaker#, eagerload
+import logging
 
 log = logging.getLogger('Persistence')
 
@@ -50,12 +49,9 @@ class ItemRepository(object):
     def findInconsistentOriginalItems(self, maxResults=100):
         """ Find Original Items that are in an inconsistent state """
         def callback(session):
-            # FIXME: uncomment when inheritance bug is solved
-            # return session.query(Domain.OriginalItem).filter(Domain.AbstractItem.status!='STATUS_OK').limit(maxResults).all()
             return session.query(Domain.OriginalItem)\
                 .filter(Domain.AbstractItem._status!='STATUS_OK')\
                 .limit(maxResults).all()
-            #return session.query(Domain.OriginalItem).all()
         return self.__persistenceProvider.do_with_session(callback)    
     
     def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
@@ -109,7 +105,6 @@ class PersistenceProvider(object):
             Column('value', Integer)
         )
         
-        # FIXME: inheritance bug...
         abstract_item = Table('abstract_item', self.__metadata,
             Column('id', String(255), primary_key=True),
             Column('status', String(255), index=True, nullable=False),
@@ -119,25 +114,13 @@ class PersistenceProvider(object):
             Column('type', String(255), nullable=False)
         )
         
-        original_item = Table('original_item', self.__metadata,
-            #Column('id', String(255), primary_key=True),
-            #Column('status', String(255), index=True, nullable=False),
-            #Column('width', Integer, index=True, nullable=False),
-            #Column('height', Integer, index=True, nullable=False),
-            #Column('format', String(255), index=True, nullable=False)  
+        original_item = Table('original_item', self.__metadata,  
             Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True)
-            #Column('info', String(255)),
         )
         
         derived_item = Table('derived_item', self.__metadata,
-            #Column('id', String(255), primary_key=True),
-            #Column('status', String(255), index=True, nullable=False),
-            #Column('width', Integer, index=True, nullable=False),
-            #Column('height', Integer, index=True, nullable=False),
-            #Column('format', String(255), index=True, nullable=False),
             Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
             Column('original_item_id', String(255), ForeignKey('original_item.id', ondelete="CASCADE"))
-            #UniqueConstraint('original_item_id', 'height', 'width', 'format')
         )
 
         mapper(Domain.AbstractItem, abstract_item, polymorphic_on=abstract_item.c.type, polymorphic_identity='ABSTRACT_ITEM', column_prefix='_') 
