@@ -67,6 +67,7 @@ class ItemRepository(object):
                     .join('_originalItem', aliased=True)\
                     .filter_by(_id=item_id)\
                     .first()
+            # FIXME: http://www.sqlalchemy.org/trac/ticket/1082
             (getattr(o, '_originalItem') if hasattr(o, '_originalItem') else (lambda: None))  
             return o
         return self.__persistenceProvider.do_with_session(callback)
@@ -127,7 +128,7 @@ class PersistenceProvider(object):
         mapper(Domain.OriginalItem, original_item, inherits=Domain.AbstractItem, polymorphic_identity='ORIGINAL_ITEM', column_prefix='_') 
         mapper(Domain.DerivedItem, derived_item, 
                properties={ 
-                           '_originalItem' : relation(Domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id, lazy=False)
+                           '_originalItem' : relation(Domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id)
                            }, inherits=Domain.AbstractItem , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
         mapper(Version, version)
     

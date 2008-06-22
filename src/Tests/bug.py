@@ -58,7 +58,7 @@ mapper(AbstractItem, abstract_item, polymorphic_on=abstract_item.c.type, polymor
 mapper(OriginalItem, original_item, inherits=AbstractItem, polymorphic_identity='ORIGINAL_ITEM')
 mapper(DerivedItem, derived_item, 
        properties={ 
-                   'originalItem' : relation(OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id)
+                   'originalItem' : relation(OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id,lazy=False, join_depth=2)
                    }, inherits=AbstractItem , polymorphic_identity='DERIVED_ITEM')
 
 metadata.create_all(engine)
@@ -84,6 +84,9 @@ foundItem = session.query(DerivedItem)\
     .filter_by(id='MYID12435')\
     .first()
 
+session.commit()
+session.close() 
+
 assert foundItem is not None
 assert foundItem.status == STATUS_OK
 assert foundItem.width == 100
@@ -95,5 +98,3 @@ assert foundItem.originalItem.width == 800
 assert foundItem.originalItem.height == 600
 assert foundItem.originalItem.format == IMAGE_FORMAT_JPEG
         
-session.commit()
-session.close() 
