@@ -40,8 +40,6 @@ class ItemRepository():
     def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
         def callback(session):
             o =  session.query(Domain.DerivedItem)\
-                .filter(Domain.OriginalItem.id==item_id)\
-                .reset_joinpoint()\
                 .filter_by(width=size[0])\
                 .filter_by(height=size[1])\
                 .filter_by(format=format)\
