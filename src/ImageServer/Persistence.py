@@ -52,7 +52,7 @@ class ItemRepository(object):
             return session.query(Domain.OriginalItem)\
                 .filter(Domain.AbstractItem._status!='STATUS_OK')\
                 .limit(maxResults).all()
-        return self.__persistenceProvider.do_with_session(callback)    
+        return self.__persistenceProvider.do_with_session(callback)
     
     def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
         """ Find Derived Items By :
@@ -124,11 +124,20 @@ class PersistenceProvider(object):
             Column('original_item_id', String(255), ForeignKey('original_item.id', ondelete="CASCADE"))
         )
 
-        mapper(Domain.AbstractItem, abstract_item, polymorphic_on=abstract_item.c.type, polymorphic_identity='ABSTRACT_ITEM', column_prefix='_') 
-        mapper(Domain.OriginalItem, original_item, inherits=Domain.AbstractItem, polymorphic_identity='ORIGINAL_ITEM', column_prefix='_') 
+        mapper(Domain.AbstractItem, abstract_item, \
+               polymorphic_on=abstract_item.c.type, \
+               polymorphic_identity='ABSTRACT_ITEM', \
+               column_prefix='_') 
+        mapper(Domain.OriginalItem, original_item, \
+               inherits=Domain.AbstractItem, \
+               polymorphic_identity='ORIGINAL_ITEM', \
+               column_prefix='_',
+               properties={
+                            'derivedItems' : relation(Domain.DerivedItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id, backref='_originalItem')
+                           }) 
         mapper(Domain.DerivedItem, derived_item, 
                properties={ 
-                           '_originalItem' : relation(Domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id)
+                           #'_originalItem' : relation(Domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id, backref='derivedItems')
                            }, inherits=Domain.AbstractItem , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
         mapper(Version, version)
     

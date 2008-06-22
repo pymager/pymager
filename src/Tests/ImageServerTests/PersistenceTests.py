@@ -75,6 +75,18 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
         assert foundItem.originalItem.height == 600
         assert foundItem.originalItem.format == Domain.IMAGE_FORMAT_JPEG
     
+    def testShouldFindDerivedItemsFromOriginalItem(self):
+        originalItem = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), Domain.IMAGE_FORMAT_JPEG)
+        self.itemRepository.create(originalItem)
+        
+        item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), Domain.IMAGE_FORMAT_JPEG, originalItem)
+        self.itemRepository.create(item)
+        foundItem = self.itemRepository.findOriginalItemById('MYID12435')
+        #assert foundItem is not None
+        #assert foundItem.derivedItems is not None
+        #assert len(foundItem.derivedItems) == 1
+        #assert foundItem.derivedItems[0].id == item.id
+    
     def testShouldNotFindAnyDerivedItemIfWidthDoesNotMatch(self):
         originalItem = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), Domain.IMAGE_FORMAT_JPEG)
         self.itemRepository.create(originalItem)
@@ -124,13 +136,12 @@ class PersistenceTestCase(Support.AbstractIntegrationTestCase):
             
     def testSaveTwoDerivedItemsWithSameIDShouldThrowException(self):
         originalItem = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), Domain.IMAGE_FORMAT_JPEG)
-        item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), Domain.IMAGE_FORMAT_JPEG, originalItem)
-        item2 = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), Domain.IMAGE_FORMAT_JPEG, originalItem)
-        
         self.itemRepository.create(originalItem)
+        item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), Domain.IMAGE_FORMAT_JPEG, originalItem)
         self.itemRepository.create(item)
             
         try:
+            item2 = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), Domain.IMAGE_FORMAT_JPEG, originalItem)
             self.itemRepository.create(item2)
         except Persistence.DuplicateEntryException, ex:
             assert 'MYID12435-100x100-JPEG' == ex.duplicateId

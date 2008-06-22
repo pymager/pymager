@@ -71,33 +71,33 @@ class ImageEngineTestsCase(Support.AbstractIntegrationTestCase):
     
     def koImageRequestProcessorMultithreadedTestCase(self):
         
-        listThread = []
+        children = []
         for i in range(NB_THREADS):
-            currentThread = MyThread(self.imgProcessor, "sami%s" %(i))
+            currentThread = SaveImageToRepositoryThread(self.imgProcessor, "sami%s" %(i))
             currentThread.start()
-            listThread.append(currentThread)
+            children.append(currentThread)
         
         #Randomize sleeping float , 0.0 <= x < 1.0
-        time.sleep(random.random())
+        #time.sleep(random.random())
+        #time.sleep(2)
         
         k = 0
-        for thread in listThread:
+        for thread in children:
             thread.join()
             assert os.path.exists(os.path.join(Support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sami%s.jpg' %(k))) == True
             k=k+1
     
     
 
-class MyThread(Thread):
-    
-    def __init__ (self, imgProcessor, args):
+class SaveImageToRepositoryThread(Thread):
+    def __init__ (self, imgProcessor, itemid):
         Thread.__init__(self)
         self.__imgProcessor = imgProcessor
-        self.__args = args
+        self.__itemid = itemid
 
 
     def run(self):
-            self.__imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, self.__args)
+            self.__imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, self.__itemid)
 
         
     
