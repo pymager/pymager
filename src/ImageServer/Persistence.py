@@ -5,6 +5,7 @@ from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, eager
 from sqlalchemy.sql import select
 import os, logging
 
+log = logging.getLogger('Persistence')
 
 class DuplicateEntryException(Exception):
     """Thrown when errors happen while processing images """
@@ -175,11 +176,11 @@ class PersistenceProvider(object):
             
         schema_version = self.do_with_session(get_version)
         if schema_version.value == 0:
-            logging.info('Upgrading Database Schema...')
+            log.info('Upgrading Database Schema...')
             self.__metadata.create_all(self.__engine)
             self.do_with_session(store_latest_version)
         elif schema_version == 1:
-            logging.info('Database Schema already up to date')
+            log.info('Database Schema already up to date')
             pass
         else:
             raise NoUpgradeScriptError(schema_version)
