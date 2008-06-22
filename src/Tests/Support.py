@@ -16,9 +16,11 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         unittest.TestCase.setUp(self)
         self.__cleanup__()
         sqlalchemy.orm.clear_mappers()
-        self.imageServerFactory = Factory.ImageServerFactory()
-        self.imgProcessor = self.imageServerFactory.createImageServer(AbstractIntegrationTestCase.DATA_DIRECTORY, 'sqlite:///:memory:', [(100,100), (800,800)])
-        self.itemRepository = self.imageServerFactory.getItemRepository()
+        
+        self._imageServerFactory = Factory.ImageServerFactory()
+        self._imgProcessor = self._imageServerFactory.createImageServer(AbstractIntegrationTestCase.DATA_DIRECTORY, 'sqlite:///:memory:', [(100,100), (800,800)])
+        self._itemRepository = self._imageServerFactory.getItemRepository()
+        self._persistenceProvider = self._imageServerFactory.getPersistenceProvider()
     
         (getattr(self, 'onSetUp') if hasattr(self, 'onSetUp') else (lambda: None))()  
         
@@ -26,9 +28,10 @@ class AbstractIntegrationTestCase(unittest.TestCase):
     def tearDown(self):
         unittest.TestCase.tearDown(self)
         (getattr(self, 'onTearDown') if hasattr(self, 'onTearDown') else (lambda: None))()
-        self.imageServerFactory = None
-        self.imgProcessor = None
-        self.itemRepository = None
+        self._imageServerFactory = None
+        self._imgProcessor = None
+        self._itemRepository = None
+        self._persistenceProvider = None
         
         #self.imageServerFactory.getConnection().close()
     

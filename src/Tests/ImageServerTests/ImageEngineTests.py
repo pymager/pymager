@@ -14,29 +14,29 @@ class ImageEngineTestsCase(Support.AbstractIntegrationTestCase):
     
     def testImageIdShouldOnlyContainAlphanumericCharacters(self):
         try:
-            self.imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId-')
+            self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId-')
         except ImageEngine.IDNotAuthorized, ex:
             assert ex.imageId == 'sampleId-'
     
     def testSaveBrokenImageShouldThrowException(self):
         try:
-            self.imgProcessor.saveFileToRepository(BROKEN_IMAGE_FILENAME, 'sampleId')
+            self._imgProcessor.saveFileToRepository(BROKEN_IMAGE_FILENAME, 'sampleId')
         except ImageEngine.ImageFileNotRecognized, ex:
             pass
     
     def testSaveImageWithExistingIDShouldThrowException(self):
-        self.imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         try:
-            self.imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')    
+            self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')    
         except ImageEngine.ImageIDAlreadyExistingException, ex:
             assert ex.imageId == 'sampleId'
     
     def testSaveImageShouldUpdateFileSystemAndDatabase(self):
-        self.imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
         assert os.path.exists(os.path.join(Support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')) == True
         
-        item = self.itemRepository.findOriginalItemById('sampleId')
+        item = self._itemRepository.findOriginalItemById('sampleId')
         assert item is not None
         assert item.id == 'sampleId'
         assert item.format == Domain.IMAGE_FORMAT_JPEG
@@ -50,13 +50,13 @@ class ImageEngineTestsCase(Support.AbstractIntegrationTestCase):
             pass
     
     def testPrepareRequestShouldUpdateFileSystemAndDatabase(self):
-        self.imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
         request = ImageEngine.TransformationRequest('sampleId', (100,100), Domain.IMAGE_FORMAT_JPEG)
-        result = self.imgProcessor.prepareTransformation(request)
+        result = self._imgProcessor.prepareTransformation(request)
         assert os.path.exists(os.path.join(Support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-100x100.jpg')) == True
         
-        item = self.itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('sampleId', (100,100), Domain.IMAGE_FORMAT_JPEG)
+        item = self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('sampleId', (100,100), Domain.IMAGE_FORMAT_JPEG)
         assert item is not None
         assert item.id == 'sampleId-100x100-JPEG'
         assert item.format == Domain.IMAGE_FORMAT_JPEG
@@ -65,7 +65,7 @@ class ImageEngineTestsCase(Support.AbstractIntegrationTestCase):
         assert item.originalItem.id == 'sampleId'
         
         # result should be consistent across calls (caching..)
-        result2 = self.imgProcessor.prepareTransformation(request)
+        result2 = self._imgProcessor.prepareTransformation(request)
         assert result == os.path.join('cache', 'sampleId-100x100.jpg')
         assert result2 == os.path.join('cache', 'sampleId-100x100.jpg')
     
@@ -73,7 +73,7 @@ class ImageEngineTestsCase(Support.AbstractIntegrationTestCase):
         
         children = []
         for i in range(NB_THREADS):
-            currentThread = SaveImageToRepositoryThread(self.imgProcessor, "sami%s" %(i))
+            currentThread = SaveImageToRepositoryThread(self._imgProcessor, "sami%s" %(i))
             currentThread.start()
             children.append(currentThread)
         

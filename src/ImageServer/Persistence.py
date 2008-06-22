@@ -97,7 +97,7 @@ class ItemRepository(object):
 class PersistenceProvider(object):
     """ Manages the Schema, Metadata, and stores references to the Engine and Session Maker """
     def __init__(self, dbstring):
-        self.__engine = create_engine(dbstring, encoding='utf-8', echo=False)
+        self.__engine = create_engine(dbstring, encoding='utf-8', echo=False, strategy='threadlocal')
         self.__metadata = MetaData()
         self.__sessionmaker = sessionmaker(bind=self.__engine, autoflush=True, transactional=True)
         
@@ -140,6 +140,9 @@ class PersistenceProvider(object):
                            #'_originalItem' : relation(Domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id, backref='derivedItems')
                            }, inherits=Domain.AbstractItem , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
         mapper(Version, version)
+    
+    def do_in_transaction(self, tx_callback):
+        self.__engine.transaction(tx_callback)
     
     def do_with_session(self, session_callback):
         session = self.__sessionmaker()
