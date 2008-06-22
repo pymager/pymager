@@ -13,18 +13,35 @@ class AbstractItem(object):
         assert size[0] is not None
         assert size[1] is not None
         assert format is not None
-        assert status is not None
         
-        self.id = itemId
-        self.status = status
-        self.width = size[0] if type(size[0]) == int else int(size[0])
-        self.height = size[1] if type(size[1]) == int else int(size[1])
-        self.format = format
-        
+        self._id = itemId
+        self.setStatus(status)
+        self._width = size[0] if type(size[0]) == int else int(size[0])
+        self._height = size[1] if type(size[1]) == int else int(size[1])
+        self._format = format
+
+    def getId(self):
+        return self._id
+    def getStatus(self):
+        return self._status
+    def setStatus(self, value):
+        assert value is not None
+        self._status = value
+    def getWidth(self):
+        return self._width
+    def getHeight(self):
+        return self._height
+    def getFormat(self):
+        return self._format        
     def getSize(self):
         return (self.width, self.height)
 
-    size = property(getSize, None, None, "Size's Docstring")
+    id = property(getId, None, None, None)
+    status = property(getStatus, setStatus, None, None)
+    width = property(getWidth, None, None, None)
+    height = property(getHeight, None, None, None)
+    format = property(getFormat, None, None, None)
+    size = property(getSize, None, None, None)
 
 class OriginalItem(AbstractItem):
     def __init__(self, itemId, status, size, format):
@@ -34,6 +51,13 @@ class OriginalItem(AbstractItem):
 class DerivedItem(AbstractItem):
     def __init__(self, status, size, format, originalItem):
         assert originalItem is not None
-        self.originalItem = originalItem
+        self._originalItem = originalItem
         
         super(DerivedItem, self).__init__("%s-%sx%s-%s" % (originalItem.id, size[0], size[1], format),status, size, format)
+
+    def getOriginalItem(self):
+        return self._originalItem
+    
+    originalItem = property(getOriginalItem, None, None, None)
+
+
