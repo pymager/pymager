@@ -18,7 +18,7 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         sqlalchemy.orm.clear_mappers()
         
         self._imageServerFactory = Factory.ImageServerFactory()
-        self._imgProcessor = self._imageServerFactory.createImageServer(AbstractIntegrationTestCase.DATA_DIRECTORY, 'sqlite:///:memory:', [(100,100), (800,800)])
+        self._imgProcessor = self._imageServerFactory.createImageServer(AbstractIntegrationTestCase.DATA_DIRECTORY, 'sqlite:///:memory:', [(100*i,100*i) for i in range(1,9)])
         self._itemRepository = self._imageServerFactory.getItemRepository()
         
     

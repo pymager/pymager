@@ -54,12 +54,13 @@ class TransformationRequest(object):
 class ImageRequestProcessor(object):
     
     """ Processes ImageRequest objects and does the required work to prepare the images """
-    def __init__(self, itemRepository, dataDirectory):
+    def __init__(self, itemRepository, persistenceProvider, dataDirectory):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
         self.__dataDirectory = dataDirectory 
         self.__initDirectories()
         self.__itemRepository = itemRepository
+        self.__persistenceProvider = persistenceProvider
         
     def __initDirectories(self):
         """ Creates the work directories needed to run this processor """
@@ -187,13 +188,31 @@ class ImageRequestProcessor(object):
         return relative_cached_filename
     
     def cleanupInconsistentItems(self):
-        max = 100
-        def callback():
-            items = self.__itemRepository.findInconsistentDerivedItems(max)
-            while(len(items) > 0):
-                for i in items:
-                    #self.__itemRepository.
-                    pass
-                items = self.__itemRepository.findInconsistentDerivedItems(max)
-        pass
-
+        def cleanup_in_session(fetch_items, delete_file):
+            items = fetch_items()
+            for i in items:
+                delete_file(i)
+                self.__itemRepository.delete(i)
+            
+        def main_loop(has_more_items, fetch_items, delete_file):
+            def callback(session):
+                cleanup_in_session(fetch_items, delete_file)
+            while has_more_items():
+                self.__persistenceProvider.session_template().do_with_session(callback)
+        
+        def cleanup_derived_items():
+            def delete_file(item):
+                os.remove(self.__absoluteCachedFilename(item))
+            main_loop(lambda: len(self.__itemRepository.findInconsistentDerivedItems(1)) > 0,
+                      lambda: self.__itemRepository.findInconsistentDerivedItems(), 
+                      delete_file)
+        
+        def cleanup_original_items():
+            def delete_file(item):
+                os.remove(self.__absoluteOriginalFilename(item))
+            main_loop(lambda: len(self.__itemRepository.findInconsistentOriginalItems(1)) > 0,
+                      lambda: self.__itemRepository.findInconsistentOriginalItems(), 
+                      delete_file)
+            
+        cleanup_derived_items()
+        cleanup_original_items()

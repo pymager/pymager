@@ -72,7 +72,7 @@ class ItemRepository(object):
         """ Find Original Items that are in an inconsistent state """
         def callback(session):
             return session.query(Domain.OriginalItem)\
-                .filter(Domain.AbstractItem._status!='STATUS_OK')\
+                .filter(Domain.AbstractItem._status==Domain.STATUS_INCONSISTENT)\
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     
@@ -80,7 +80,7 @@ class ItemRepository(object):
         """ Find Derived Items that are in an inconsistent state """
         def callback(session):
             return session.query(Domain.DerivedItem)\
-                .filter(Domain.AbstractItem._status!='STATUS_OK')\
+                .filter(Domain.AbstractItem._status==Domain.STATUS_INCONSISTENT)\
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     

@@ -29,8 +29,10 @@ class ImageServerFactory(object):
         
         self.__itemRepository = Persistence.ItemRepository(self.__persistenceProvider)
         
-        self.__imageProcessor = ImageEngine.ImageRequestProcessor(self.__itemRepository, data_directory)
+        self.__imageProcessor = ImageEngine.ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, data_directory)
         self.__imageProcessor.prepareTransformation =  Security.imageTransformationSecurityDecorator(allowed_sizes)(self.__imageProcessor.prepareTransformation)
+        
+        self.__imageProcessor.cleanupInconsistentItems()
         return self.__imageProcessor
     
     persistenceProvider = property(getPersistenceProvider, None, None, "PersistenceProvider's Docstring")
