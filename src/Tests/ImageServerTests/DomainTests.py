@@ -148,8 +148,6 @@ class DerivedItemTestCase(unittest.TestCase):
         else:
             self.fail()
     
-    def testSetStatusShouldUpdateLastStatusChangeDate(self):
-        pass
 
 def suite():
     return unittest.TestSuite((unittest.makeSuite(OriginalItemTestCase, 'test'), 
