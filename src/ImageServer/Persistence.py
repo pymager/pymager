@@ -30,7 +30,11 @@ class NoUpgradeScriptError(Exception):
 
 class _SessionTemplate(object):
     """ Simple helper class akin to Spring-JDBC/Hibernate/ORM Template.
-    It doesnt't commit nor releases resources if other do_with_session() calls are pending """
+    It doesnt't commit nor releases resources if other do_with_session() calls are pending
+    
+    See http://www.sqlalchemy.org/trac/ticket/1084#comment:3 for suggestions on how to improve this
+    without using a custom threadlocal variable
+     """
     def __init__(self, sessionmaker):
         self.__sessionmaker = sessionmaker
         self.__local = threading.local()
