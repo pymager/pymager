@@ -34,9 +34,12 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         _dateTimesAreConsideredEqual(item.lastStatusChangeDate, foundItem.lastStatusChangeDate)
         
     def testShouldDeleteOriginalItem(self):
-        item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self._itemRepository.create(item)
-        self._itemRepository.delete(item)
+        def callback(session):
+            item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+            self._itemRepository.create(item)
+            self._itemRepository.delete(self._itemRepository.findOriginalItemById('MYID12435'))
+        self._template.do_with_session(callback)    
+        
         foundItem = self._itemRepository.findOriginalItemById('MYID12435')
         assert foundItem is None
     
