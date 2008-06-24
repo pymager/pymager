@@ -166,7 +166,7 @@ class ImageRequestProcessor(object):
         try:
             self.__itemRepository.create(derivedItem)
             original_filename = self.__absoluteOriginalFilename(originalItem)
-        except persistence.DuplicateEntryException :
+        except DuplicateEntryException :
             self.__waitForItemStatusOk(lambda: self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)) 
             
         try:
