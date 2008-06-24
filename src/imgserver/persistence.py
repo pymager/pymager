@@ -4,6 +4,9 @@ import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
 from imgserver import domain
+from imgserver.domain.abstractitem import AbstractItem
+from imgserver.domain.originalitem import OriginalItem
+from imgserver.domain.deriveditem import DerivedItem
 
 log = logging.getLogger('Persistence')
 
@@ -68,24 +71,24 @@ class ItemRepository(object):
     def findOriginalItemById(self, item_id):
         """ Find an OriginalItem by its ID """
         def callback(session):
-            return session.query(domain.OriginalItem)\
-                .filter(domain.OriginalItem._id==item_id)\
+            return session.query(OriginalItem)\
+                .filter(OriginalItem._id==item_id)\
                 .first()
         return self.__template.do_with_session(callback)
 
     def findInconsistentOriginalItems(self, maxResults=100):
         """ Find Original Items that are in an inconsistent state """
         def callback(session):
-            return session.query(domain.OriginalItem)\
-                .filter(domain.AbstractItem._status==domain.STATUS_INCONSISTENT)\
+            return session.query(OriginalItem)\
+                .filter(AbstractItem._status==domain.STATUS_INCONSISTENT)\
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     
     def findInconsistentDerivedItems(self, maxResults=100):
         """ Find Derived Items that are in an inconsistent state """
         def callback(session):
-            return session.query(domain.DerivedItem)\
-                .filter(domain.AbstractItem._status==domain.STATUS_INCONSISTENT)\
+            return session.query(DerivedItem)\
+                .filter(AbstractItem._status==domain.STATUS_INCONSISTENT)\
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     
@@ -95,7 +98,7 @@ class ItemRepository(object):
             - the size of the Derived Item
             - the format of the Derived Item """
         def callback(session):
-            o = session.query(domain.DerivedItem)\
+            o = session.query(DerivedItem)\
                     .filter_by(_width=size[0])\
                     .filter_by(_height=size[1])\
                     .filter_by(_format=format)\
@@ -165,16 +168,16 @@ class PersistenceProvider(object):
             Column('original_item_id', String(255), ForeignKey('original_item.id', ondelete="CASCADE"))
         )
 
-        mapper(domain.AbstractItem, abstract_item, \
+        mapper(AbstractItem, abstract_item, \
                polymorphic_on=abstract_item.c.type, \
                polymorphic_identity='ABSTRACT_ITEM', \
                column_prefix='_') 
-        mapper(domain.OriginalItem, original_item, \
-               inherits=domain.AbstractItem, \
+        mapper(OriginalItem, original_item, \
+               inherits=AbstractItem, \
                polymorphic_identity='ORIGINAL_ITEM', \
                column_prefix='_',
                properties={
-                            'derivedItems' : relation(domain.DerivedItem, 
+                            'derivedItems' : relation(DerivedItem, 
                                                       primaryjoin=derived_item.c.original_item_id==original_item.c.id,
                                                       cascade='all',
                                                       backref='_originalItem' 
@@ -183,10 +186,10 @@ class PersistenceProvider(object):
                                                       #                primaryjoin=derived_item.c.original_item_id==original_item.c.id)
                                                       ) 
                            }) 
-        mapper(domain.DerivedItem, derived_item, 
+        mapper(DerivedItem, derived_item, 
                properties={ 
-                           #'_originalItem' : relation(domain.OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id, backref='derivedItems')
-                           }, inherits=domain.AbstractItem , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
+                           #'_originalItem' : relation(OriginalItem, primaryjoin=derived_item.c.original_item_id==original_item.c.id, backref='derivedItems')
+                           }, inherits=AbstractItem , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
         mapper(Version, version)
     
     def session_template(self):

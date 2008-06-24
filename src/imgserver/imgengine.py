@@ -3,7 +3,11 @@ import os.path
 import shutil
 import time
 import Image, ImageOps
-from imgserver import domain, persistence
+from imgserver import domain
+from imgserver import persistence
+from imgserver.domain.abstractitem import AbstractItem
+from imgserver.domain.originalitem import OriginalItem
+from imgserver.domain.deriveditem import DerivedItem
 
 # Relative to the data_directory
 CACHE_DIRECTORY = "cache"
@@ -110,7 +114,7 @@ class ImageRequestProcessor(object):
         except IOError, ex:
             raise ImageFileNotRecognized, ex
         
-        item = domain.OriginalItem(imageId, domain.STATUS_INCONSISTENT, img.size, img.format)
+        item = OriginalItem(imageId, domain.STATUS_INCONSISTENT, img.size, img.format)
 
         try:
             # atomic creation
@@ -148,7 +152,7 @@ class ImageRequestProcessor(object):
         
         self.__waitForItemStatusOk(lambda: self.__itemRepository.findOriginalItemById(transformationRequest.imageId))
         
-        derivedItem = domain.DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, originalItem)
+        derivedItem = DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, originalItem)
         
         cached_filename = self.__absoluteCachedFilename(derivedItem)
         relative_cached_filename = self.__relativeCachedFilename(derivedItem)

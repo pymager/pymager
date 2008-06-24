@@ -1,11 +1,5 @@
 from datetime import datetime
 
-# The possible statuses of a domain object
-STATUS_INCONSISTENT = 'INCONSISTENT'
-STATUS_OK = 'OK'
-
-IMAGE_FORMAT_JPEG = 'JPEG'
-
 class AbstractItem(object):
     def __init__(self, itemId, status, size, format):
         super(AbstractItem, self).__init__()
@@ -49,22 +43,3 @@ class AbstractItem(object):
     format = property(getFormat, None, None, None)
     size = property(getSize, None, None, None)
     lastStatusChangeDate = property(getLastStatusChangeDate, None, None, None)
-
-class OriginalItem(AbstractItem):
-    def __init__(self, itemId, status, size, format):
-        assert itemId is not None
-        super(OriginalItem, self).__init__(itemId, status, size, format)
-        
-class DerivedItem(AbstractItem):
-    def __init__(self, status, size, format, originalItem):
-        assert originalItem is not None
-        self._originalItem = originalItem
-        
-        super(DerivedItem, self).__init__("%s-%sx%s-%s" % (originalItem.id, size[0], size[1], format),status, size, format)
-
-    def getOriginalItem(self):
-        return self._originalItem
-    
-    originalItem = property(getOriginalItem, None, None, None)
-
-
