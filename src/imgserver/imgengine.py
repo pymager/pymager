@@ -8,6 +8,7 @@ from imgserver import persistence
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
+from imgserver.persistence.itemrepository import DuplicateEntryException
 
 # Relative to the data_directory
 CACHE_DIRECTORY = "cache"
@@ -119,7 +120,7 @@ class ImageRequestProcessor(object):
         try:
             # atomic creation
             self.__itemRepository.create(item)
-        except persistence.DuplicateEntryException, ex:
+        except DuplicateEntryException, ex:
             raise ImageIDAlreadyExistingException, item.id
         else:
             try:

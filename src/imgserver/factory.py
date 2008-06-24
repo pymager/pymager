@@ -1,5 +1,7 @@
 import os
 from imgserver import imgengine, security, persistence
+from imgserver.persistence.persistenceprovider import PersistenceProvider
+from imgserver.persistence.itemrepository import ItemRepository
 
 class ImageServerFactory(object):
  
@@ -24,10 +26,10 @@ class ImageServerFactory(object):
         if not os.path.exists(data_directory):
             os.makedirs(data_directory)
         
-        self.__persistenceProvider = persistence.PersistenceProvider(dbstring)
+        self.__persistenceProvider = PersistenceProvider(dbstring)
         self.__persistenceProvider.createOrUpgradeSchema()
         
-        self.__itemRepository = persistence.ItemRepository(self.__persistenceProvider)
+        self.__itemRepository = ItemRepository(self.__persistenceProvider)
         
         self.__imageProcessor = imgengine.ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, data_directory)
         self.__imageProcessor.prepareTransformation =  security.imageTransformationSecurityDecorator(allowed_sizes)(self.__imageProcessor.prepareTransformation)

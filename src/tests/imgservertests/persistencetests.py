@@ -4,6 +4,7 @@ from tests import support
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
+from imgserver.persistence.itemrepository import DuplicateEntryException
 
 def _dateTimesAreConsideredEqual(datetime1, datetime2):
     delta = datetime1 - datetime2
@@ -172,7 +173,7 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         self._itemRepository.create(item)
         try:
             self._itemRepository.create(item2)
-        except persistence.DuplicateEntryException, ex:
+        except DuplicateEntryException, ex:
             assert 'MYID12435' == ex.duplicateId
         else:
             self.fail()
@@ -186,7 +187,7 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         try:
             item2 = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
             self._itemRepository.create(item2)
-        except persistence.DuplicateEntryException, ex:
+        except DuplicateEntryException, ex:
             assert 'MYID12435-100x100-JPEG' == ex.duplicateId
         else:
             self.fail()
