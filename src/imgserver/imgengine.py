@@ -3,7 +3,7 @@ import os.path
 import shutil
 import time
 import Image, ImageOps
-from imgserver import Domain, Persistence
+from imgserver import domain, persistence
 
 # Relative to the data_directory
 CACHE_DIRECTORY = "cache"
@@ -110,12 +110,12 @@ class ImageRequestProcessor(object):
         except IOError, ex:
             raise ImageFileNotRecognized, ex
         
-        item = Domain.OriginalItem(imageId, Domain.STATUS_INCONSISTENT, img.size, img.format)
+        item = domain.OriginalItem(imageId, domain.STATUS_INCONSISTENT, img.size, img.format)
 
         try:
             # atomic creation
             self.__itemRepository.create(item)
-        except Persistence.DuplicateEntryException, ex:
+        except persistence.DuplicateEntryException, ex:
             raise ImageIDAlreadyExistingException, item.id
         else:
             try:
@@ -123,7 +123,7 @@ class ImageRequestProcessor(object):
             except IOError, ex:
                 raise ImageProcessingException, ex
         
-        item.status = Domain.STATUS_OK
+        item.status = domain.STATUS_OK
         self.__itemRepository.update(item)
         
     
@@ -133,7 +133,7 @@ class ImageRequestProcessor(object):
         """
         item = pollingCallback()
         i = 0
-        while i < LOCK_MAX_RETRIES and item is not None and item.status != Domain.STATUS_OK:
+        while i < LOCK_MAX_RETRIES and item is not None and item.status != domain.STATUS_OK:
             time.sleep(LOCK_WAIT_SECONDS)
             item = pollingCallback()
             i=i+1
@@ -148,7 +148,7 @@ class ImageRequestProcessor(object):
         
         self.__waitForItemStatusOk(lambda: self.__itemRepository.findOriginalItemById(transformationRequest.imageId))
         
-        derivedItem = Domain.DerivedItem(Domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, originalItem)
+        derivedItem = domain.DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, originalItem)
         
         cached_filename = self.__absoluteCachedFilename(derivedItem)
         relative_cached_filename = self.__relativeCachedFilename(derivedItem)
@@ -161,7 +161,7 @@ class ImageRequestProcessor(object):
         try:
             self.__itemRepository.create(derivedItem)
             original_filename = self.__absoluteOriginalFilename(originalItem)
-        except Persistence.DuplicateEntryException :
+        except persistence.DuplicateEntryException :
             self.__waitForItemStatusOk(lambda: self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)) 
             
         try:
@@ -184,7 +184,7 @@ class ImageRequestProcessor(object):
             except IOError, ex:
                 raise ImageProcessingException, ex
         
-        derivedItem.status = Domain.STATUS_OK
+        derivedItem.status = domain.STATUS_OK
         self.__itemRepository.update(derivedItem)
         
         return relative_cached_filename

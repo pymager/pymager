@@ -1,5 +1,5 @@
 import os
-from imgserver import ImageEngine, Security, Persistence
+from imgserver import imgengine, security, persistence
 
 class ImageServerFactory(object):
  
@@ -24,13 +24,13 @@ class ImageServerFactory(object):
         if not os.path.exists(data_directory):
             os.makedirs(data_directory)
         
-        self.__persistenceProvider = Persistence.PersistenceProvider(dbstring)
+        self.__persistenceProvider = persistence.PersistenceProvider(dbstring)
         self.__persistenceProvider.createOrUpgradeSchema()
         
-        self.__itemRepository = Persistence.ItemRepository(self.__persistenceProvider)
+        self.__itemRepository = persistence.ItemRepository(self.__persistenceProvider)
         
-        self.__imageProcessor = ImageEngine.ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, data_directory)
-        self.__imageProcessor.prepareTransformation =  Security.imageTransformationSecurityDecorator(allowed_sizes)(self.__imageProcessor.prepareTransformation)
+        self.__imageProcessor = imgengine.ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, data_directory)
+        self.__imageProcessor.prepareTransformation =  security.imageTransformationSecurityDecorator(allowed_sizes)(self.__imageProcessor.prepareTransformation)
         
         self.__imageProcessor.cleanupInconsistentItems()
         return self.__imageProcessor
