@@ -8,9 +8,11 @@ from imgserver import imgengine, domain
 
 NB_THREADS = 15
 
-JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', '..','samples', 'sami.jpg')
+#JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', '..','samples', 'sami.jpg')
+#BROKEN_IMAGE_FILENAME = os.path.join('..', '..', '..','samples', 'brokenImage.jpg')
+JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..','samples', 'sami.jpg')
+BROKEN_IMAGE_FILENAME = os.path.join('..', 'brokenImage.jpg')
 JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
-BROKEN_IMAGE_FILENAME = os.path.join('..', '..', '..','samples', 'brokenImage.jpg')
 
 class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
     
