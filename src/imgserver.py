@@ -8,7 +8,9 @@
 # - python-pmock ?
 # - python-configobj?
 # - python-pkg-resources?
-from ImageServer.CommandLine import main
+# - python-setuptools
+# - python-distutils-extra
+from imgserver.commandline import main
 
 if __name__ == '__main__':    
     main()

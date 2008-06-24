@@ -1,7 +1,9 @@
+import os
+import os.path
+import shutil
+import time
 import Image, ImageOps
-import mimetypes
-import os, os.path, shutil, time
-from ImageServer import Domain, Persistence
+from imgserver import Domain, Persistence
 
 # Relative to the data_directory
 CACHE_DIRECTORY = "cache"

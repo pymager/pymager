@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
 import unittest
-from ImageServer import Domain
+from datetime import datetime, timedelta
+from imgserver import domain
 
 def _checkLastStatusDate(item):
     delta = (datetime.utcnow() - item.lastStatusChangeDate) 
@@ -10,23 +10,23 @@ class OriginalItemTestCase(unittest.TestCase):
         
     def __checkItem(self, item):
         assert item.id == 'MYID12435'
-        assert item.status == Domain.STATUS_OK
+        assert item.status == domain.STATUS_OK
         assert item.width == 800
         assert item.height == 600
-        assert item.format == Domain.IMAGE_FORMAT_JPEG
+        assert item.format == domain.IMAGE_FORMAT_JPEG
         _checkLastStatusDate(item)
         
     def testShouldBeAbleToCreateItemWithWidthAndHeightAsString(self):
-        item = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, ('800', '600'), Domain.IMAGE_FORMAT_JPEG)
+        item = domain.OriginalItem('MYID12435', domain.STATUS_OK, ('800', '600'), domain.IMAGE_FORMAT_JPEG)
         self.__checkItem(item)
     
     def testShouldBeAbleToCreateItemWithWidthAndHeightAsInt(self):
-        item = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), Domain.IMAGE_FORMAT_JPEG)
+        item = domain.OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
         self.__checkItem(item)
         
     def testShouldNotBeAbleToCreateItemWithNullId(self):
         try:
-            Domain.OriginalItem(None, Domain.STATUS_OK, (800, 600), Domain.IMAGE_FORMAT_JPEG)
+            domain.OriginalItem(None, domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
         except Exception:
             pass
         else:
@@ -34,7 +34,7 @@ class OriginalItemTestCase(unittest.TestCase):
             
     def testShouldNotBeAbleToCreateItemWithNullStatus(self):
         try:
-            Domain.OriginalItem('MYID12435', None, (800, 600), Domain.IMAGE_FORMAT_JPEG)
+            domain.OriginalItem('MYID12435', None, (800, 600), domain.IMAGE_FORMAT_JPEG)
         except Exception:
             pass
         else:
@@ -42,7 +42,7 @@ class OriginalItemTestCase(unittest.TestCase):
             
     def testShouldNotBeAbleToCreateItemWithNullWidth(self):
         try:
-            Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (None, 600), Domain.IMAGE_FORMAT_JPEG)
+            domain.OriginalItem('MYID12435', domain.STATUS_OK, (None, 600), domain.IMAGE_FORMAT_JPEG)
         except Exception:
             pass
         else:
@@ -50,7 +50,7 @@ class OriginalItemTestCase(unittest.TestCase):
     
     def testShouldNotBeAbleToCreateItemWithNullHeight(self):
         try:
-            Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, None), Domain.IMAGE_FORMAT_JPEG)
+            domain.OriginalItem('MYID12435', domain.STATUS_OK, (800, None), domain.IMAGE_FORMAT_JPEG)
         except Exception:
             pass
         else:
@@ -58,59 +58,59 @@ class OriginalItemTestCase(unittest.TestCase):
     
     def testShouldNotBeAbleToCreateItemWithNullFormat(self):
         try:
-            Domain.OriginalItem('MYID12435', Domain.STATUS_OK, (800, 600), None)
+            domain.OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), None)
         except Exception:
             pass
         else:
             self.fail()
     
     def testSetStatusShouldUpdateLastStatusChangeDate(self):
-        item = Domain.OriginalItem('MYID12435', Domain.STATUS_INCONSISTENT, (800, 600), Domain.IMAGE_FORMAT_JPEG)
+        item = domain.OriginalItem('MYID12435', domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
         # fuck date by breaking encapsulation
         item._lastStatusChangeDate = datetime.utcnow() - timedelta(1)
-        item.setStatus(Domain.STATUS_OK)
+        item.setStatus(domain.STATUS_OK)
         _checkLastStatusDate(item)
     
 class DerivedItemTestCase(unittest.TestCase):
     
     def setUp(self):
         unittest.TestCase.setUp(self)
-        self.originalItem = Domain.OriginalItem('MYID12435', Domain.STATUS_OK, ('800', '600'), Domain.IMAGE_FORMAT_JPEG)
+        self.originalItem = domain.OriginalItem('MYID12435', domain.STATUS_OK, ('800', '600'), domain.IMAGE_FORMAT_JPEG)
     
     def __checkItem(self, item):
-        assert item.status == Domain.STATUS_OK
+        assert item.status == domain.STATUS_OK
         assert item.width == 100
         assert item.height == 100
-        assert item.format == Domain.IMAGE_FORMAT_JPEG
+        assert item.format == domain.IMAGE_FORMAT_JPEG
         assert item.originalItem.id =='MYID12435'
-        assert item.originalItem.status == Domain.STATUS_OK
+        assert item.originalItem.status == domain.STATUS_OK
         assert item.originalItem.width == 800
         assert item.originalItem.height == 600
-        assert item.originalItem.format == Domain.IMAGE_FORMAT_JPEG
+        assert item.originalItem.format == domain.IMAGE_FORMAT_JPEG
         _checkLastStatusDate(item)
     
     def testShouldIdBeAutogenerated(self):
-        item = Domain.DerivedItem(Domain.STATUS_OK, ('100', '100'), Domain.IMAGE_FORMAT_JPEG, self.originalItem)
+        item = domain.DerivedItem(domain.STATUS_OK, ('100', '100'), domain.IMAGE_FORMAT_JPEG, self.originalItem)
         assert item.id == 'MYID12435-100x100-JPEG'
     
     def testShouldBeAbleToCreateItemWithWidthAndHeightAsString(self):
-        item = Domain.DerivedItem(Domain.STATUS_OK, ('100', '100'), Domain.IMAGE_FORMAT_JPEG, self.originalItem)
+        item = domain.DerivedItem(domain.STATUS_OK, ('100', '100'), domain.IMAGE_FORMAT_JPEG, self.originalItem)
         self.__checkItem(item)
     
     def testShouldBeAbleToCreateItemWithWidthAndHeightAsInt(self):
-        item = Domain.DerivedItem(Domain.STATUS_OK, (100, 100), Domain.IMAGE_FORMAT_JPEG, self.originalItem)
+        item = domain.DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, self.originalItem)
         self.__checkItem(item)
         
     def testSetStatusShouldUpdateLastStatusChangeDate(self):
-        item = Domain.DerivedItem(Domain.STATUS_INCONSISTENT, (100, 100), Domain.IMAGE_FORMAT_JPEG, self.originalItem)
+        item = domain.DerivedItem(domain.STATUS_INCONSISTENT, (100, 100), domain.IMAGE_FORMAT_JPEG, self.originalItem)
         # fuck date by breaking encapsulation
         item._lastStatusChangeDate = datetime.utcnow() - timedelta(1)
-        item.setStatus(Domain.STATUS_OK)
+        item.setStatus(domain.STATUS_OK)
         _checkLastStatusDate(item)
             
     def testShouldNotBeAbleToCreateItemWithNullStatus(self):
         try:
-            Domain.DerivedItem(None, (800, 600), Domain.IMAGE_FORMAT_JPEG, self.originalItem)
+            domain.DerivedItem(None, (800, 600), domain.IMAGE_FORMAT_JPEG, self.originalItem)
         except Exception:
             pass
         else:
@@ -118,7 +118,7 @@ class DerivedItemTestCase(unittest.TestCase):
             
     def testShouldNotBeAbleToCreateItemWithNullWidth(self):
         try:
-            Domain.DerivedItem(Domain.STATUS_OK, (None, 600), Domain.IMAGE_FORMAT_JPEG, self.originalItem)
+            domain.DerivedItem(domain.STATUS_OK, (None, 600), domain.IMAGE_FORMAT_JPEG, self.originalItem)
         except Exception:
             pass
         else:
@@ -126,7 +126,7 @@ class DerivedItemTestCase(unittest.TestCase):
     
     def testShouldNotBeAbleToCreateItemWithNullHeight(self):
         try:
-            Domain.DerivedItem(Domain.STATUS_OK, (800, None), Domain.IMAGE_FORMAT_JPEG, self.originalItem)
+            domain.DerivedItem(domain.STATUS_OK, (800, None), domain.IMAGE_FORMAT_JPEG, self.originalItem)
         except Exception:
             pass
         else:
@@ -134,7 +134,7 @@ class DerivedItemTestCase(unittest.TestCase):
     
     def testShouldNotBeAbleToCreateItemWithNullFormat(self):
         try:
-            Domain.DerivedItem(Domain.STATUS_OK, (800, 600), None, self.originalItem)
+            domain.DerivedItem(domain.STATUS_OK, (800, 600), None, self.originalItem)
         except Exception:
             pass
         else:
@@ -142,7 +142,7 @@ class DerivedItemTestCase(unittest.TestCase):
     
     def testShouldNotBeAbleToCreateItemWithNullOriginalItem(self):
         try:
-            Domain.DerivedItem(Domain.STATUS_OK, (800, 600), Domain.IMAGE_FORMAT_JPEG, None)
+            domain.DerivedItem(domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG, None)
         except Exception:
             pass
         else:

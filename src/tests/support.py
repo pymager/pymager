@@ -1,5 +1,5 @@
 import unittest
-from ImageServer import Factory, ImageEngine
+from imgserver import factory, imgengine
 import sqlalchemy 
 import os, shutil
  
@@ -17,7 +17,7 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         self.__cleanup__()
         sqlalchemy.orm.clear_mappers()
         
-        self._imageServerFactory = Factory.ImageServerFactory()
+        self._imageServerFactory = factory.ImageServerFactory()
         self._imgProcessor = self._imageServerFactory.createImageServer(AbstractIntegrationTestCase.DATA_DIRECTORY, 'sqlite:///:memory:', [(100*i,100*i) for i in range(1,9)])
         self._itemRepository = self._imageServerFactory.getItemRepository()
         

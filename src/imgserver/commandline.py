@@ -1,4 +1,4 @@
-from ImageServer import Factory, ImageEngine, Domain
+from imgserver import Factory, ImageEngine, Domain
 
 DB_FILENAME='db.sqlite'
 

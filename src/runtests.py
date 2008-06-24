@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
 import unittest
-
-from Tests.ImageServerTests import PersistenceTests, DomainTests, ImageEngineTests
+from tests.imgservertests import persistencetests, domaintests, imgenginetests
 
 if __name__ == "__main__":
-    alltests = unittest.TestSuite((PersistenceTests.suite(), DomainTests.suite(), ImageEngineTests.suite()))
+    alltests = unittest.TestSuite((persistencetests.suite(), domaintests.suite(), imgenginetests.suite()))
     #unittest.main()
     runner = unittest.TextTestRunner()
     runner.run(alltests)
