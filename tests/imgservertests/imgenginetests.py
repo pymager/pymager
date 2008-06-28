@@ -5,6 +5,7 @@ import random
 from threading import Thread
 from tests import support
 from imgserver import imgengine, domain
+from imgserver.imgengine.transformationrequest import TransformationRequest
 
 NB_THREADS = 15
 
@@ -54,14 +55,14 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         
     def testPrepareTransformationWithNonExistingOriginalIdShouldThrowException(self):
         try:
-            request = imgengine.TransformationRequest('nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)
+            request = TransformationRequest('nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)
         except Exception:
             pass
     
     def testPrepareRequestShouldUpdateFileSystemAndDatabase(self):
         self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
-        request = imgengine.TransformationRequest('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
+        request = TransformationRequest('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
         result = self._imgProcessor.prepareTransformation(request)
         assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-100x100.jpg')) == True
         
@@ -85,7 +86,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
             self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'item%s' %i)
          
             for size in [(100,100), (200,200), (300,300), (400,400)]:
-                request = imgengine.TransformationRequest('item%s' % i, size, domain.IMAGE_FORMAT_JPEG)
+                request = TransformationRequest('item%s' % i, size, domain.IMAGE_FORMAT_JPEG)
                 self._imgProcessor.prepareTransformation(request)
         
         # now mark 5 of the original items as inconsistent, as well as their associated derived items

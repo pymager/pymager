@@ -17,23 +17,20 @@
 # - python-distutils-extra
 import time
 from imgserver.commandline import main
+from imgserver.web import protocol
 
 if __name__ == '__main__':
     from twisted.internet import reactor
     
-    def printTime( ):
-        print "Current time is", time.strftime("%H:%M:%S")
     def stopReactor( ):
         print "Stopping reactor"
         reactor.stop( )
 
-    reactor.callLater(1, printTime)
-    reactor.callLater(2, printTime)
-    reactor.callLater(3, printTime)
-    reactor.callLater(4, printTime)
-    reactor.callLater(5, stopReactor)
-
+    #reactor.callLater(5, stopReactor)
+    reactor.listenTCP(8000, protocol.MyHttpFactory( ))
+    
     print "Running the reactor..."
     reactor.run( )
     print "Reactor stopped."
-    #main()
+    
+    

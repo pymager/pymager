@@ -1,5 +1,8 @@
 import os
 from imgserver import imgengine, security, persistence
+from imgserver.imgengine.transformationrequest import TransformationRequest
+from imgserver.imgengine.imagerequestprocessor import ImageRequestProcessor
+from imgserver.imgengine.imagerequestprocessor import IImageRequestProcessor
 from imgserver.persistence.persistenceprovider import PersistenceProvider
 from imgserver.persistence.itemrepository import ItemRepository
 
@@ -31,7 +34,7 @@ class ImageServerFactory(object):
         
         self.__itemRepository = ItemRepository(self.__persistenceProvider)
         
-        self.__imageProcessor = imgengine.ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, data_directory)
+        self.__imageProcessor = IImageRequestProcessor(ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, data_directory))
         self.__imageProcessor.prepareTransformation =  security.imageTransformationSecurityDecorator(allowed_sizes)(self.__imageProcessor.prepareTransformation)
         
         self.__imageProcessor.cleanupInconsistentItems()

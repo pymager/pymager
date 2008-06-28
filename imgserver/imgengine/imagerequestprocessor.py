@@ -3,63 +3,37 @@ import os.path
 import shutil
 import time
 import Image, ImageOps
+from zope.interface import Interface, implements
 from imgserver import domain
 from imgserver import persistence
+from imgserver import imgengine
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
 from imgserver.persistence.itemrepository import DuplicateEntryException
 
-# Relative to the data_directory
 CACHE_DIRECTORY = "cache"
 ORIGINAL_DIRECTORY = "pictures"
 FORMAT_EXTENSIONS = { "JPEG" : "jpg" }
 
 LOCK_MAX_RETRIES = 10
 LOCK_WAIT_SECONDS = 1
-
-# Layout
-# data/original/image_id.format
-# data/cache/image_id/800x600/format
-
-def checkid(imageId):
-    if not imageId.isalnum():
-        raise IDNotAuthorized, imageId
-            
-class ImageProcessingException(Exception):
-    """Thrown when errors happen while processing images """
-    def __init__(self, message):
-        super(ImageProcessingException, self).__init__(message)
         
-
-class IDNotAuthorized(ImageProcessingException):
-    def __init__(self, imageId):
-        super(IDNotAuthorized, self).__init__('ID contains non alpha numeric characters: %s' % (imageId,))
-        self.imageId = imageId
-
-class ImageFileNotRecognized(ImageProcessingException):
-    def __init__(self, ex):
-        super(ImageFileNotRecognized, self).__init__(ex)
-
-class ImageIDAlreadyExistingException(ImageProcessingException):
-    def __init__(self, imageId):
-        super(ImageIDAlreadyExistingException, self).__init__('An image with the given ID already exists in the repository: %s' % imageId)
-        self.imageId = imageId
-
-
-class TransformationRequest(object):
-    """ Stores the parameters of an image processing request """
-    def __init__(self, imageId, size, target_format):
-        """ @param size: a (width, height) tuple
+class IImageRequestProcessor(Interface):
+    def saveFileToRepository(self, filename, imageId):
+        """ save the given file to the image server repository. 
+        It will then be available for transformations"""
+    
+    def prepareTransformation(self, transformationRequest):
+        """ Takes an ImageRequest and prepare the output for it. 
+        Updates the database so that it is in sync with the filesystem
+        @return: the path to the generated file (relative to the cache directory) 
         """
-        checkid(imageId)
-        
-        self.imageId = imageId
-        self.size = size
-        self.targetFormat = target_format
+    def cleanupInconsistentItems(self):
+        """ Cleans up the locks, etc"""
 
 class ImageRequestProcessor(object):
-    
+    implements(IImageRequestProcessor)
     """ Processes ImageRequest objects and does the required work to prepare the images """
     def __init__(self, itemRepository, persistenceProvider, dataDirectory):
         """ @param data_directory: the directory that this 
@@ -104,16 +78,13 @@ class ImageRequestProcessor(object):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
 
     def saveFileToRepository(self, filename, imageId):
-        """ save the given file to the image server repository. 
-        It will then be available for transformations"""
-        
-        checkid(imageId)
+        imgengine.checkid(imageId)
         # Check that the image is not broken
         try:
             img = Image.open(filename)
             img.verify()
         except IOError, ex:
-            raise ImageFileNotRecognized, ex
+            raise imgengine.ImageFileNotRecognized(ex)
         
         item = OriginalItem(imageId, domain.STATUS_INCONSISTENT, img.size, img.format)
 
@@ -121,12 +92,12 @@ class ImageRequestProcessor(object):
             # atomic creation
             self.__itemRepository.create(item)
         except DuplicateEntryException, ex:
-            raise ImageIDAlreadyExistingException, item.id
+            raise imgengine.ImageIDAlreadyExistingException(item.id)
         else:
             try:
                 shutil.copyfile(filename, self.__absoluteOriginalFilename(item))
             except IOError, ex:
-                raise ImageProcessingException, ex
+                raise imgengine.ImageProcessingException(ex)
         
         item.status = domain.STATUS_OK
         self.__itemRepository.update(item)
@@ -144,10 +115,6 @@ class ImageRequestProcessor(object):
             i=i+1
         
     def prepareTransformation(self, transformationRequest):
-        """ Takes an ImageRequest and prepare the output for it. 
-            Updates the database so that it is in sync with the filesystem
-            @return: the path to the generated file (relative to the cache directory) 
-            """
         originalItem = self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
         assert originalItem is not None
         
@@ -172,13 +139,13 @@ class ImageRequestProcessor(object):
         try:
             img = Image.open(original_filename)
         except IOError, ex: 
-            raise ImageProcessingException, ex
+            raise imgengine.ImageProcessingException(ex)
         
         if transformationRequest.size == img.size and transformationRequest.target_format.upper() == img.format.upper():
             try:
                 shutil.copyfile(self.__absoluteOriginalFilename(originalItem), cached_filename)
             except IOError, ex:
-                raise ImageProcessingException, ex
+                raise imgengine.ImageProcessingException(ex)
         else:   
             target_image = ImageOps.fit(image=img, 
                                         size=transformationRequest.size, 
@@ -187,7 +154,7 @@ class ImageRequestProcessor(object):
             try:
                 target_image.save(cached_filename)
             except IOError, ex:
-                raise ImageProcessingException, ex
+                raise imgengine.ImageProcessingException(ex)
         
         derivedItem.status = domain.STATUS_OK
         self.__itemRepository.update(derivedItem)
