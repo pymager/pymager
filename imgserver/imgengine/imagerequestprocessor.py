@@ -20,6 +20,8 @@ LOCK_MAX_RETRIES = 10
 LOCK_WAIT_SECONDS = 1
         
 class IImageRequestProcessor(Interface):
+    """ Processes ImageRequest objects and does the required work to prepare the images """
+    
     def saveFileToRepository(self, filename, imageId):
         """ save the given file to the image server repository. 
         It will then be available for transformations"""
@@ -34,7 +36,7 @@ class IImageRequestProcessor(Interface):
 
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
-    """ Processes ImageRequest objects and does the required work to prepare the images """
+    
     def __init__(self, itemRepository, persistenceProvider, dataDirectory):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
