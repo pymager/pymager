@@ -3,6 +3,7 @@ import threading
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
+from zope.interface import Interface, implements
 from imgserver import domain
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
@@ -21,14 +22,39 @@ class DuplicateEntryException(Exception):
     
     duplicateId = property(getDuplicateId, None, None, "The ID that lead to the DuplicateEntryException")
 
-class ItemRepository(object):
+class IItemRepository(Interface):
     """ DDD repository for Original and Derived Items """
+    def findOriginalItemById(self, item_id):
+        """ Find an OriginalItem by its ID """
+    
+    def findInconsistentOriginalItems(self, maxResults=100):
+        """ Find Original Items that are in an inconsistent state """
+    
+    def findInconsistentDerivedItems(self, maxResults=100):
+        """ Find Derived Items that are in an inconsistent state """
+    
+    def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
+        """ Find Derived Items By :
+            - the Original Item ID
+            - the size of the Derived Item
+            - the format of the Derived Item """
+    def create(self, item):
+         """ Create a persistent instance of an item"""
+    
+    def update(self, item):    
+        """ Create a persistent instance, or update an existing item 
+            @raise DuplicateEntryException: when an item with similar characteristics has already been created   """
+    def delete(self, item):
+        pass
+    
+class ItemRepository(object):
+    implements(IItemRepository)
+    
     def __init__(self, persistenceProvider):
         self.__persistenceProvider = persistenceProvider
         self.__template = persistenceProvider.session_template()
     
     def findOriginalItemById(self, item_id):
-        """ Find an OriginalItem by its ID """
         def callback(session):
             return session.query(OriginalItem)\
                 .filter(OriginalItem._id==item_id)\
@@ -36,7 +62,6 @@ class ItemRepository(object):
         return self.__template.do_with_session(callback)
 
     def findInconsistentOriginalItems(self, maxResults=100):
-        """ Find Original Items that are in an inconsistent state """
         def callback(session):
             return session.query(OriginalItem)\
                 .filter(AbstractItem._status==domain.STATUS_INCONSISTENT)\
@@ -44,7 +69,6 @@ class ItemRepository(object):
         return self.__template.do_with_session(callback)
     
     def findInconsistentDerivedItems(self, maxResults=100):
-        """ Find Derived Items that are in an inconsistent state """
         def callback(session):
             return session.query(DerivedItem)\
                 .filter(AbstractItem._status==domain.STATUS_INCONSISTENT)\
@@ -52,10 +76,6 @@ class ItemRepository(object):
         return self.__template.do_with_session(callback)
     
     def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
-        """ Find Derived Items By :
-            - the Original Item ID
-            - the size of the Derived Item
-            - the format of the Derived Item """
         def callback(session):
             o = session.query(DerivedItem)\
                     .filter_by(_width=size[0])\

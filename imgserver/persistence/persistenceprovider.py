@@ -3,10 +3,12 @@ import threading
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
+from zope.interface import Interface, implements
 from imgserver import domain
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
+
 
 log = logging.getLogger('persistence.persistenceprovider')
 
@@ -51,8 +53,18 @@ class Version(object):
         self.name = name
         self.value = value
 
-class PersistenceProvider(object):
+class IPersistenceProvider(Interface):
     """ Manages the Schema, Metadata, and stores references to the Engine and Session Maker """
+    
+    def createOrUpgradeSchema(self):
+        """ Create or Upgrade the database metadata
+        @raise NoUpgradeScriptError: when no upgrade script is found for a given 
+            database schema version """
+    def session_template(self):
+        """ Creates a Spring JDBC-like template """
+         
+class PersistenceProvider(object):
+    implements(IPersistenceProvider)
     def __init__(self, dbstring):
         self.__engine = create_engine(dbstring, encoding='utf-8', echo=False, echo_pool=False, strategy='threadlocal')
         self.__metadata = MetaData()
@@ -111,11 +123,6 @@ class PersistenceProvider(object):
         return self.__template;
     
     def createOrUpgradeSchema(self):
-        """ Create or Upgrade the database metadata
-        @raise NoUpgradeScriptError: when no upgrade script is found for a given 
-            database schema version
-         """
-        
         def get_version(session):
             schema_version = None
             try:
