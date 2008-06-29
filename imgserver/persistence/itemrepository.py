@@ -20,7 +20,7 @@ class DuplicateEntryException(Exception):
     def getDuplicateId(self):
         return self.__duplicateId
     
-    duplicateId = property(getDuplicateId, None, None, "The ID that lead to the DuplicateEntryException")
+    duplicateId = property(getDuplicateId, None, None, "The ID that led to the DuplicateEntryException")
 
 class IItemRepository(Interface):
     """ DDD repository for Original and Derived Items """

@@ -9,7 +9,6 @@ from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
 
-
 log = logging.getLogger('persistence.persistenceprovider')
 
 class NoUpgradeScriptError(Exception):

@@ -1,6 +1,6 @@
 import shutil
 from imgserver import factory, domain
-from imgserver.imgengine import TransformationRequest
+from imgserver.imgengine.transformationrequest import TransformationRequest
 
 DB_FILENAME='db.sqlite'
 

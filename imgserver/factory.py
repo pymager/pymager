@@ -1,5 +1,6 @@
 import os
-from imgserver import imgengine, security, persistence
+from imgserver import imgengine, persistence
+from imgserver.imgengine import security
 from imgserver.imgengine.transformationrequest import TransformationRequest
 from imgserver.imgengine.imagerequestprocessor import ImageRequestProcessor
 from imgserver.imgengine.imagerequestprocessor import IImageRequestProcessor
