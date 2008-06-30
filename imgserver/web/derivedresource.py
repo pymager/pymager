@@ -40,7 +40,7 @@ class DerivedResource(Resource):
         if segments:
             try:
                 def prepare_transformation():
-                    """ Runs the synchronous sequence to prepare a transformation """
+                    """ prepare the transformation synchronously"""
                     derivedItemUrlDecoder = DerivedItemUrlDecoder(segments[0])
                     request = TransformationRequest(
                         derivedItemUrlDecoder.itemid, 
@@ -52,8 +52,6 @@ class DerivedResource(Resource):
                 return threads.deferToThread(prepare_transformation)
             except AssertionError:
                 pass
-            
-                
-        #child, segment = Resource.locateChild(request, segments)
+        # revert to default implementation
         return super(DerivedResource,self).locateChild(request, segments)
         
