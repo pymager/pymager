@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# run with :
+# - twistd -n -y imgserver.py
 # requirements: 
 # - python2.5
 # - python-imaging
@@ -15,32 +17,23 @@
 # - python-pkg-resources?
 # - python-setuptools
 # - python-distutils-extra
-import time
-from imgserver.commandline import main
-from twisted.web2 import server, http, resource, channel
-from twisted.web2 import static, http_headers, responsecode
 
-class Toplevel(resource.Resource):
-    addSlash = True
-    child_monkey = static.File('/home/samokk/Desktop/dailyBread.iso')
-       
-    def render(self, ctx):
-        print 'sleeping...'
-        #time.sleep(10)
-        print 'DONE sleeping...'
-        return http.Response(
-            200,
-            {'content-type': http_headers.MimeType('text', 'html')},
-            """<html><body>
-             <a href="monkey">The source code of twisted.web2.static</a><br>
-             <a href="elephant">A defined child</a></body></html>""")
+#import time
 
 #if __name__ == '__main__':
-    
-site = server.Site(Toplevel())
-    
+
+import os
+from twisted.web2 import channel 
 from twisted.application import service, strports
+from imgserver.web.site import create_site, SiteConfig
+from imgserver.commandline import main
+
+# should be able to access http://localhost:8000/derived/sami-100x100.jpg
+main()
 application = service.Application("imgserver")
-s = strports.service('tcp:8000', channel.HTTPFactory(site))
+s = strports.service('tcp:8000', channel.HTTPFactory(create_site(SiteConfig('/tmp/imgserver'))))
 s.setServiceParent(application)
 
+#s = server.Site(static.File(DIRECTORY))
+#reactor.listenTCP(PORT, channel.HTTPFactory(s))
+#reactor.run()
