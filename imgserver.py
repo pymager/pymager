@@ -8,7 +8,6 @@
 # - python-sqlalchemy (+ python-pysqlite2 if using the SQLite backend)
 # - python-zopeinterface
 # - python-twisted-core
-# - python-twisted-web
 # - python-twisted-web2
 # Not yet:
 # - python-openssl
@@ -26,10 +25,10 @@ import os
 from twisted.web2 import channel 
 from twisted.application import service, strports
 from imgserver.web.site import create_site, SiteConfig
-from imgserver.commandline import main
+#from imgserver.commandline import main
 
 # should be able to access http://localhost:8000/derived/sami-100x100.jpg
-main()
+#main()
 application = service.Application("imgserver")
 s = strports.service('tcp:8000', channel.HTTPFactory(create_site(SiteConfig('/tmp/imgserver'))))
 s.setServiceParent(application)
