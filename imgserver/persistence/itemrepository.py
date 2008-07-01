@@ -39,7 +39,9 @@ class IItemRepository(Interface):
             - the size of the Derived Item
             - the format of the Derived Item """
     def create(self, item):
-         """ Create a persistent instance of an item"""
+         """ Create a persistent instance of an item
+             @raise DuplicateEntryException: when an item with similar characteristics has already been created   
+         """
     
     def update(self, item):    
         """ Create a persistent instance, or update an existing item 
@@ -90,7 +92,6 @@ class ItemRepository(object):
         return self.__template.do_with_session(callback)
     
     def create(self, item):
-        """ Create a persistent instance of an item"""
         def callback(session):
             session.save(item)
         try:
@@ -99,9 +100,6 @@ class ItemRepository(object):
             raise DuplicateEntryException, item.id
     
     def update(self, item):
-        """ Create a persistent instance, or update an existing item 
-            @raise DuplicateEntryException: when an item with similar characteristics has already been created  
-        """
         def callback(session):
             session.save_or_update(item)
         try:
