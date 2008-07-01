@@ -2,6 +2,7 @@ import unittest
 import os
 import time
 import random
+import exceptions
 from threading import Thread
 from tests import support
 from imgserver import imgengine, domain
@@ -124,7 +125,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         for i in range(6,11):
             item = self._itemRepository.findOriginalItemById('item%s' % i)
             assert item is not None
-            assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'item%s.jpg' %(i))) == True 
+            assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'item%s.jpg' %(i))) 
         
         # a few Derived Items that should be KO
         assert self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('item6', (100,100),domain.IMAGE_FORMAT_JPEG) is None
@@ -136,6 +137,19 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         assert self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('item7', (200,200),domain.IMAGE_FORMAT_JPEG) is not None
         assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'item7-200x200.jpg')) == True
     
+    def testShouldReturnOriginalFilenameForExistingItem(self):
+        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        path = self._imgProcessor.getOriginalImagePath('sampleId')
+        self.assertTrue(os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, path)))
+    
+    def testReturnOriginalFilenameShouldRaiseExceptionWhenItemDoesNotExist(self):
+        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        try:
+            self._imgProcessor.getOriginalImagePath('anyItem')
+            self.fail()
+        except exceptions.AssertionError:
+            pass
+        
     def koImageRequestProcessorMultithreadedTestCase(self):
         
         children = []

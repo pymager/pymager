@@ -22,6 +22,11 @@ LOCK_WAIT_SECONDS = 1
 class IImageRequestProcessor(Interface):
     """ Processes ImageRequest objects and does the required work to prepare the images """
     
+    def getOriginalImagePath(self, item_id):
+        """@return: the relative path of the original image that has the given item_id 
+        @rtype: str
+        @raise AssertionError: if item_id does not exist"""
+        
     def saveFileToRepository(self, filename, imageId):
         """ save the given file to the image server repository. 
         It will then be available for transformations"""
@@ -79,6 +84,26 @@ class ImageRequestProcessor(object):
     def __extensionForFormat(self, format):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
 
+    def __waitForItemStatusOk(self, pollingCallback):
+        """ Wait for the status property of the object returned by pollingCallback() to be STATUS_OK
+        It honors LOCK_MAX_RETRIES and LOCK_WAIT_SECONDS
+        """
+        item = pollingCallback()
+        i = 0
+        while i < LOCK_MAX_RETRIES and item is not None and item.status != domain.STATUS_OK:
+            time.sleep(LOCK_WAIT_SECONDS)
+            item = pollingCallback()
+            i=i+1
+            
+    def getOriginalImagePath(self, item_id):
+        originalItem = self.__itemRepository.findOriginalItemById(item_id)
+        assert originalItem is not None
+        self.__wait_for_original_item(item_id)
+        return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (originalItem.id, self.__extensionForFormat(originalItem.format)))
+    
+    def __wait_for_original_item(self, item_id):
+        self.__waitForItemStatusOk(lambda: self.__itemRepository.findOriginalItemById(item_id))
+                                   
     def saveFileToRepository(self, filename, imageId):
         imgengine.checkid(imageId)
         # Check that the image is not broken
@@ -103,25 +128,11 @@ class ImageRequestProcessor(object):
         
         item.status = domain.STATUS_OK
         self.__itemRepository.update(item)
-        
-    
-    def __waitForItemStatusOk(self, pollingCallback):
-        """ Wait for the status property of the object returned by pollingCallback() to be STATUS_OK
-        It honors LOCK_MAX_RETRIES and LOCK_WAIT_SECONDS
-        """
-        item = pollingCallback()
-        i = 0
-        while i < LOCK_MAX_RETRIES and item is not None and item.status != domain.STATUS_OK:
-            time.sleep(LOCK_WAIT_SECONDS)
-            item = pollingCallback()
-            i=i+1
-        
+            
     def prepareTransformation(self, transformationRequest):
         originalItem = self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
         assert originalItem is not None
-        
-        self.__waitForItemStatusOk(lambda: self.__itemRepository.findOriginalItemById(transformationRequest.imageId))
-        
+        self.__wait_for_original_item(transformationRequest.imageId)
         derivedItem = DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, originalItem)
         
         cached_filename = self.__absoluteCachedFilename(derivedItem)
