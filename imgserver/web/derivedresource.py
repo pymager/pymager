@@ -53,4 +53,3 @@ class DerivedResource(Resource):
                 pass
         # revert to default implementation
         return super(DerivedResource,self).locateChild(request, segments)
-        
