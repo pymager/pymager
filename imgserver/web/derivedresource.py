@@ -3,7 +3,6 @@ import os
 from twisted.internet import threads
 from twisted.web2 import http, static
 from twisted.web2.resource import Resource
-from twisted.web2.stream import ProducerStream
 from imgserver import domain
 from imgserver.imgengine.transformationrequest import TransformationRequest 
 
