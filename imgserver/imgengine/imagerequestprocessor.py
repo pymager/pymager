@@ -94,16 +94,16 @@ class ImageRequestProcessor(object):
             time.sleep(LOCK_WAIT_SECONDS)
             item = pollingCallback()
             i=i+1
-            
+    
+    def __wait_for_original_item(self, item_id):
+        self.__waitForItemStatusOk(lambda: self.__itemRepository.findOriginalItemById(item_id))
+                
     def getOriginalImagePath(self, item_id):
         originalItem = self.__itemRepository.findOriginalItemById(item_id)
         assert originalItem is not None
         self.__wait_for_original_item(item_id)
         return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (originalItem.id, self.__extensionForFormat(originalItem.format)))
-    
-    def __wait_for_original_item(self, item_id):
-        self.__waitForItemStatusOk(lambda: self.__itemRepository.findOriginalItemById(item_id))
-                                   
+                               
     def saveFileToRepository(self, filename, imageId):
         imgengine.checkid(imageId)
         # Check that the image is not broken
