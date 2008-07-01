@@ -35,8 +35,15 @@ class _SessionTemplate(object):
         
     def do_with_session(self, session_callback):        
         session = self.__sessionmaker()
-        self.__local.do_with_session_count = self.__local.do_with_session_count+1 if hasattr(self.__local,'do_with_session_count') and self.__local.do_with_session_count is not None else 1   
-        o = session_callback(session)
+        self.__local.do_with_session_count = self.__local.do_with_session_count+1 if hasattr(self.__local,'do_with_session_count') and self.__local.do_with_session_count is not None else 1
+        try:   
+            o = session_callback(session)
+        except Exception, ex:
+            del self.__local.do_with_session_count
+            session.rollback()
+            session.close()
+            self.__sessionmaker.remove()
+            raise ex
         count = self.__local.do_with_session_count
         if count == 1:
             session.commit()
