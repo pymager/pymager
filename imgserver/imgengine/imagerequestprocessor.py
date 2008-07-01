@@ -96,6 +96,7 @@ class ImageRequestProcessor(object):
             i=i+1
     
     def __wait_for_original_item(self, item_id):
+        """ Wait for the given original item to have a status of STATUS_OK """
         self.__waitForItemStatusOk(lambda: self.__itemRepository.findOriginalItemById(item_id))
                 
     def getOriginalImagePath(self, item_id):
