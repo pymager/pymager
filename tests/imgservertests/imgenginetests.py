@@ -150,6 +150,13 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         except exceptions.AssertionError:
             pass
         
+    def testOriginalImageShouldExist(self):
+        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        self.assertTrue(self._imgProcessor.originalImageExists('sampleId'))
+    
+    def testOriginalImageShouldNotExist(self):
+        self.assertFalse(self._imgProcessor.originalImageExists('sampleId'))
+        
     def koImageRequestProcessorMultithreadedTestCase(self):
         
         children = []
