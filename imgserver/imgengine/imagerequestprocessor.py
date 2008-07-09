@@ -34,7 +34,7 @@ class IImageRequestProcessor(Interface):
     def prepareTransformation(self, transformationRequest):
         """ Takes an ImageRequest and prepare the output for it. 
         Updates the database so that it is in sync with the filesystem
-        @return: the path to the generated file (relative to the cache directory) 
+        @return: the path to the generated file (relative to the data directory) 
         """
     def cleanupInconsistentItems(self):
         """ Cleans up the locks, etc"""
