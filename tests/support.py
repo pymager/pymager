@@ -6,8 +6,8 @@ import os, shutil
 class AbstractIntegrationTestCase(unittest.TestCase):
         
     DATA_DIRECTORY='/tmp/imgserver-test'
-    SAURI = 'sqlite:///:memory:'
-    #SAURI = 'postgres://imgserver:funala@localhost/imgserver'
+    #SAURI = 'sqlite:///:memory:'
+    SAURI = 'postgres://imgserver:funala@localhost/imgserver'
     
     def setUp(self):
         unittest.TestCase.setUp(self)

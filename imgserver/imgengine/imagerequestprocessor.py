@@ -153,12 +153,12 @@ class ImageRequestProcessor(object):
         # otherwise, c'est parti to convert the stuff
         try:
             self.__itemRepository.create(derivedItem)
-            original_filename = self.__absoluteOriginalFilename(originalItem)
         except DuplicateEntryException :
-            self.__waitForItemStatusOk(lambda: self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)) 
+            time.sleep(5)
+            #self.__waitForItemStatusOk(lambda: self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)) 
             
         try:
-            img = Image.open(original_filename)
+            img = Image.open(self.__absoluteOriginalFilename(originalItem))
         except IOError, ex: 
             raise imgengine.ImageProcessingException(ex)
         

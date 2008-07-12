@@ -36,23 +36,33 @@ class _SessionTemplate(object):
     def do_with_session(self, session_callback):        
         session = self.__sessionmaker()
         self.__local.do_with_session_count = self.__local.do_with_session_count+1 if hasattr(self.__local,'do_with_session_count') and self.__local.do_with_session_count is not None else 1
-        try:   
+        
+        def cleanup_on_exception(f):
+            try:
+                return f()
+            except Exception, ex:
+                del self.__local.do_with_session_count
+                print 'should invalidate connection' + str(type(session.connection))
+                #session.connection.invalidate()
+                session.rollback()
+                session.close()
+                self.__sessionmaker.remove()
+                raise ex
+        
+        def do():
             o = session_callback(session)
-        except Exception, ex:
-            del self.__local.do_with_session_count
-            session.rollback()
-            session.close()
-            self.__sessionmaker.remove()
-            raise ex
-        count = self.__local.do_with_session_count
-        if count == 1:
-            session.commit()
-            session.close()
-            self.__sessionmaker.remove()
-            del self.__local.do_with_session_count
-        else:
-            self.__local.do_with_session_count = count-1
-        return o
+            count = self.__local.do_with_session_count
+            if count == 1:
+                session.commit()
+                session.close()
+                self.__sessionmaker.remove()
+                del self.__local.do_with_session_count
+            else:
+                self.__local.do_with_session_count = count-1
+            return o
+        
+        return cleanup_on_exception(do)
+    
     
 class Version(object):
     def __init__(self, name, value):
