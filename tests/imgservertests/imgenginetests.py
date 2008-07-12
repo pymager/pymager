@@ -10,10 +10,10 @@ from imgserver.imgengine.transformationrequest import TransformationRequest
 
 NB_THREADS = 15
 
+#JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'sami.jpg')
+#BROKEN_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'brokenImage.jpg')
 JPG_SAMPLE_IMAGE_FILENAME = os.path.join('samples', 'sami.jpg')
 BROKEN_IMAGE_FILENAME = os.path.join('samples', 'brokenImage.jpg')
-#JPG_SAMPLE_IMAGE_FILENAME = os.path.join('samples', 'sami.jpg')
-#BROKEN_IMAGE_FILENAME = os.path.join('samples', 'brokenImage.jpg')
 JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
 
 class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
@@ -113,7 +113,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
             item.status = domain.STATUS_INCONSISTENT
             self._itemRepository.update(item)
         
-        self._imgProcessor.cleanupInconsistentItems()
+        self._imgProcessor._cleanupInconsistentItems()
         
         # items 1 to 5 should not exist anymore (DB and file)
         for i in range(1,6):

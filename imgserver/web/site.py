@@ -24,10 +24,15 @@ class SiteConfig(object):
 def init_imageprocessor(site_config):
     shutil.rmtree(site_config.data_directory,True)
     f = ImageServerFactory()
+    #imageProcessor = \
+    #    f.createImageServer(
+    #        site_config.data_directory, 
+    #        'sqlite:///%s/%s' % (site_config.data_directory, DB_FILENAME),
+    #        [(100,100), (800,600)])
     imageProcessor = \
         f.createImageServer(
             site_config.data_directory, 
-            'sqlite:///%s/%s' % (site_config.data_directory, DB_FILENAME),
+            'postgres://imgserver:funala@localhost/imgserver',
             [(100,100), (800,600)])
     imageProcessor.saveFileToRepository('samples/sami.jpg','sami')
     return imageProcessor

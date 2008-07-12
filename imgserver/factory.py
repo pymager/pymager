@@ -26,19 +26,13 @@ class ImageServerFactory(object):
     def getImageProcessor(self):
         return self.__imageProcessor
 
-    def createImageServer(self,data_directory, dbstring, allowed_sizes):
-        if not os.path.exists(data_directory):
-            os.makedirs(data_directory)
-        
+    def createImageServer(self,data_directory, dbstring, allowed_sizes, drop_data=False):
         self.__persistenceProvider = IPersistenceProvider(PersistenceProvider(dbstring))
-        self.__persistenceProvider.createOrUpgradeSchema()
         
         self.__itemRepository = IItemRepository(ItemRepository(self.__persistenceProvider))
-        
-        self.__imageProcessor = IImageRequestProcessor(ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, data_directory))
+        self.__imageProcessor = IImageRequestProcessor(ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, data_directory, drop_data))
         self.__imageProcessor.prepareTransformation =  security.imageTransformationSecurityDecorator(allowed_sizes)(self.__imageProcessor.prepareTransformation)
         
-        self.__imageProcessor.cleanupInconsistentItems()
         return self.__imageProcessor
     
     persistenceProvider = property(getPersistenceProvider, None, None, "PersistenceProvider's Docstring")

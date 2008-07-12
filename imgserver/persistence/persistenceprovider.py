@@ -66,6 +66,10 @@ class IPersistenceProvider(Interface):
         """ Create or Upgrade the database metadata
         @raise NoUpgradeScriptError: when no upgrade script is found for a given 
             database schema version """
+            
+    def drop_all_tables(self):
+        """ Drop all tables """
+        
     def session_template(self):
         """ Creates a Spring JDBC-like template """
          
@@ -128,6 +132,9 @@ class PersistenceProvider(object):
     def session_template(self):
         return self.__template;
     
+    def drop_all_tables(self):
+        self.__metadata.drop_all(self.__engine)
+    
     def createOrUpgradeSchema(self):
         def get_version(session):
             schema_version = None
@@ -137,7 +144,9 @@ class PersistenceProvider(object):
                                     .first()
                 schema_version = schema_version if schema_version is not None else Version('schema', 0)
             except sqlalchemy.exceptions.OperationalError:
-                schema_version = Version('schema', 0) 
+                schema_version = Version('schema', 0)
+            except sqlalchemy.exceptions.ProgrammingError:
+                schema_version = Version('schema', 0)  
             return schema_version
         
         def store_latest_version(session):
@@ -150,8 +159,7 @@ class PersistenceProvider(object):
             log.info('Upgrading Database Schema...')
             self.__metadata.create_all(self.__engine)
             self.__template.do_with_session(store_latest_version)
-        elif schema_version == 1:
+        elif schema_version.value == 1:
             log.info('Database Schema already up to date')
-            pass
         else:
             raise NoUpgradeScriptError(schema_version)

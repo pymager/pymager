@@ -36,26 +36,29 @@ class IImageRequestProcessor(Interface):
         Updates the database so that it is in sync with the filesystem
         @return: the path to the generated file (relative to the data directory) 
         """
-    def cleanupInconsistentItems(self):
-        """ Cleans up the locks, etc"""
+    
+    def _cleanupInconsistentItems(self):
+        """ deletes the files and items whose status is not OK (startup cleanup)"""
 
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
     
-    def __init__(self, itemRepository, persistenceProvider, dataDirectory):
+    def __init__(self, itemRepository, persistenceProvider, dataDirectory, drop_data=False):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
         self.__dataDirectory = dataDirectory 
-        self.__initDirectories()
         self.__itemRepository = itemRepository
         self.__persistenceProvider = persistenceProvider
         
+        if drop_data:
+            self.__drop_data()
+        
+        self.__init_data()
+        self._cleanupInconsistentItems()
+        
     def __initDirectories(self):
         """ Creates the work directories needed to run this processor """
-        for directory in \
-            [self.__absoluteCacheDirectory(), self.__absoluteOriginalDirectory()]:
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+        
         
     def __absoluteCacheDirectory(self):
         """ @return: the directory that will be used for caching image processing 
@@ -179,7 +182,7 @@ class ImageRequestProcessor(object):
         
         return relative_cached_filename
     
-    def cleanupInconsistentItems(self):
+    def _cleanupInconsistentItems(self):
         def cleanup_in_session(fetch_items, delete_file):
             items = fetch_items()
             for i in items:
@@ -208,3 +211,19 @@ class ImageRequestProcessor(object):
             
         cleanup_derived_items()
         cleanup_original_items()
+        
+    def __drop_data(self):
+        self.__persistenceProvider.drop_all_tables()
+        if os.path.exists(self.__dataDirectory):
+            shutil.rmtree(self.__dataDirectory)
+    
+    def __init_directories(self):
+        if not os.path.exists(self.__dataDirectory):
+            os.makedirs(self.__dataDirectory)
+        for directory in \
+            [self.__absoluteCacheDirectory(), self.__absoluteOriginalDirectory()]:
+            if not os.path.exists(directory):
+                os.makedirs(directory)    
+    def __init_data(self):
+        self.__init_directories()
+        self.__persistenceProvider.createOrUpgradeSchema()

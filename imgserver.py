@@ -5,7 +5,7 @@
 # requirements: 
 # - python2.5
 # - python-imaging
-# - python-sqlalchemy (+ python-pysqlite2 if using the SQLite backend)
+# - python-sqlalchemy (+ python-pysqlite2 if using the SQLite backend + python-psycopg2 if using postgres)
 # - python-zopeinterface
 # - python-twisted-core
 # - python-twisted-web2
