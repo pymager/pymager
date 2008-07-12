@@ -154,8 +154,10 @@ class ImageRequestProcessor(object):
         try:
             self.__itemRepository.create(derivedItem)
         except DuplicateEntryException :
-            time.sleep(5)
-            #self.__waitForItemStatusOk(lambda: self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)) 
+            def find():
+                return self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)
+            self.__waitForItemStatusOk(find)
+            derivedItem = find()
             
         try:
             img = Image.open(self.__absoluteOriginalFilename(originalItem))

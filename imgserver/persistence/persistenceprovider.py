@@ -42,8 +42,8 @@ class _SessionTemplate(object):
                 return f()
             except Exception, ex:
                 del self.__local.do_with_session_count
-                print 'should invalidate connection' + str(type(session.connection))
-                #session.connection.invalidate()
+                conn = session.connection().invalidate()
+                #conn.close()
                 session.rollback()
                 session.close()
                 self.__sessionmaker.remove()
