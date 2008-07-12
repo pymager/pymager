@@ -27,7 +27,7 @@ def init_imageprocessor(site_config):
     imageProcessor = \
         f.createImageServer(
             site_config.data_directory, 
-            'sqlite:///%s/%s' % (site_config.data_directory, DB_FILENAME),
+            'sqlite:///%s/%s' % ('/tmp', DB_FILENAME),
             [(100,100), (800,600)],True)
     #imageProcessor = \
     #    f.createImageServer(
