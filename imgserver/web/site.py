@@ -33,7 +33,7 @@ def init_imageprocessor(site_config):
         f.createImageServer(
             site_config.data_directory, 
             'postgres://imgserver:funala@localhost/imgserver',
-            [(100,100), (800,600)])
+            [(100,100), (800,600)], True)
     imageProcessor.saveFileToRepository('samples/sami.jpg','sami')
     return imageProcessor
 
