@@ -13,7 +13,6 @@
 # - python-pkg-resources?
 # - python-setuptools
 # Not yet:
-# - python-openssl
 # - python-pmock ?
 # - python-configobj?
 # - python-distutils-extra
