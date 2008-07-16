@@ -9,12 +9,12 @@
 # - python-zopeinterface
 # - python-twisted-core
 # - python-twisted-web2
+# - python-pkg-resources?
+# - python-setuptools
 # Not yet:
 # - python-openssl
 # - python-pmock ?
 # - python-configobj?
-# - python-pkg-resources?
-# - python-setuptools
 # - python-distutils-extra
 
 
