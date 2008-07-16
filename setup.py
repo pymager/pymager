@@ -6,9 +6,9 @@ setup(
     author_email = 'sami.dalouche@gmail.com',
     license = 'LGPLv3',
     url= 'http://opensource.sirika.com/imgserver',
-    packages = find_packages(exclude=('tests','tests.*')),
-    scripts = ['imgserver.py']
+    packages = find_packages(exclude=('test','test.*')),
+    scripts = ['imgserver.py'],
     #include_package_data = True
-    #package_data={'test': ['test/samples/*.jpg']}
+    package_data={'test.samples': ['*.jpg']}
 )
 #data_files=[('samples', ['tests/samples/brokenImage.jpg', 'tests/samples/sami.jpg'])]
