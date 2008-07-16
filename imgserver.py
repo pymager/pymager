@@ -17,6 +17,9 @@
 # - python-setuptools
 # - python-distutils-extra
 
+
+# - Setup uses setuptools
+
 #import time
 
 #if __name__ == '__main__':
@@ -27,6 +30,8 @@ from twisted.application import service, strports
 from imgserver.web.site import create_site, SiteConfig
 #from imgserver.commandline import main
 
+from setuptools import setup, find_packages
+print 'yo!', find_packages(exclude=('tests','tests.*'))
 # should be able to access http://localhost:8000/derived/sami-100x100.jpg
 #main()
 application = service.Application("imgserver")

@@ -12,8 +12,8 @@ NB_THREADS = 15
 
 #JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'sami.jpg')
 #BROKEN_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'brokenImage.jpg')
-JPG_SAMPLE_IMAGE_FILENAME = os.path.join('samples', 'sami.jpg')
-BROKEN_IMAGE_FILENAME = os.path.join('samples', 'brokenImage.jpg')
+JPG_SAMPLE_IMAGE_FILENAME = os.path.join('tests','samples', 'sami.jpg')
+BROKEN_IMAGE_FILENAME = os.path.join('tests','samples', 'brokenImage.jpg')
 JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
 
 class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
