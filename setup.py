@@ -1,3 +1,6 @@
+import ez_setup
+ez_setup.use_setuptools()
+
 from setuptools import setup, find_packages
 setup(
     name = "imgserver",
@@ -8,7 +11,8 @@ setup(
     url= 'http://opensource.sirika.com/imgserver',
     packages = find_packages(exclude=('test','test.*')),
     scripts = ['imgserver.py'],
-    include_package_data = True
+    include_package_data = True,
+    test_suite= "test"
     #package_data={'test.samples': ['*.jpg']}
 )
 #data_files=[('samples', ['tests/samples/brokenImage.jpg', 'tests/samples/sami.jpg'])]

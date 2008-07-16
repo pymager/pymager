@@ -7,13 +7,14 @@ from threading import Thread
 from test import support
 from imgserver import imgengine, domain
 from imgserver.imgengine.transformationrequest import TransformationRequest
+from pkg_resources import resource_filename
 
 NB_THREADS = 15
 
 #JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'sami.jpg')
 #BROKEN_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'brokenImage.jpg')
-JPG_SAMPLE_IMAGE_FILENAME = os.path.join('test','samples', 'sami.jpg')
-BROKEN_IMAGE_FILENAME = os.path.join('test','samples', 'brokenImage.jpg')
+JPG_SAMPLE_IMAGE_FILENAME = resource_filename('test.samples', 'sami.jpg')
+BROKEN_IMAGE_FILENAME = resource_filename('test.samples', 'brokenImage.jpg')
 JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
 
 class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
