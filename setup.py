@@ -11,7 +11,7 @@ setup(
     license = 'LGPLv3',
     url= 'http://opensource.sirika.com/imgserver',
     packages = find_packages(exclude=('test','test.*')),
-    scripts = ['imgserver-standalone.tac'],
+    scripts = ['imgserver-standalone.tac', 'imgserver.py'],
     include_package_data = True,
     test_suite= "test"
     #install_requires="pil >= 1.1.6"

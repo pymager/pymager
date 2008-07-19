@@ -4,6 +4,7 @@ dev.sh
 ez_setup
 ez_setup.py
 imgserver-standalone.tac
+imgserver.py
 setup.py
 imgserver/__init__.py
 imgserver/commandline.py
