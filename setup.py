@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import ez_setup
 ez_setup.use_setuptools()
 
@@ -10,9 +11,10 @@ setup(
     license = 'LGPLv3',
     url= 'http://opensource.sirika.com/imgserver',
     packages = find_packages(exclude=('test','test.*')),
-    scripts = ['imgserver.py'],
+    scripts = ['imgserver-standalone.py'],
     include_package_data = True,
     test_suite= "test"
+    #install_requires="pil >= 1.1.6"
     #package_data={'test.samples': ['*.jpg']}
 )
 #data_files=[('samples', ['tests/samples/brokenImage.jpg', 'tests/samples/sami.jpg'])]

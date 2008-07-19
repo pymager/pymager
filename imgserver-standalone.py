@@ -24,10 +24,14 @@
 
 #if __name__ == '__main__':
 
+import sys
+print sys.path
+
 import os
+from imgserver.web.site import create_site, SiteConfig
 from twisted.web2 import channel 
 from twisted.application import service, strports
-from imgserver.web.site import create_site, SiteConfig
+
 #from imgserver.commandline import main
 
 from setuptools import setup, find_packages
