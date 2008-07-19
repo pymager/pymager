@@ -38,7 +38,8 @@ def init_imageprocessor(site_config):
     imageProcessor.saveFileToRepository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
     return imageProcessor
 
-def create_site(site_config):
+def create_site():
+    site_config = SiteConfig('/tmp/imgserver')
     return server.Site(
         TopLevelResource(
             site_config, 

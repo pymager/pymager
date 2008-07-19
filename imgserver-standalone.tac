@@ -19,9 +19,6 @@
 # - python-configobj?
 # - python-distutils-extra
 
-
-# - Setup uses setuptools
-
 #import time
 
 #if __name__ == '__main__':
@@ -30,7 +27,6 @@ from imgserver.web.site import create_site, SiteConfig
 from twisted.web2 import channel 
 from twisted.application import service, strports
 
-# should be able to access http://localhost:8000/derived/sami-100x100.jpg
 application = service.Application("imgserver")
-s = strports.service('tcp:8000', channel.HTTPFactory(create_site(SiteConfig('/tmp/imgserver'))))
+s = strports.service('tcp:8000', channel.HTTPFactory(create_site()))
 s.setServiceParent(application)
