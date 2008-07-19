@@ -1,5 +1,7 @@
 .project
 .pydevproject
+dev.sh
+ez_setup
 ez_setup.py
 imgserver-standalone.py
 setup.py
@@ -21,6 +23,9 @@ imgserver/imgengine/transformationrequest.py
 imgserver/persistence/__init__.py
 imgserver/persistence/itemrepository.py
 imgserver/persistence/persistenceprovider.py
+imgserver/samples/__init__.py
+imgserver/samples/brokenImage.jpg
+imgserver/samples/sami.jpg
 imgserver/web/__init__.py
 imgserver/web/derivedresource.py
 imgserver/web/originalresource.py
@@ -34,6 +39,3 @@ test/imgservertests/domaintests.py
 test/imgservertests/imgenginetests.py
 test/imgservertests/persistencetests.py
 test/imgservertests/webtests.py
-test/samples/__init__.py
-test/samples/brokenImage.jpg
-test/samples/sami.jpg

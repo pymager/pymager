@@ -5,6 +5,7 @@ from imgserver.web.toplevelresource import TopLevelResource
 from imgserver import domain
 from imgserver.factory import ImageServerFactory
 from imgserver.imgengine.transformationrequest import TransformationRequest
+from pkg_resources import resource_filename
 
 DB_FILENAME='db.sqlite'
 #TMP_DIR = "fileuploads"
@@ -34,7 +35,7 @@ def init_imageprocessor(site_config):
     #        site_config.data_directory, 
     #        'postgres://imgserver:funala@localhost/imgserver',
     #        [(100,100), (800,600)], True)
-    imageProcessor.saveFileToRepository('test/samples/sami.jpg','sami')
+    imageProcessor.saveFileToRepository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
     return imageProcessor
 
 def create_site(site_config):

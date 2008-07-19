@@ -3,6 +3,8 @@
 # run with :
 # - twistd -n -y imgserver.py
 #
+# http://localhost:8000/derived/sami-100x100.jpg
+# http://localhost:8000/derived/sami-800x600.jpg
 # requirements: 
 # - python2.5
 # - python-imaging
@@ -23,25 +25,12 @@
 #import time
 
 #if __name__ == '__main__':
-
-import sys
-print sys.path
-
 import os
 from imgserver.web.site import create_site, SiteConfig
 from twisted.web2 import channel 
 from twisted.application import service, strports
 
-#from imgserver.commandline import main
-
-from setuptools import setup, find_packages
-print 'yo!', find_packages(exclude=('tests','tests.*'))
 # should be able to access http://localhost:8000/derived/sami-100x100.jpg
-#main()
 application = service.Application("imgserver")
 s = strports.service('tcp:8000', channel.HTTPFactory(create_site(SiteConfig('/tmp/imgserver'))))
 s.setServiceParent(application)
-
-#s = server.Site(static.File(DIRECTORY))
-#reactor.listenTCP(PORT, channel.HTTPFactory(s))
-#reactor.run()
