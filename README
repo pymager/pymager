@@ -2,9 +2,10 @@
 # - python2.5
 # - python-imaging
 # - python-sqlalchemy (+ python-pysqlite2 if using the SQLite backend + python-psycopg2 if using postgres)
+# - python-cherrypy3
 # - python-zopeinterface
-# - python-twisted-core
-# - python-twisted-web2
+# - python-twisted-core ?
+# - python-twisted-web2 ?
 # - python-pkg-resources?
 # - python-setuptools
 # Not yet:

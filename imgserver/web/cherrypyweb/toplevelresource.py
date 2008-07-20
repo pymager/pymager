@@ -1,7 +1,7 @@
 from twisted.web2.resource import Resource
 from twisted.web2 import http
-from imgserver.web.derivedresource import DerivedResource
-from imgserver.web.originalresource import OriginalResource
+from imgserver.web.twistedweb2.derivedresource import DerivedResource
+from imgserver.web.twistedweb2.originalresource import OriginalResource
 
 
 class TopLevelResource(Resource):

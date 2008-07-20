@@ -1,6 +1,6 @@
 import exceptions
 import unittest
-from imgserver.web.derivedresource import DerivedItemUrlDecoder,UrlDecodingError
+from imgserver.web.deriveditemurldecoder import DerivedItemUrlDecoder,UrlDecodingError
 
 class DerivedItemUrlDecoderTestCase(unittest.TestCase):
         

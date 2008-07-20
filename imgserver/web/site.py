@@ -1,11 +1,10 @@
 import shutil
 import os
-from twisted.web2 import server
-from imgserver.web.toplevelresource import TopLevelResource
-from imgserver import domain
+from imgserver.web.twistedweb2.toplevelresource import TopLevelResource
 from imgserver.factory import ImageServerFactory
 from imgserver.imgengine.transformationrequest import TransformationRequest
 from pkg_resources import resource_filename
+from twisted.web2 import server
 
 DB_FILENAME='db.sqlite'
 #TMP_DIR = "fileuploads"
@@ -38,9 +37,18 @@ def init_imageprocessor(site_config):
     imageProcessor.saveFileToRepository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
     return imageProcessor
 
-def create_site():
+def create_twisted_site():
     site_config = SiteConfig('/tmp/imgserver')
     return server.Site(
         TopLevelResource(
             site_config, 
             init_imageprocessor(site_config)))
+    
+def create_cherry_site():
+    site_config = SiteConfig('/tmp/imgserver')
+    return server.Site(
+        TopLevelResource(
+            site_config, 
+            init_imageprocessor(site_config)))
+
+create_site = create_twisted_site
