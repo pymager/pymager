@@ -74,6 +74,7 @@ class OriginalResource(object):
     def index(self):
         return "Original Resource!"
     
+    # http://tools.cherrypy.org/wiki/DirectToDiskFileUpload
     @cherrypy.expose
     def default(self, item_id):
         if cherrypy.request.method == 'GET':

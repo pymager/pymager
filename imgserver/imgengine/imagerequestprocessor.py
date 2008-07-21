@@ -34,7 +34,9 @@ class IImageRequestProcessor(Interface):
     def prepareTransformation(self, transformationRequest):
         """ Takes an ImageRequest and prepare the output for it. 
         Updates the database so that it is in sync with the filesystem
-        @return: the path to the generated file (relative to the data directory) 
+        @return: the path to the generated file (relative to the data directory)
+        @raise ItemDoesNotExistError: if item_id does not exist
+        @raise ImageProcessingException in case of any non-recoverable error 
         """
     
     def _cleanupInconsistentItems(self):
@@ -107,14 +109,17 @@ class ImageRequestProcessor(object):
         """ Wait for the given original item to have a status of STATUS_OK """
         self.__waitForItemStatusOk(lambda: self.__itemRepository.findOriginalItemById(item_id))
     
+    def __required_original_item(self, item_id, original_item):
+        if original_item is None:
+            raise ItemDoesNotExistError(item_id)
+    
     def originalImageExists(self, item_id):
         originalItem = self.__itemRepository.findOriginalItemById(item_id)
         return originalItem is not None
                 
     def getOriginalImagePath(self, item_id):
         originalItem = self.__itemRepository.findOriginalItemById(item_id)
-        if originalItem is None:
-            raise ItemDoesNotExistError(item_id)
+        self.__required_original_item(item_id, originalItem)
         self.__wait_for_original_item(item_id)
         return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (originalItem.id, self.__extensionForFormat(originalItem.format)))
                                
@@ -145,7 +150,8 @@ class ImageRequestProcessor(object):
             
     def prepareTransformation(self, transformationRequest):
         originalItem = self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
-        assert originalItem is not None
+        self.__required_original_item(transformationRequest.imageId, originalItem)
+        
         self.__wait_for_original_item(transformationRequest.imageId)
         derivedItem = DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, originalItem)
         

@@ -59,8 +59,8 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
     def testPrepareTransformationWithNonExistingOriginalIdShouldThrowException(self):
         try:
             request = TransformationRequest('nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)
-        except Exception:
-            pass
+        except ItemDoesNotExistError, ex:
+            self.assertEquals('nonexisting', ex.item_id)
     
     def testPrepareRequestShouldUpdateFileSystemAndDatabase(self):
         self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
