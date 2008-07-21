@@ -1,10 +1,14 @@
 import shutil
 import os
-from imgserver.web.twistedweb2.toplevelresource import TopLevelResource
 from imgserver.factory import ImageServerFactory
 from imgserver.imgengine.transformationrequest import TransformationRequest
 from pkg_resources import resource_filename
-from twisted.web2 import server
+
+from imgserver.web.cherrypyweb.toplevelresource import TopLevelResource
+import cherrypy
+
+#from imgserver.web.twistedweb2.toplevelresource import TopLevelResource  
+#from twisted.web2 import server
 
 DB_FILENAME='db.sqlite'
 #TMP_DIR = "fileuploads"
@@ -46,9 +50,10 @@ def create_twisted_site():
     
 def create_cherry_site():
     site_config = SiteConfig('/tmp/imgserver')
-    return server.Site(
+    top_level_resource = \
         TopLevelResource(
             site_config, 
-            init_imageprocessor(site_config)))
+            init_imageprocessor(site_config))
+    cherrypy.quickstart(top_level_resource)
 
 create_site = create_twisted_site

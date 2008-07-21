@@ -6,6 +6,7 @@ import exceptions
 from threading import Thread
 from test import support
 from imgserver import imgengine, domain
+from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
 from imgserver.imgengine.transformationrequest import TransformationRequest
 from pkg_resources import resource_filename
 
@@ -148,8 +149,8 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         try:
             self._imgProcessor.getOriginalImagePath('anyItem')
             self.fail()
-        except exceptions.AssertionError:
-            pass
+        except ItemDoesNotExistError, ex:
+            self.assertEquals('anyItem', ex.item_id)
         
     def testOriginalImageShouldExist(self):
         self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')

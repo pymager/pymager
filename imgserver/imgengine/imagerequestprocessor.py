@@ -25,7 +25,7 @@ class IImageRequestProcessor(Interface):
     def getOriginalImagePath(self, item_id):
         """@return: the relative path of the original image that has the given item_id 
         @rtype: str
-        @raise AssertionError: if item_id does not exist"""
+        @raise ItemDoesNotExistError: if item_id does not exist"""
         
     def saveFileToRepository(self, filename, imageId):
         """ save the given file to the image server repository. 
@@ -39,6 +39,11 @@ class IImageRequestProcessor(Interface):
     
     def _cleanupInconsistentItems(self):
         """ deletes the files and items whose status is not OK (startup cleanup)"""
+
+class ItemDoesNotExistError(Exception):
+    def __init__(self,item_id):
+        super(ItemDoesNotExistError, self).__init__()
+        self.item_id = item_id
 
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
@@ -108,7 +113,8 @@ class ImageRequestProcessor(object):
                 
     def getOriginalImagePath(self, item_id):
         originalItem = self.__itemRepository.findOriginalItemById(item_id)
-        assert originalItem is not None
+        if originalItem is None:
+            raise ItemDoesNotExistError(item_id)
         self.__wait_for_original_item(item_id)
         return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (originalItem.id, self.__extensionForFormat(originalItem.format)))
                                

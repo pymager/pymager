@@ -1,6 +1,10 @@
 import os
 import time
 import tempfile
+import cherrypy
+from cherrypy.lib.static import serve_file
+from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
+
 from twisted.web2.resource import Resource,PostableResource
 from twisted.internet import threads, defer, reactor
 from twisted.web2 import http, static, responsecode, stream
@@ -60,12 +64,29 @@ class PostableOriginalResource(PostableResource):
             return None
         
 
-class OriginalResource(Resource):
+class OriginalResource(object):
     def __init__(self, site_config, image_processor):
         super(OriginalResource, self).__init__()
         self.__site_config = site_config
         self.__image_processor = image_processor
         
+    @cherrypy.expose
+    def index(self):
+        return "Original Resource!"
+    
+    @cherrypy.expose
+    def default(self, item_id):
+        if cherrypy.request.method == 'GET':
+            try:
+                relative_path = self.__image_processor.getOriginalImagePath(item_id)
+            except ItemDoesNotExistError:
+                raise cherrypy.NotFound('/original/%s' % (item_id,))
+            else:
+                path = os.path.join(self.__site_config.data_directory,relative_path)
+                return serve_file(path)
+        else:
+            return 'POST'
+    
     def render(self, ctx):
         return http.Response(stream="Original Resource!")
     
