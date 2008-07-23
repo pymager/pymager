@@ -1,68 +1,31 @@
 import os
+import cgi
 import time
 import tempfile
 import cherrypy
 from cherrypy.lib.static import serve_file
 from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
 
-from twisted.web2.resource import Resource,PostableResource
-from twisted.internet import threads, defer, reactor
-from twisted.web2 import http, static, responsecode, stream
-from twisted.web2.resource import Resource
-
 FILE_FIELD_NAME = "file"
 PERMISSIONS = 0644
 TMP_DIR = "fileuploads"
 
-class PostableOriginalResource(PostableResource):
-    def __init__(self, site_config, image_processor, item_id):
-        super(PostableOriginalResource, self).__init__()
-        self.__site_config = site_config
-        self.__image_processor = image_processor
-        self.__item_id = item_id
+class myFieldStorage(cgi.FieldStorage):
+    """Our version uses a named temporary file instead of the default
+    non-named file; keeping it visibile (named), allows us to directly
+    pass the filename to the image service."""
+    
+    def make_file(self, binary=None):
+        return tempfile.NamedTemporaryFile()
 
-    def makeUniqueName(self, filename):
-        """Called when a unique filename is needed.
-     
-        filename is the name of the file as given by the client.
-        Returns the fully qualified path of the file to create. The
-        file must not yet exist.
-        """     
-        return tempfile.mktemp(suffix=os.path.splitext(filename)[1])
+def noBodyProcess():
+    """Sets cherrypy.request.process_request_body = False, giving
+    us direct control of the file upload destination. By default
+    cherrypy loads it to memory, we are directing it to disk."""
+    if cherrypy.request.method == 'POST':
+        cherrypy.request.process_request_body = False
 
-    def importFile(self, filename, mimetype, fileobject):
-        """Does the I/O dirty work after it calls isSafeToWrite to make
-        sure it's safe to write this file.
-        @param filename: the filename suggested by the client 
-        """
-        filestream = stream.FileStream(fileobject)
-        outname = self.makeUniqueName(filename)
-        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
-        fileobject = os.fdopen(os.open(outname, flags, PERMISSIONS), 'wb', 0)
-        deferred_file = stream.readIntoFile(filestream, fileobject)
-        def done(_):
-            def save():
-                self.__image_processor.saveFileToRepository(outname, self.__item_id)
-                os.remove(outname)
-            return threads.deferToThread(save)
-        deferred_file.addCallback(done)
-        return deferred_file
-
-    def render(self, request):
-        finfo = request.files[FILE_FIELD_NAME]
-        if finfo:
-            d = defer.Deferred()
-            def return_response(_):
-                reactor.callLater(0, d.callback, http.RedirectResponse('/original/%s' %self.__item_id))
-            def return_error(ex):
-                reactor.callLater(0, d.errback, ex)
-            deferred_file = self.importFile(*finfo[0])
-            deferred_file.addCallback(return_response)
-            deferred_file.addErrback(return_error)
-            return d 
-        else:
-            return None
-        
+cherrypy.tools.noBodyProcess = cherrypy.Tool('before_request_body', noBodyProcess)
 
 class OriginalResource(object):
     def __init__(self, site_config, image_processor):
@@ -74,35 +37,45 @@ class OriginalResource(object):
     def index(self):
         return "Original Resource!"
     
-    # http://tools.cherrypy.org/wiki/DirectToDiskFileUpload
     @cherrypy.expose
-    def default(self, item_id):
-        if cherrypy.request.method == 'GET':
-            try:
-                relative_path = self.__image_processor.getOriginalImagePath(item_id)
-            except ItemDoesNotExistError:
-                raise cherrypy.NotFound('/original/%s' % (item_id,))
-            else:
-                path = os.path.join(self.__site_config.data_directory,relative_path)
-                return serve_file(path)
+    @cherrypy.tools.noBodyProcess()
+    def default(self, *args, **kwargs):
+        dispatch_method_name = 'default_%s' %(cherrypy.request.method) 
+        return (getattr(self, dispatch_method_name) if hasattr(self, dispatch_method_name) else (lambda: None))(*args, **kwargs)  
+    
+    # http://tools.cherrypy.org/wiki/DirectToDiskFileUpload
+    # @cherrypy.expose
+    def default_GET(self, item_id):
+        try:
+            relative_path = self.__image_processor.getOriginalImagePath(item_id)
+        except ItemDoesNotExistError:
+            raise cherrypy.NotFound(cherrypy.request.path_info)
         else:
-            return 'POST'
+            path = os.path.join(self.__site_config.data_directory,relative_path)
+            return serve_file(path)
     
-    def render(self, ctx):
-        return http.Response(stream="Original Resource!")
+    def default_POST(self, item_id):
+        """ See http://tools.cherrypy.org/wiki/DirectToDiskFileUpload 
+        """
+        cherrypy.response.timeout = 3600
     
-    def locateChild(self, request, segments):
-        if segments:
-            item_id = segments[0]
-            if request.method == 'POST':
-                postableResource = PostableOriginalResource(self.__site_config, self.__image_processor, item_id)
-                return postableResource, []
-            elif request.method == 'GET':
-                def get_original_item():
-                    """ prepare the transformation synchronously"""
-                    relative_path = self.__image_processor.getOriginalImagePath(item_id)
-                    path = os.path.join(self.__site_config.data_directory,relative_path)
-                    return static.File(path), []
-                return threads.deferToThread(get_original_item)
-        # revert to default implementation
-        return super(OriginalResource,self).locateChild(request, segments)
+        # convert the header keys to lower case
+        lcHDRS = {}
+        for key, val in cherrypy.request.headers.iteritems():
+            lcHDRS[key.lower()] = val
+
+        # at this point we could limit the upload on content-length...
+        # incomingBytes = int(lcHDRS['content-length'])
+        
+        # create our version of cgi.FieldStorage to parse the MIME encoded
+        # form data where the file is contained
+        formFields = myFieldStorage(fp=cherrypy.request.rfile,
+            headers=lcHDRS,
+            environ={'REQUEST_METHOD':'POST'},
+            keep_blank_values=True)
+
+        theFile = formFields[FILE_FIELD_NAME]
+        self.__image_processor.saveFileToRepository(theFile.file.name, item_id)
+        
+        raise cherrypy.HTTPRedirect(cherrypy.request.path_info) 
+        

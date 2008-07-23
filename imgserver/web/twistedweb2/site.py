@@ -1,9 +1,12 @@
 import shutil
-
 from imgserver.factory import ImageServerFactory
-from imgserver.web.cherrypyweb.toplevelresource import TopLevelResource
+from pkg_resources import resource_filename
+
+from imgserver.web.twistedweb2.toplevelresource import TopLevelResource  
+from twisted.web2 import server
 
 DB_FILENAME='db.sqlite'
+
 
 class SiteConfig(object):
     def __init__(self, data_directory):
@@ -22,14 +25,14 @@ def init_imageprocessor(site_config):
     #        site_config.data_directory, 
     #        'postgres://imgserver:funala@localhost/imgserver',
     #        [(100,100), (800,600)], True)
-    from pkg_resources import resource_filename
     imageProcessor.saveFileToRepository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
     return imageProcessor
 
-def create_site():
+def create_twisted_site():
     site_config = SiteConfig('/tmp/imgserver')
-    top_level_resource = \
+    return server.Site(
         TopLevelResource(
             site_config, 
-            init_imageprocessor(site_config))
-    return top_level_resource 
+            init_imageprocessor(site_config)))
+ 
+create_site = create_twisted_site
