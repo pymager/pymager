@@ -4,10 +4,22 @@ from imgserver.web.site import create_site
 import cherrypy
 
 # Max request size is 100MB
-cherrypy.server.max_request_body_size = 104857600
+#cherrypy.server.max_request_body_size = 104857600
 
 # increase server socket timeout to 60s; we are more tolerant of bad
 # quality client-server connections (cherrypy's defult is 10s)
-cherrypy.server.socket_timeout = 60
-    
-cherrypy.quickstart(create_site())
+#cherrypy.server.socket_timeout = 60
+
+#cherrypy.config.update({'server.socket_port': 8000, 'log.error_file': 'site.log'})
+
+cherrypy.quickstart(create_site(), '/', 'imgserver-site.conf')
+#cherrypy.tree.mount(create_site(), "/", {})
+
+#if hasattr(cherrypy.engine, 'block'):
+    # 3.1 syntax
+#    cherrypy.engine.start()
+#    cherrypy.engine.block()
+#else:
+    # 3.0 syntax
+#    cherrypy.server.quickstart()
+#    cherrypy.engine.start()
