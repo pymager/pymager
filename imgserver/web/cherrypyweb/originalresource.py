@@ -28,9 +28,9 @@ def noBodyProcess():
 cherrypy.tools.noBodyProcess = cherrypy.Tool('before_request_body', noBodyProcess)
 
 class OriginalResource(object):
-    def __init__(self, site_config, image_processor):
+    def __init__(self, config, image_processor):
         super(OriginalResource, self).__init__()
-        self.__site_config = site_config
+        self.__config = config
         self.__image_processor = image_processor
         
     @cherrypy.expose
@@ -51,7 +51,7 @@ class OriginalResource(object):
         except ItemDoesNotExistError:
             raise cherrypy.NotFound(cherrypy.request.path_info)
         else:
-            path = os.path.join(self.__site_config.data_directory,relative_path)
+            path = os.path.join(self.__config.data_directory,relative_path)
             return serve_file(path)
     
     def default_POST(self, item_id):

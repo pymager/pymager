@@ -5,11 +5,11 @@ from twisted.web2 import http
 import cherrypy
 
 class TopLevelResource(object):
-    def __init__(self, site_config, image_processor):
-        self.__site_config = site_config
+    def __init__(self, config, image_processor):
+        self.__config = config
         self.__image_processor = image_processor
-        self.original = OriginalResource(site_config, image_processor)
-        self.derived = DerivedResource(site_config, image_processor)
+        self.original = OriginalResource(config, image_processor)
+        self.derived = DerivedResource(config, image_processor)
     
     @cherrypy.expose
     def index(self):

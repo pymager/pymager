@@ -7,9 +7,9 @@ import cherrypy
 from cherrypy.lib.static import serve_file
 
 class DerivedResource(object):
-    def __init__(self, site_config, image_processor):
+    def __init__(self, config, image_processor):
         super(DerivedResource, self).__init__()
-        self.__site_config = site_config
+        self.__config = config
         self.__image_processor = image_processor
     
     def __not_found(self):
@@ -34,5 +34,5 @@ class DerivedResource(object):
                 relative_path = self.__image_processor.prepareTransformation(request)
             except ItemDoesNotExistError:
                 raise self.__not_found()
-            path = os.path.join(self.__site_config.data_directory,relative_path)
+            path = os.path.join(self.__config.data_directory,relative_path)
             return serve_file(path)

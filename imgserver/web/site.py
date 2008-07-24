@@ -1,22 +1,14 @@
 import shutil
 
-from imgserver.factory import ImageServerFactory
+from imgserver.factory import ImageServerFactory, ServiceConfiguration
 from imgserver.web.cherrypyweb.toplevelresource import TopLevelResource
 
 DB_FILENAME='db.sqlite'
 
-class SiteConfig(object):
-    def __init__(self, data_directory):
-        self.data_directory = data_directory
-
-def init_imageprocessor(site_config):
-    shutil.rmtree(site_config.data_directory,True)
-    f = ImageServerFactory()
+def init_imageprocessor(config):    
+    f = ImageServerFactory(config)
     imageProcessor = \
-        f.createImageServer(
-            site_config.data_directory, 
-            'sqlite:///%s/%s' % ('/tmp', DB_FILENAME),
-            [(100,100), (800,600)],True)
+        f.createImageServer()
     #imageProcessor = \
     #    f.createImageServer(
     #        site_config.data_directory, 
@@ -27,9 +19,12 @@ def init_imageprocessor(site_config):
     return imageProcessor
 
 def create_site():
-    site_config = SiteConfig('/tmp/imgserver')
+    config = ServiceConfiguration('/tmp/imgserver', 
+        dburi='sqlite:////tmp/db.sqlite', 
+        allowed_sizes=[(100,100), (800,600)], 
+        drop_data=True)
     top_level_resource = \
         TopLevelResource(
-            site_config, 
-            init_imageprocessor(site_config))
+            config, 
+            init_imageprocessor(config))
     return top_level_resource 
