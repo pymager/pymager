@@ -8,11 +8,11 @@ from imgserver.persistence.persistenceprovider import PersistenceProvider,IPersi
 from imgserver.persistence.itemrepository import ItemRepository, IItemRepository
 
 class ServiceConfiguration(object):
-    def __init__(self, data_directory, dburi, allowed_sizes, drop_data=False):
+    def __init__(self, data_directory, dburi, allowed_sizes, dev_mode=False):
         self.data_directory = data_directory
         self.dburi = dburi
         self.allowed_sizes = allowed_sizes
-        self.drop_data = drop_data
+        self.dev_mode = dev_mode
 
 class ImageServerFactory(object):
     def __init__(self, config):
@@ -37,7 +37,7 @@ class ImageServerFactory(object):
         self.__persistenceProvider = IPersistenceProvider(PersistenceProvider(self.__config.dburi))
         
         self.__itemRepository = IItemRepository(ItemRepository(self.__persistenceProvider))
-        self.__imageProcessor = IImageRequestProcessor(ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, self.__config.data_directory, self.__config.drop_data))
+        self.__imageProcessor = IImageRequestProcessor(ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, self.__config.data_directory, self.__config.dev_mode))
         self.__imageProcessor.prepareTransformation =  security.imageTransformationSecurityDecorator(self.__config.allowed_sizes)(self.__imageProcessor.prepareTransformation)
         
         return self.__imageProcessor

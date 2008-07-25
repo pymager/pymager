@@ -18,11 +18,13 @@ def init_imageprocessor(config):
     imageProcessor.saveFileToRepository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
     return imageProcessor
 
-def create_site():
-    config = ServiceConfiguration('/tmp/imgserver', 
-        dburi='sqlite:////tmp/db.sqlite', 
-        allowed_sizes=[(100,100), (800,600)], 
-        drop_data=True)
+# allowed_sizes=[(100,100), (800,600)]
+def create_site(config):
+    config = ServiceConfiguration(
+        data_directory=config['data_directory'], 
+        dburi=config['dburi'], 
+        allowed_sizes=config['allowed_sizes'],
+        dev_mode=config['dev_mode'] )
     top_level_resource = \
         TopLevelResource(
             config, 
