@@ -1,6 +1,6 @@
 import unittest
 from imgserver import domain, persistence
-from test import support
+from tests import support
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem

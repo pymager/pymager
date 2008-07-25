@@ -4,7 +4,7 @@ import time
 import random
 import exceptions
 from threading import Thread
-from test import support
+from tests import support
 from imgserver import imgengine, domain
 from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
 from imgserver.imgengine.transformationrequest import TransformationRequest

@@ -10,10 +10,10 @@ setup(
     author_email = 'sami.dalouche@gmail.com',
     license = 'LGPLv3',
     url= 'http://opensource.sirika.com/imgserver',
-    packages = find_packages(exclude=('test','test.*')),
-    scripts = ['imgserver-standalone.tac', 'imgserver.py'],
+    packages = find_packages(exclude=('tests','tests.*')),
+    scripts = ['imgserver-standalone.py'],
     include_package_data = True,
-    test_suite= "test"
+    test_suite= "tests"
     #install_requires="pil >= 1.1.6"
     #package_data={'test.samples': ['*.jpg']}
 )
