@@ -7,7 +7,7 @@ cherrypy.config.update('imgserver-site.conf')
 
 # quick hack to get the configuration _before_ mounting the application
 imgserver_config = cherrypy._cpconfig._Parser().dict_from_file('imgserver.conf')
-imgserver_app = cherrypy.tree.mount(
+application = cherrypy.tree.mount(
     create_site(
         imgserver_config['imgserver']), 
         "", 
