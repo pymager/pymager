@@ -24,7 +24,7 @@ def create_site(config):
         data_directory=config['data_directory'], 
         dburi=config['dburi'], 
         allowed_sizes=config['allowed_sizes'],
-        dev_mode=config['dev_mode'] )
+        dev_mode= config['dev_mode'] if (config.__contains__('dev_mode')) else False)
     top_level_resource = \
         TopLevelResource(
             config, 

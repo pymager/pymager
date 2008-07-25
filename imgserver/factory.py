@@ -8,7 +8,7 @@ from imgserver.persistence.persistenceprovider import PersistenceProvider,IPersi
 from imgserver.persistence.itemrepository import ItemRepository, IItemRepository
 
 class ServiceConfiguration(object):
-    def __init__(self, data_directory, dburi, allowed_sizes, dev_mode=False):
+    def __init__(self, data_directory, dburi, allowed_sizes, dev_mode):
         self.data_directory = data_directory
         self.dburi = dburi
         self.allowed_sizes = allowed_sizes
