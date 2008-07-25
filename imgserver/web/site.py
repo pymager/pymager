@@ -21,9 +21,9 @@ def init_imageprocessor(config):
 # allowed_sizes=[(100,100), (800,600)]
 def create_site(config):
     config = ServiceConfiguration(
-        data_directory=config['data_directory'], 
-        dburi=config['dburi'], 
-        allowed_sizes=config['allowed_sizes'],
+        data_directory=config['data_directory'] if (config.__contains__('data_directory')) else '/tmp/imgserver', 
+        dburi=config['dburi'] if (config.__contains__('dburi')) else 'sqlite:////tmp/db.sqlite', 
+        allowed_sizes=config['allowed_sizes'] if (config.__contains__('allowed_sizes')) else None,
         dev_mode= config['dev_mode'] if (config.__contains__('dev_mode')) else False)
     top_level_resource = \
         TopLevelResource(

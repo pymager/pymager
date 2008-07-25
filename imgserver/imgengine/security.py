@@ -8,7 +8,7 @@ def imageTransformationSecurityDecorator(authorized_sizes):
     tranformation request with a wrong size"""
     def decorator(func):
         def wrapper(transformation_request):
-            if not transformation_request.size in authorized_sizes:
+            if authorized_sizes is not None and not transformation_request.size in authorized_sizes:
                 raise SecurityCheckException('Requested size is not allowed')
             return func(transformation_request)
         return wrapper

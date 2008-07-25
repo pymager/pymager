@@ -1,5 +1,6 @@
 import unittest
-from imgserver import factory, imgengine
+from imgserver import factory
+from imgserver.factory import ServiceConfiguration
 import sqlalchemy 
 import os, shutil
  
@@ -13,8 +14,14 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         unittest.TestCase.setUp(self)
         sqlalchemy.orm.clear_mappers()
         
-        self._imageServerFactory = factory.ImageServerFactory()
-        self._imgProcessor = self._imageServerFactory.createImageServer(AbstractIntegrationTestCase.DATA_DIRECTORY, AbstractIntegrationTestCase.SAURI, [(100*i,100*i) for i in range(1,9)], True)
+        config = ServiceConfiguration(
+            data_directory=AbstractIntegrationTestCase.DATA_DIRECTORY, 
+            dburi=AbstractIntegrationTestCase.SAURI, 
+            allowed_sizes=[(100*i,100*i) for i in range(1,9)],
+            dev_mode= True)
+        
+        self._imageServerFactory = factory.ImageServerFactory(config)
+        self._imgProcessor = self._imageServerFactory.createImageServer()
         self._itemRepository = self._imageServerFactory.getItemRepository()        
     
         (getattr(self, 'onSetUp') if hasattr(self, 'onSetUp') else (lambda: None))()  
