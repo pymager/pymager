@@ -9,7 +9,8 @@ import atexit
 global_config = os.path.join(os.path.dirname(__file__), 'imgserver-site.conf')
 imgserver_config = os.path.join(os.path.dirname(__file__), 'imgserver.conf')
 
-cherrypy.config.update(global_config)
+#cherrypy.config.update(global_config)
+cherrypy.config.update({'environment': 'embedded'})
 
 if cherrypy.engine.state == 0:
     cherrypy.engine.start(blocking=False)
@@ -17,8 +18,7 @@ if cherrypy.engine.state == 0:
 
 # quick hack to get the configuration _before_ mounting the application
 imgserver_config = cherrypy._cpconfig._Parser().dict_from_file(imgserver_config)
-application = cherrypy.tree.mount(
-    create_site(
-        imgserver_config['imgserver']), 
-        "", 
-    imgserver_config)
+
+application = cherrypy.Application(create_site(imgserver_config['imgserver']), None)
+application.merge(imgserver_config)
+   
