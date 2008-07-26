@@ -1,0 +1,4 @@
+<IfModule mod_wsgi.c>
+ WSGIScriptAlias /imgserver /home/samokk/Workspace/sirika5/img-server/imgserver.wsgi
+# WSGIRestrictStdout Off
+</IfModule>

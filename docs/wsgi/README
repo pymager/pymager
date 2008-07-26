@@ -1,0 +1,3 @@
+sudo apt-get install libapache2-mod-wsgi
+sudo cp etc_apache_conf.d_wsgi /etc/apache2/conf.d/wsgi
+vi /etc/apache2/conf.d/wsgi
