@@ -42,8 +42,10 @@ class _SessionTemplate(object):
                 return f()
             except Exception, ex:
                 del self.__local.do_with_session_count
-                if not session.connection().invalidated:
+                try:
                     conn = session.connection().invalidate()
+                except Exception:
+                    pass
                 #conn.close()
                 session.rollback()
                 session.close()
