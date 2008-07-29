@@ -44,6 +44,12 @@ class _SessionTemplate(object):
                 del self.__local.do_with_session_count
                 try:
                     conn = session.connection().invalidate()
+                except sqlalchemy.exceptions.InvalidRequestError:
+                    # ignore the following exception that happens on windows... 
+                    # InvalidRequestError("The transaction is inactive 
+                    # due to a rollback in a subtransaction and should be closed")
+                    #
+                    pass
                 except Exception:
                     pass
                 #conn.close()
