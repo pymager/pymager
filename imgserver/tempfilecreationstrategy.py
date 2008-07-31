@@ -22,7 +22,7 @@ class ITempFileCreationStrategy(Interface):
         returned by os.open()) """
     
     def deleteTempFile(self, file):
-        """ deletes the filename corresponding to a temp file"""
+        """ deletes the file corresponding to a temp file"""
 
 class UnixTempFileCreationStrategy(object):
     implements(ITempFileCreationStrategy)
