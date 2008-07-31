@@ -7,7 +7,10 @@ ez_setup.py
 imgserver-site.conf
 imgserver-standalone.py
 imgserver.conf
+imgserver.wsgi
 setup.py
+docs/wsgi/README
+docs/wsgi/etc_apache_conf.d_wsgi
 imgserver/__init__.py
 imgserver/commandline.py
 imgserver/factory.py
