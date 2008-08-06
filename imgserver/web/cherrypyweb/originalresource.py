@@ -71,14 +71,14 @@ class OriginalResource(object):
         
         # create our version of cgi.FieldStorage to parse the MIME encoded
         # form data where the file is contained
-        formFields = myFieldStorage(fp=cherrypy.request.rfile,
+        formFields = cgi.FieldStorage(fp=cherrypy.request.rfile,
             headers=lcHDRS,
             environ={'REQUEST_METHOD':'POST'},
             keep_blank_values=True)
 
         theFile = formFields[FILE_FIELD_NAME]
-        self.__image_processor.saveFileToRepository(theFile.file.name, item_id)
+        self.__image_processor.saveFileToRepository(theFile.file, item_id)
         
-        myFieldStorage.strategy.deleteTempFile(theFile)
+        #myFieldStorage.strategy.deleteTempFile(theFile)
         raise cherrypy.HTTPRedirect(cherrypy.request.path_info) 
         

@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import unittest
 import os
 import time
@@ -9,6 +10,7 @@ from imgserver import imgengine, domain
 from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
 from imgserver.imgengine.transformationrequest import TransformationRequest
 from pkg_resources import resource_filename
+
 
 NB_THREADS = 15
 
@@ -47,7 +49,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
     def testSaveImageShouldUpdateFileSystemAndDatabase(self):
         self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
-        assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')) == True
+        self.__assertSampleFileIsSavedCorrectly()
         
         item = self._itemRepository.findOriginalItemById('sampleId')
         assert item is not None
@@ -55,7 +57,17 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         assert item.format == domain.IMAGE_FORMAT_JPEG
         assert item.size == JPG_SAMPLE_IMAGE_SIZE
         assert item.status == domain.STATUS_OK
-        
+    
+    def __assertSampleFileIsSavedCorrectly(self):
+        assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')) == True
+        self.assertEquals(os.path.getsize(JPG_SAMPLE_IMAGE_FILENAME), os.path.getsize(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')))
+            
+    def testSaveImageShouldAcceptFileLikeObjectAsImageSource(self):
+        with open(JPG_SAMPLE_IMAGE_FILENAME, 'rb') as fobj:
+            self._imgProcessor.saveFileToRepository(fobj, 'sampleId')
+            
+        self.__assertSampleFileIsSavedCorrectly()
+    
     def testPrepareTransformationWithNonExistingOriginalIdShouldThrowException(self):
         try:
             request = TransformationRequest('nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)

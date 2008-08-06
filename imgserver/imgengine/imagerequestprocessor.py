@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import os
 import os.path
 import shutil
@@ -27,9 +28,12 @@ class IImageRequestProcessor(Interface):
         @rtype: str
         @raise ItemDoesNotExistError: if item_id does not exist"""
         
-    def saveFileToRepository(self, filename, imageId):
+    def saveFileToRepository(self, file, imageId):
         """ save the given file to the image server repository. 
-        It will then be available for transformations"""
+        It will then be available for transformations
+        @param file: either a filename or a file-like object 
+        that is opened in binary mode
+        """
     
     def prepareTransformation(self, transformationRequest):
         """ Takes an ImageRequest and prepare the output for it. 
@@ -123,11 +127,26 @@ class ImageRequestProcessor(object):
         self.__wait_for_original_item(item_id)
         return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (originalItem.id, self.__extensionForFormat(originalItem.format)))
                                
-    def saveFileToRepository(self, filename, imageId):
+    def saveFileToRepository(self, file, imageId):
+        def filenameSaveStrategy(file, item):
+            shutil.copyfile(file, self.__absoluteOriginalFilename(item))
+        
+        def fileLikeSaveStrategy(file, item):
+            file.seek(0)
+            with open(self.__absoluteOriginalFilename(item), "w+b") as out:
+                shutil.copyfileobj(file, out)
+                out.flush()
+
         imgengine.checkid(imageId)
+        
+        if type(file) == str:
+            save = filenameSaveStrategy
+        else:
+            save = fileLikeSaveStrategy
+        
         # Check that the image is not broken
         try:
-            img = Image.open(filename)
+            img = Image.open(file)
             img.verify()
         except IOError, ex:
             raise imgengine.ImageFileNotRecognized(ex)
@@ -141,7 +160,7 @@ class ImageRequestProcessor(object):
             raise imgengine.ImageIDAlreadyExistingException(item.id)
         else:
             try:
-                shutil.copyfile(filename, self.__absoluteOriginalFilename(item))
+                save(file, item)
             except IOError, ex:
                 raise imgengine.ImageProcessingException(ex)
         
