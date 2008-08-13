@@ -9,6 +9,8 @@ imgserver-standalone.py
 imgserver.conf
 setup.py
 examples/form_8000.html
+examples/form_8000_with_mountpoint.html
+examples/form_80_with_mountpoint.html
 imgserver/__init__.py
 imgserver/commandline.py
 imgserver/factory.py

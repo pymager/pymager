@@ -80,5 +80,5 @@ class OriginalResource(object):
         self.__image_processor.saveFileToRepository(theFile.file, item_id)
         
         #myFieldStorage.strategy.deleteTempFile(theFile)
-        raise cherrypy.HTTPRedirect('%s/%s' % (cherrypy.request.script_name, cherrypy.request.path_info)) 
+        raise cherrypy.HTTPRedirect('%s%s' % (cherrypy.request.script_name, cherrypy.request.path_info)) 
         

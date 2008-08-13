@@ -1,4 +1,14 @@
 <IfModule mod_wsgi.c>
- WSGIScriptAlias /imgserver /srv/wsgi/imgserver.wsgi
-# WSGIRestrictStdout Off
+	WSGIScriptAlias /imgserver /srv/wsgi/imgserver.wsgi
+	# WSGIRestrictStdout Off
+
+	<Location "/imgserver">
+		AuthName "Non-Public features"
+		AuthType Basic
+		AuthUserFile /srv/wsgi/htpasswd
+		
+		<Limit POST PUT DELETE>
+			require valid-user	
+		</Limit>
+	</Location>
 </IfModule>
