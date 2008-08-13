@@ -13,7 +13,7 @@ imgserver_config = cherrypy._cpconfig._Parser().dict_from_file(imgserver_config)
 application = cherrypy.tree.mount(
     create_site(
         imgserver_config['imgserver']), 
-        "/imgserver", 
+        "", 
     imgserver_config)
 
 cherrypy.server.quickstart()
