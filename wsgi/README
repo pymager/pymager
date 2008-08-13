@@ -10,7 +10,6 @@ sudo htpasswd -c /srv/wsgi/htpasswd sirika
 sudo chown -R root:www-data /srv/wsgi
 sudo chmod 640 /srv/wsgi/htpasswd
 
-
 # create a work directory where apache with read+write access for apache
 sudo mkdir /srv/data
 sudo mkdir /srv/data/imgserver
@@ -24,8 +23,6 @@ sudo python setup.py install --prefix /usr/local
 sudo apt-get install libapache2-mod-wsgi
 
 sudo cp etc_apache_conf.d_wsgi /etc/apache2/conf.d/wsgi
-
-
 
 # You can now tweak the settings 
 vi /etc/apache2/conf.d/wsgi
