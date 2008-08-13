@@ -6,9 +6,11 @@ import cherrypy
 import os
 import atexit
 
+cherrypy_config = os.path.join(os.path.dirname(__file__), 'cherrypy.conf')
 imgserver_config = os.path.join(os.path.dirname(__file__), 'imgserver.conf')
 
-cherrypy.config.update({'environment': 'embedded'})
+#cherrypy.config.update({'environment': 'embedded'})
+cherrypy.config.update(cherrypy_config)
 
 if cherrypy.engine.state == 0:
     cherrypy.engine.start(blocking=False)
