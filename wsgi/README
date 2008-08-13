@@ -1,0 +1,20 @@
+# copy the WSGI scripts in a place with read-only access for apache 
+sudo mkdir /srv/wsgi
+sudo cp srv/imgserver.conf /srv/wsgi
+sudo cp srv/imgserver.wsgi /srv/wsgi
+sudo chown -R root:www-data /srv/wsgi
+
+# create a work directory where apache with read+write access for apache
+sudo mkdir /srv/data
+sudo mkdir /srv/data/imgserver
+sudo setfacl -m g:www-data:r-x /srv/data
+sudo setfacl -m g:www-data:rwx /srv/data/imgserver
+sudo setfacl -d -m g:www-data:rwx /srv/data/imgserver
+
+sudo apt-get install libapache2-mod-wsgi
+
+sudo cp etc_apache_conf.d_wsgi /etc/apache2/conf.d/wsgi
+
+# You can now tweak the settings 
+vi /etc/apache2/conf.d/wsgi
+vi /srv/wsgi/imgserver.conf

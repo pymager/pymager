@@ -6,10 +6,8 @@ import cherrypy
 import os
 import atexit
 
-global_config = os.path.join(os.path.dirname(__file__), 'imgserver-site.conf')
 imgserver_config = os.path.join(os.path.dirname(__file__), 'imgserver.conf')
 
-#cherrypy.config.update(global_config)
 cherrypy.config.update({'environment': 'embedded'})
 
 if cherrypy.engine.state == 0:

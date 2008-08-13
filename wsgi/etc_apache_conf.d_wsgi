@@ -1,0 +1,4 @@
+<IfModule mod_wsgi.c>
+ WSGIScriptAlias /imgserver /srv/wsgi/imgserver.wsgi
+# WSGIRestrictStdout Off
+</IfModule>
