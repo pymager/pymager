@@ -7,13 +7,12 @@ ez_setup.py
 imgserver-site.conf
 imgserver-standalone.py
 imgserver.conf
-imgserver.wsgi
 setup.py
-docs/wsgi/README
-docs/wsgi/etc_apache_conf.d_wsgi
+examples/form_8000.html
 imgserver/__init__.py
 imgserver/commandline.py
 imgserver/factory.py
+imgserver/tempfilecreationstrategy.py
 imgserver.egg-info/PKG-INFO
 imgserver.egg-info/SOURCES.txt
 imgserver.egg-info/dependency_links.txt
@@ -52,5 +51,11 @@ tests/support.py
 tests/imgservertests/__init__.py
 tests/imgservertests/domaintests.py
 tests/imgservertests/imgenginetests.py
+tests/imgservertests/imgenginetests2.py
 tests/imgservertests/persistencetests.py
+tests/imgservertests/tempfilecreationstrategytests.py
 tests/imgservertests/webtests.py
+wsgi/README
+wsgi/etc_apache_conf.d_wsgi
+wsgi/srv/imgserver.conf
+wsgi/srv/imgserver.wsgi
