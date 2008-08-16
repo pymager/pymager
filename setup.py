@@ -20,7 +20,4 @@ setup(
     include_package_data = True,
     data_files = [('etc', ['etc/imgserver-cherrypy.conf', 'etc/imgserver.conf'])],
     test_suite= "tests"
-    #install_requires="pil >= 1.1.6"
-    #package_data={'test.samples': ['*.jpg']}
 )
-#data_files=[('samples', ['tests/samples/brokenImage.jpg', 'tests/samples/sami.jpg'])]
