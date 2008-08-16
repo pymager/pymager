@@ -1,6 +1,6 @@
 # copy the WSGI scripts in a place with read-only access for apache 
 sudo mkdir /srv/wsgi
-sudo cp srv/cherrypy.conf /srv/wsgi
+sudo cp srv/imgserver-cherrypy.conf /srv/wsgi
 sudo cp srv/imgserver.conf /srv/wsgi
 sudo cp srv/imgserver.wsgi /srv/wsgi
 # create the list users that are able to upload new images

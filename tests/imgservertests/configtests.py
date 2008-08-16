@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
     ImgServer RESTful Image Conversion Service 
     Copyright (C) 2008 Sami Dalouche
@@ -20,30 +19,14 @@
 
 """
 from imgserver import config
-from imgserver.web.site import create_site
-import cherrypy
-import os
+import unittest
 
-cherrypy.config.update(config.parse_config(__file__, config.GLOBAL_CONFIG_FILENAME))
-imgserver_config = config.parse_config(__file__, config.IMGSERVER_CONFIG_FILENAME)
-
-application = cherrypy.tree.mount(
-    create_site(
-        imgserver_config['imgserver']), 
-        "", 
-    imgserver_config)
-
-cherrypy.server.quickstart()
-cherrypy.engine.start()
-
-#if hasattr(cherrypy.engine, 'block'):
-    # 3.1 syntax
-#    print '3.1'
-#    cherrypy.engine.start()
-#    cherrypy.engine.block()
-#else:
-    # 3.0 syntax
-#    print '3.0'
-#    cherrypy.server.quickstart()
-#    cherrypy.engine.start()
-
+class ConfigTestCase(unittest.TestCase):
+    
+    def testShouldContain6Elements(self):
+        dirs = config.config_directories('bla')
+        assert dirs is not None
+        self.assertEquals(6, len(dirs))
+        # not sure what to test besides copy/pasting the logic of the function itself..
+        
+        
