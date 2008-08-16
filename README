@@ -1,14 +1,8 @@
-# requirements: 
-# - python2.5
-# - python-imaging
-# - python-sqlalchemy (+ python-pysqlite2 if using the SQLite backend + python-psycopg2 if using postgres)
-# - python-cherrypy3
-# - python-zopeinterface
-# - python-twisted-core ?
-# - python-twisted-web2 ?
-# - python-pkg-resources?
-# - python-setuptools
-# Not yet:
-# - python-pmock ?
-# - python-configobj?
-# - python-distutils-extra
+Install Dependencies
+$ sudo apt-get install python2.5 python-imaging python-sqlalchemy python-pysqlite2 python-psycopg2 python-zopeinterface python-twisted-core python-twisted-web2 python-setuptools python-pkg-resources
+
+Run unit tests to make sure everything's fine
+$ python setup.py test
+
+Run the service
+$ python imgserver.py 
