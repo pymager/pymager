@@ -10,9 +10,15 @@ setup(
     author_email = 'sami.dalouche@gmail.com',
     license = 'LGPLv3',
     url= 'http://opensource.sirika.com/imgserver',
+    description='image conversion and rescaling RESTful web service',
+    long_description="imgserver is an image processing web service." 
+        "Once images are uploaded using a RESTful web API,  "
+        "it is possible to request any derivative of the image based on "
+        "a different size or image format.",
     packages = find_packages(exclude=('tests','tests.*')),
     scripts = ['imgserver-standalone.py'],
     include_package_data = True,
+    data_files = [('etc', ['etc/cherrypy.conf', 'etc/imgserver.conf'])],
     test_suite= "tests"
     #install_requires="pil >= 1.1.6"
     #package_data={'test.samples': ['*.jpg']}

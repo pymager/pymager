@@ -4,9 +4,7 @@ README
 dev.sh
 ez_setup
 ez_setup.py
-imgserver-site.conf
 imgserver-standalone.py
-imgserver.conf
 setup.py
 examples/form_8000.html
 examples/form_8000_with_mountpoint.html
@@ -59,5 +57,6 @@ tests/imgservertests/tempfilecreationstrategytests.py
 tests/imgservertests/webtests.py
 wsgi/README
 wsgi/etc_apache_conf.d_wsgi
+wsgi/srv/cherrypy.conf
 wsgi/srv/imgserver.conf
 wsgi/srv/imgserver.wsgi

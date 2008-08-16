@@ -4,8 +4,8 @@ from imgserver.web.site import create_site
 import cherrypy
 import os
 
-global_config = os.path.join(os.path.dirname(__file__), 'cherrypy.conf')
-imgserver_config = os.path.join(os.path.dirname(__file__), 'imgserver.conf')
+global_config = os.path.join(os.path.dirname(__file__),'etc', 'cherrypy.conf')
+imgserver_config = os.path.join(os.path.dirname(__file__),'etc', 'imgserver.conf')
 
 cherrypy.config.update(global_config)
 # quick hack to get the configuration _before_ mounting the application
