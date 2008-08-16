@@ -18,7 +18,7 @@ setup(
     packages = find_packages(exclude=('tests','tests.*')),
     scripts = ['imgserver-standalone.py'],
     include_package_data = True,
-    data_files = [('etc', ['etc/cherrypy.conf', 'etc/imgserver.conf'])],
+    data_files = [('etc', ['etc/imgserver-cherrypy.conf', 'etc/imgserver.conf'])],
     test_suite= "tests"
     #install_requires="pil >= 1.1.6"
     #package_data={'test.samples': ['*.jpg']}

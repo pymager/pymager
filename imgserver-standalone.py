@@ -4,7 +4,7 @@ from imgserver.web.site import create_site
 import cherrypy
 import os
 
-global_config = os.path.join(os.path.dirname(__file__),'etc', 'cherrypy.conf')
+global_config = os.path.join(os.path.dirname(__file__),'etc', 'imgserver-cherrypy.conf')
 imgserver_config = os.path.join(os.path.dirname(__file__),'etc', 'imgserver.conf')
 
 cherrypy.config.update(global_config)

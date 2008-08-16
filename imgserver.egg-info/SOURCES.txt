@@ -6,6 +6,8 @@ ez_setup
 ez_setup.py
 imgserver-standalone.py
 setup.py
+etc/cherrypy.conf
+etc/imgserver.conf
 examples/form_8000.html
 examples/form_8000_with_mountpoint.html
 examples/form_80_with_mountpoint.html
