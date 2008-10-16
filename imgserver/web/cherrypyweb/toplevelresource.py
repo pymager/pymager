@@ -20,8 +20,6 @@
 """
 from imgserver.web.cherrypyweb.originalresource import OriginalResource
 from imgserver.web.cherrypyweb.derivedresource import DerivedResource
-from twisted.web2.resource import Resource
-from twisted.web2 import http
 import cherrypy
 
 class TopLevelResource(object):
