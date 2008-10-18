@@ -25,20 +25,10 @@ import tempfile
 import cherrypy
 from cherrypy.lib.static import serve_file
 from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
-from imgserver.tempfilecreationstrategy import createTempFileStrategy
 
 FILE_FIELD_NAME = "file"
 PERMISSIONS = 0644
 TMP_DIR = "fileuploads"
-
-class myFieldStorage(cgi.FieldStorage):
-    """Our version uses a named temporary file instead of the default
-    non-named file; keeping it visibile (named), allows us to directly
-    pass the filename to the image service."""
-    strategy = createTempFileStrategy()
-    
-    def make_file(self, binary=None):
-        return myFieldStorage.strategy.createTempFile()
 
 def noBodyProcess():
     """Sets cherrypy.request.process_request_body = False, giving
