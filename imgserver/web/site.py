@@ -23,7 +23,6 @@ import shutil
 from imgserver.factory import ImageServerFactory, ServiceConfiguration
 from imgserver.web.cherrypyweb.toplevelresource import TopLevelResource
 
-DB_FILENAME='db.sqlite'
 
 def init_imageprocessor(config):    
     f = ImageServerFactory(config)

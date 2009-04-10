@@ -51,7 +51,7 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         assert foundItem.width == 800
         assert foundItem.height == 600
         assert foundItem.format == domain.IMAGE_FORMAT_JPEG
-        _dateTimesAreConsideredEqual(item.lastStatusChangeDate, foundItem.lastStatusChangeDate)
+        _dateTimesAreConsideredEqual(item.last_status_change_date, foundItem.last_status_change_date)
         
     def testShouldDeleteOriginalItem(self):
         def callback(session):
@@ -75,7 +75,7 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         assert foundItem.width == 800
         assert foundItem.height == 600
         assert foundItem.format == domain.IMAGE_FORMAT_JPEG
-        _dateTimesAreConsideredEqual(item.lastStatusChangeDate, foundItem.lastStatusChangeDate)
+        _dateTimesAreConsideredEqual(item.last_status_change_date, foundItem.last_status_change_date)
 
     
     def testShouldUpdateDerivedItem(self):
@@ -95,7 +95,7 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         assert foundItem.originalItem.width == 800
         assert foundItem.originalItem.height == 600
         assert foundItem.originalItem.format == domain.IMAGE_FORMAT_JPEG
-        _dateTimesAreConsideredEqual(item.lastStatusChangeDate, foundItem.lastStatusChangeDate)
+        _dateTimesAreConsideredEqual(item.last_status_change_date, foundItem.last_status_change_date)
     
     def testShouldNotFindAnyOriginalItem(self):
         foundItem = self._itemRepository.findOriginalItemById('MYID12435')
@@ -118,7 +118,7 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         assert foundItem.originalItem.width == 800
         assert foundItem.originalItem.height == 600
         assert foundItem.originalItem.format == domain.IMAGE_FORMAT_JPEG
-        _dateTimesAreConsideredEqual(item.lastStatusChangeDate, foundItem.lastStatusChangeDate)
+        _dateTimesAreConsideredEqual(item.last_status_change_date, foundItem.last_status_change_date)
         
     def testDeleteDerivedItemShouldNotDeleteAssociatedOriginalItem(self):
         originalItem = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)

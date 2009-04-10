@@ -26,7 +26,7 @@ from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
 
 def _checkLastStatusDate(item):
-    delta = (datetime.utcnow() - item.lastStatusChangeDate) 
+    delta = (datetime.utcnow() - item.last_status_change_date) 
     assert delta.days == 0 and delta.seconds < 10
 
 class OriginalItemTestCase(unittest.TestCase):
@@ -87,11 +87,11 @@ class OriginalItemTestCase(unittest.TestCase):
         else:
             self.fail()
     
-    def testSetStatusShouldUpdateLastStatusChangeDate(self):
+    def testSetStatusShouldUpdatelast_status_change_date(self):
         item = OriginalItem('MYID12435', domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
         # fuck date by breaking encapsulation
-        item._lastStatusChangeDate = datetime.utcnow() - timedelta(1)
-        item.setStatus(domain.STATUS_OK)
+        item._last_status_change_date = datetime.utcnow() - timedelta(1)
+        item.status = domain.STATUS_OK
         _checkLastStatusDate(item)
     
 class DerivedItemTestCase(unittest.TestCase):
@@ -124,11 +124,11 @@ class DerivedItemTestCase(unittest.TestCase):
         item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, self.originalItem)
         self.__checkItem(item)
         
-    def testSetStatusShouldUpdateLastStatusChangeDate(self):
+    def testSetStatusShouldUpdatelast_status_change_date(self):
         item = DerivedItem(domain.STATUS_INCONSISTENT, (100, 100), domain.IMAGE_FORMAT_JPEG, self.originalItem)
         # fuck date by breaking encapsulation
-        item._lastStatusChangeDate = datetime.utcnow() - timedelta(1)
-        item.setStatus(domain.STATUS_OK)
+        item._last_status_change_date = datetime.utcnow() - timedelta(1)
+        item.status = domain.STATUS_OK
         _checkLastStatusDate(item)
             
     def testShouldNotBeAbleToCreateItemWithNullStatus(self):

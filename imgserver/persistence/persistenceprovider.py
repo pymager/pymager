@@ -128,7 +128,7 @@ class PersistenceProvider(object):
         abstract_item = Table('abstract_item', self.__metadata,
             Column('id', String(255), primary_key=True),
             Column('status', String(255), index=True, nullable=False),
-            Column('lastStatusChangeDate', DateTime, index=True, nullable=False),
+            Column('last_status_change_date', DateTime, index=True, nullable=False),
             Column('width', Integer, index=True, nullable=False),
             Column('height', Integer, index=True, nullable=False),
             Column('format', String(255), index=True, nullable=False),

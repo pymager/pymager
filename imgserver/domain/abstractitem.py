@@ -31,35 +31,35 @@ class AbstractItem(object):
         assert format is not None
         
         self._id = itemId
-        self._lastStatusChangeDate = None
-        self.setStatus(status)
+        self._last_status_change_date = None
+        self.set_status(status)
         self._width = size[0] if type(size[0]) == int else int(size[0])
         self._height = size[1] if type(size[1]) == int else int(size[1])
         self._format = format
 
-    def getLastStatusChangeDate(self):
-        return self._lastStatusChangeDate
-    def getId(self):
+    def get_last_status_change_date(self):
+        return self._last_status_change_date
+    def get_id(self):
         return self._id
-    def getStatus(self):
+    def get_status(self):
         return self._status
-    def setStatus(self, value):
+    def set_status(self, value):
         assert value is not None
-        self._lastStatusChangeDate = datetime.utcnow()
+        self._last_status_change_date = datetime.utcnow()
         self._status = value
-    def getWidth(self):
+    def get_width(self):
         return self._width
-    def getHeight(self):
+    def get_height(self):
         return self._height
-    def getFormat(self):
+    def get_format(self):
         return self._format        
-    def getSize(self):
+    def get_size(self):
         return (self.width, self.height)
 
-    id = property(getId, None, None, None)
-    status = property(getStatus, setStatus, None, None)
-    width = property(getWidth, None, None, None)
-    height = property(getHeight, None, None, None)
-    format = property(getFormat, None, None, None)
-    size = property(getSize, None, None, None)
-    lastStatusChangeDate = property(getLastStatusChangeDate, None, None, None)
+    id = property(get_id, None, None, None)
+    status = property(get_status, set_status, None, None)
+    width = property(get_width, None, None, None)
+    height = property(get_height, None, None, None)
+    format = property(get_format, None, None, None)
+    size = property(get_size, None, None, None)
+    last_status_change_date = property(get_last_status_change_date, None, None, None)
