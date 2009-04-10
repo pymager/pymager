@@ -74,11 +74,11 @@ class ItemDoesNotExistError(Exception):
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
     
-    def __init__(self, itemRepository, schema_migrator, dataDirectory, drop_data=False):
+    def __init__(self, item_repository, schema_migrator, data_directory, drop_data=False):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
-        self.__dataDirectory = dataDirectory 
-        self.__itemRepository = itemRepository
+        self.__data_directory = data_directory 
+        self.__item_repository = item_repository
         self.__schema_migrator = schema_migrator
         
         if drop_data:
@@ -94,12 +94,12 @@ class ImageRequestProcessor(object):
     def __absoluteCacheDirectory(self):
         """ @return: the directory that will be used for caching image processing 
         results """
-        return os.path.join(self.__dataDirectory, CACHE_DIRECTORY)
+        return os.path.join(self.__data_directory, CACHE_DIRECTORY)
     
     def __absoluteOriginalDirectory(self):
         """ @return. the directory that will be used to store original files, 
         before processing"""
-        return os.path.join (self.__dataDirectory, ORIGINAL_DIRECTORY)
+        return os.path.join (self.__data_directory, ORIGINAL_DIRECTORY)
     
     def __absoluteOriginalFilename(self, original_item):
         """ returns the filename of the original file """
@@ -107,7 +107,7 @@ class ImageRequestProcessor(object):
     
     def __absoluteCachedFilename(self, derivedItem):
         
-        return os.path.join( self.__dataDirectory,
+        return os.path.join( self.__data_directory,
                             self.__relativeCachedFilename(derivedItem))
     
     def __relativeCachedFilename(self, derivedItem):
@@ -131,18 +131,18 @@ class ImageRequestProcessor(object):
     
     def __wait_for_original_item(self, item_id):
         """ Wait for the given original item to have a status of STATUS_OK """
-        self.__waitForItemStatusOk(lambda: self.__itemRepository.find_original_item_by_id(item_id))
+        self.__waitForItemStatusOk(lambda: self.__item_repository.find_original_item_by_id(item_id))
     
     def __required_original_item(self, item_id, original_item):
         if original_item is None:
             raise ItemDoesNotExistError(item_id)
     
     def originalImageExists(self, item_id):
-        original_item = self.__itemRepository.find_original_item_by_id(item_id)
+        original_item = self.__item_repository.find_original_item_by_id(item_id)
         return original_item is not None
                 
     def get_original_image_path(self, item_id):
-        original_item = self.__itemRepository.find_original_item_by_id(item_id)
+        original_item = self.__item_repository.find_original_item_by_id(item_id)
         self.__required_original_item(item_id, original_item)
         self.__wait_for_original_item(item_id)
         return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (original_item.id, self.__extensionForFormat(original_item.format)))
@@ -175,7 +175,7 @@ class ImageRequestProcessor(object):
 
         try:
             # atomic creation
-            self.__itemRepository.create(item)
+            self.__item_repository.create(item)
         except DuplicateEntryException, ex:
             raise imgengine.ImageIDAlreadyExistingException(item.id)
         else:
@@ -185,10 +185,10 @@ class ImageRequestProcessor(object):
                 raise imgengine.ImageProcessingException(ex)
         
         item.status = domain.STATUS_OK
-        self.__itemRepository.update(item)
+        self.__item_repository.update(item)
             
     def prepare_transformation(self, transformationRequest):
-        original_item = self.__itemRepository.find_original_item_by_id(transformationRequest.image_id)
+        original_item = self.__item_repository.find_original_item_by_id(transformationRequest.image_id)
         self.__required_original_item(transformationRequest.image_id, original_item)
         
         self.__wait_for_original_item(transformationRequest.image_id)
@@ -203,10 +203,10 @@ class ImageRequestProcessor(object):
         
         # otherwise, c'est parti to convert the stuff
         try:
-            self.__itemRepository.create(derivedItem)
+            self.__item_repository.create(derivedItem)
         except DuplicateEntryException :
             def find():
-                return self.__itemRepository.find_derived_item_by_original_item_id_size_and_format(original_item.id, transformationRequest.size, transformationRequest.target_format)
+                return self.__item_repository.find_derived_item_by_original_item_id_size_and_format(original_item.id, transformationRequest.size, transformationRequest.target_format)
             self.__waitForItemStatusOk(find)
             derivedItem = find()
             
@@ -231,7 +231,7 @@ class ImageRequestProcessor(object):
                 raise imgengine.ImageProcessingException(ex)
         
         derivedItem.status = domain.STATUS_OK
-        self.__itemRepository.update(derivedItem)
+        self.__item_repository.update(derivedItem)
         
         return relative_cached_filename
     
@@ -240,7 +240,7 @@ class ImageRequestProcessor(object):
             items = fetch_items()
             for i in items:
                 delete_file(i)
-                self.__itemRepository.delete(i)
+                self.__item_repository.delete(i)
             
         def main_loop(has_more_items, fetch_items, delete_file):
             def callback(session):
@@ -251,15 +251,15 @@ class ImageRequestProcessor(object):
         def cleanup_derived_items():
             def delete_file(item):
                 os.remove(self.__absoluteCachedFilename(item))
-            main_loop(lambda: len(self.__itemRepository.find_inconsistent_derived_items(1)) > 0,
-                      lambda: self.__itemRepository.find_inconsistent_derived_items(), 
+            main_loop(lambda: len(self.__item_repository.find_inconsistent_derived_items(1)) > 0,
+                      lambda: self.__item_repository.find_inconsistent_derived_items(), 
                       delete_file)
         
         def cleanup_original_items():
             def delete_file(item):
                 os.remove(self.__absoluteOriginalFilename(item))
-            main_loop(lambda: len(self.__itemRepository.find_inconsistent_original_items(1)) > 0,
-                      lambda: self.__itemRepository.find_inconsistent_original_items(), 
+            main_loop(lambda: len(self.__item_repository.find_inconsistent_original_items(1)) > 0,
+                      lambda: self.__item_repository.find_inconsistent_original_items(), 
                       delete_file)
             
         cleanup_derived_items()
@@ -267,12 +267,12 @@ class ImageRequestProcessor(object):
         
     def __drop_data(self):
         self.__schema_migrator.drop_all_tables()
-        if os.path.exists(self.__dataDirectory):
-            shutil.rmtree(self.__dataDirectory)
+        if os.path.exists(self.__data_directory):
+            shutil.rmtree(self.__data_directory)
     
     def __init_directories(self):
-        if not os.path.exists(self.__dataDirectory):
-            os.makedirs(self.__dataDirectory)
+        if not os.path.exists(self.__data_directory):
+            os.makedirs(self.__data_directory)
         for directory in \
             [self.__absoluteCacheDirectory(), self.__absoluteOriginalDirectory()]:
             if not os.path.exists(directory):
