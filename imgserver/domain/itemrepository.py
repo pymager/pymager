@@ -62,4 +62,5 @@ class ItemRepository(Interface):
         """ Create a persistent instance, or update an existing item 
             @raise DuplicateEntryException: when an item with similar characteristics has already been created   """
     def delete(self, item):
-        pass
+        """ Deletes an item, and its children items, in the case of an original item that has
+        several derived items based on it"""
