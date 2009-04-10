@@ -34,7 +34,7 @@ def _dateTimesAreConsideredEqual(datetime1, datetime2):
 class PersistenceTestCase(support.AbstractIntegrationTestCase):
     
     def onSetUp(self):
-        self._itemRepository = self._imageServerFactory.getItemRepository() 
+        self._itemRepository = self._imageServerFactory.item_repository 
         self._schema_migrator = self._imageServerFactory.schema_migrator
         self._template = self._schema_migrator.session_template()
     

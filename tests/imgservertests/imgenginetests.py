@@ -43,35 +43,35 @@ JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
 class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
     
     def onSetUp(self):
-        self._itemRepository = self._imageServerFactory.getItemRepository()
+        self._item_repository = self._imageServerFactory.item_repository
         self._schema_migrator = self._imageServerFactory.schema_migrator
         self._template = self._schema_migrator.session_template()
     
     def testImageIdShouldOnlyContainAlphanumericCharacters(self):
         try:
-            self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId-')
+            self._image_server.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId-')
         except imgengine.IDNotAuthorized, ex:
             assert ex.image_id == 'sampleId-'
     
     def testSaveBrokenImageShouldThrowException(self):
         try:
-            self._imgProcessor.saveFileToRepository(BROKEN_IMAGE_FILENAME, 'sampleId')
+            self._image_server.saveFileToRepository(BROKEN_IMAGE_FILENAME, 'sampleId')
         except imgengine.ImageFileNotRecognized, ex:
             pass
     
     def testSaveImageWithExistingIDShouldThrowException(self):
-        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        self._image_server.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         try:
-            self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')    
+            self._image_server.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')    
         except imgengine.ImageIDAlreadyExistingException, ex:
             assert ex.image_id == 'sampleId'
     
     def testSaveImageShouldUpdateFileSystemAndDatabase(self):
-        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        self._image_server.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
         self.__assertSampleFileIsSavedCorrectly()
         
-        item = self._itemRepository.find_original_item_by_id('sampleId')
+        item = self._item_repository.find_original_item_by_id('sampleId')
         assert item is not None
         assert item.id == 'sampleId'
         assert item.format == domain.IMAGE_FORMAT_JPEG
@@ -84,7 +84,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
             
     def testSaveImageShouldAcceptFileLikeObjectAsImageSource(self):
         with open(JPG_SAMPLE_IMAGE_FILENAME, 'rb') as fobj:
-            self._imgProcessor.saveFileToRepository(fobj, 'sampleId')
+            self._image_server.saveFileToRepository(fobj, 'sampleId')
             
         self.__assertSampleFileIsSavedCorrectly()
     
@@ -95,13 +95,13 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
             self.assertEquals('nonexisting', ex.item_id)
     
     def testPrepareRequestShouldUpdateFileSystemAndDatabase(self):
-        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        self._image_server.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
         request = TransformationRequest('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
-        result = self._imgProcessor.prepareTransformation(request)
+        result = self._image_server.prepareTransformation(request)
         assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-100x100.jpg')) == True
         
-        item = self._itemRepository.find_derived_item_by_original_item_id_size_and_format('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
+        item = self._item_repository.find_derived_item_by_original_item_id_size_and_format('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
         assert item is not None
         assert item.id == 'sampleId-100x100-JPEG'
         assert item.format == domain.IMAGE_FORMAT_JPEG
@@ -110,7 +110,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         assert item.original_item.id == 'sampleId'
         
         # result should be consistent across calls (caching..)
-        result2 = self._imgProcessor.prepareTransformation(request)
+        result2 = self._image_server.prepareTransformation(request)
         assert result == os.path.join('cache', 'sampleId-100x100.jpg')
         assert result2 == os.path.join('cache', 'sampleId-100x100.jpg')
     
@@ -118,20 +118,20 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         
         # create 10 original items and 4 derived items per original items 
         for i in range(1,11):
-            self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'item%s' %i)
+            self._image_server.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'item%s' %i)
          
             for size in [(100,100), (200,200), (300,300), (400,400)]:
                 request = TransformationRequest('item%s' % i, size, domain.IMAGE_FORMAT_JPEG)
-                self._imgProcessor.prepareTransformation(request)
+                self._image_server.prepareTransformation(request)
         
         # now mark 5 of the original items as inconsistent, as well as their associated derived items
         def mark_original_items_as_inconsistent(itemNumber):
-            item = self._itemRepository.find_original_item_by_id('item%s' % itemNumber)
+            item = self._item_repository.find_original_item_by_id('item%s' % itemNumber)
             for di in item.derivedItems:
                 di.status = domain.STATUS_INCONSISTENT
-                self._itemRepository.update(di)
+                self._item_repository.update(di)
             item.status = domain.STATUS_INCONSISTENT
-            self._itemRepository.update(item)
+            self._item_repository.update(item)
         
         for i in range(1,6):
             def callback(session):
@@ -139,63 +139,63 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
             self._template.do_with_session(callback)
             
         # finally, mark a few additional derived items as inconsistent, with their original item staying OK
-        to_crush = [ self._itemRepository.find_derived_item_by_original_item_id_size_and_format('item6', (100,100),domain.IMAGE_FORMAT_JPEG),
-                    self._itemRepository.find_derived_item_by_original_item_id_size_and_format('item6', (200,200),domain.IMAGE_FORMAT_JPEG),
-                    self._itemRepository.find_derived_item_by_original_item_id_size_and_format('item6', (300,300),domain.IMAGE_FORMAT_JPEG),
-                    self._itemRepository.find_derived_item_by_original_item_id_size_and_format('item6', (400,400),domain.IMAGE_FORMAT_JPEG) ]
+        to_crush = [ self._item_repository.find_derived_item_by_original_item_id_size_and_format('item6', (100,100),domain.IMAGE_FORMAT_JPEG),
+                    self._item_repository.find_derived_item_by_original_item_id_size_and_format('item6', (200,200),domain.IMAGE_FORMAT_JPEG),
+                    self._item_repository.find_derived_item_by_original_item_id_size_and_format('item6', (300,300),domain.IMAGE_FORMAT_JPEG),
+                    self._item_repository.find_derived_item_by_original_item_id_size_and_format('item6', (400,400),domain.IMAGE_FORMAT_JPEG) ]
         for item in to_crush:
             item.status = domain.STATUS_INCONSISTENT
-            self._itemRepository.update(item)
+            self._item_repository.update(item)
         
-        self._imgProcessor._cleanupInconsistentItems()
+        self._image_server._cleanupInconsistentItems()
         
         # items 1 to 5 should not exist anymore (DB and file)
         for i in range(1,6):
-            item = self._itemRepository.find_original_item_by_id('item%s' % i)
+            item = self._item_repository.find_original_item_by_id('item%s' % i)
             assert item is None
             assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'item%s.jpg' %(i))) == False
         
         # items 6 to 10 should still be OK
         for i in range(6,11):
-            item = self._itemRepository.find_original_item_by_id('item%s' % i)
+            item = self._item_repository.find_original_item_by_id('item%s' % i)
             assert item is not None
             assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'item%s.jpg' %(i))) 
         
         # a few Derived Items that should be KO
-        assert self._itemRepository.find_derived_item_by_original_item_id_size_and_format('item6', (100,100),domain.IMAGE_FORMAT_JPEG) is None
+        assert self._item_repository.find_derived_item_by_original_item_id_size_and_format('item6', (100,100),domain.IMAGE_FORMAT_JPEG) is None
         assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'item6-100x100.jpg')) == False
-        assert self._itemRepository.find_derived_item_by_original_item_id_size_and_format('item6', (200,200),domain.IMAGE_FORMAT_JPEG) is None
+        assert self._item_repository.find_derived_item_by_original_item_id_size_and_format('item6', (200,200),domain.IMAGE_FORMAT_JPEG) is None
         assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'item6-200x200.jpg')) == False
         
         # a few Derived Items that should be OK
-        assert self._itemRepository.find_derived_item_by_original_item_id_size_and_format('item7', (200,200),domain.IMAGE_FORMAT_JPEG) is not None
+        assert self._item_repository.find_derived_item_by_original_item_id_size_and_format('item7', (200,200),domain.IMAGE_FORMAT_JPEG) is not None
         assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'item7-200x200.jpg')) == True
     
     def testShouldReturnOriginalFilenameForExistingItem(self):
-        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
-        path = self._imgProcessor.getOriginalImagePath('sampleId')
+        self._image_server.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        path = self._image_server.getOriginalImagePath('sampleId')
         self.assertTrue(os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, path)))
     
     def testReturnOriginalFilenameShouldRaiseExceptionWhenItemDoesNotExist(self):
-        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        self._image_server.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         try:
-            self._imgProcessor.getOriginalImagePath('anyItem')
+            self._image_server.getOriginalImagePath('anyItem')
             self.fail()
         except ItemDoesNotExistError, ex:
             self.assertEquals('anyItem', ex.item_id)
         
     def testOriginalImageShouldExist(self):
-        self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
-        self.assertTrue(self._imgProcessor.originalImageExists('sampleId'))
+        self._image_server.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        self.assertTrue(self._image_server.originalImageExists('sampleId'))
     
     def testOriginalImageShouldNotExist(self):
-        self.assertFalse(self._imgProcessor.originalImageExists('sampleId'))
+        self.assertFalse(self._image_server.originalImageExists('sampleId'))
         
     def koImageRequestProcessorMultithreadedTestCase(self):
         
         children = []
         for i in range(NB_THREADS):
-            currentThread = SaveImageToRepositoryThread(self._imgProcessor, "sami%s" %(i))
+            currentThread = SaveImageToRepositoryThread(self._image_server, "sami%s" %(i))
             currentThread.start()
             children.append(currentThread)
         
@@ -214,12 +214,12 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
 class SaveImageToRepositoryThread(Thread):
     def __init__ (self, imgProcessor, itemid):
         Thread.__init__(self)
-        self.__imgProcessor = imgProcessor
+        self.__image_server = imgProcessor
         self.__itemid = itemid
 
 
     def run(self):
-            self.__imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, self.__itemid)
+            self.__image_server.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, self.__itemid)
 
         
     

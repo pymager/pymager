@@ -43,7 +43,7 @@ JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
 class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
     
     def onSetUp(self):
-        self._itemRepository = self._imageServerFactory.getItemRepository()
+        self._item_repository = self._imageServerFactory.item_repository
         self._schema_migrator = self._imageServerFactory.schema_migrator
         self._template = self._schema_migrator.session_template()
     
@@ -53,7 +53,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
             
     def testSaveImageShouldAcceptFileLikeObjectAsImageSource(self):
         with open(JPG_SAMPLE_IMAGE_FILENAME, 'rb') as fobj:
-            self._imgProcessor.saveFileToRepository(fobj, 'sampleId')
+            self._image_server.saveFileToRepository(fobj, 'sampleId')
             
         self.__assertSampleFileIsSavedCorrectly()
 

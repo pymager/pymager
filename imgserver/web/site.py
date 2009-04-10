@@ -27,9 +27,9 @@ from imgserver.web.cherrypyweb.toplevelresource import TopLevelResource
 def init_imageprocessor(config):    
     f = ImageServerFactory(config)
     imageProcessor = \
-        f.createImageServer()
+        f.create_image_server()
     #imageProcessor = \
-    #    f.createImageServer(
+    #    f.create_image_server(
     #        site_config.data_directory, 
     #        'postgres://imgserver:funala@localhost/imgserver',
     #        [(100,100), (800,600)], True)

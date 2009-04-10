@@ -40,30 +40,30 @@ class ImageServerFactory(object):
     def __init__(self, config):
         super(ImageServerFactory, self)
         self.__schema_migrator = None
-        self.__itemRepository = None
-        self.__imageProcessor = None
+        self.__item_repository = None
+        self.__image_processor = None
         self.__config = config
 
     def get_schema_migrator(self):
         return self.__schema_migrator
 
 
-    def getItemRepository(self):
-        return self.__itemRepository
+    def get_item_repository(self):
+        return self.__item_repository
 
 
-    def getImageProcessor(self):
-        return self.__imageProcessor
+    def get_image_processor(self):
+        return self.__image_processor
 
-    def createImageServer(self):
+    def create_image_server(self):
         self.__schema_migrator = SchemaMigrator(SqlAlchemySchemaMigrator(self.__config.dburi))
         
-        self.__itemRepository = ItemRepository(SqlAlchemyItemRepository(self.__schema_migrator))
-        self.__imageProcessor = IImageRequestProcessor(ImageRequestProcessor(self.__itemRepository, self.__schema_migrator, self.__config.data_directory, self.__config.dev_mode))
-        self.__imageProcessor.prepareTransformation =  security.imageTransformationSecurityDecorator(self.__config.allowed_sizes)(self.__imageProcessor.prepareTransformation)
+        self.__item_repository = ItemRepository(SqlAlchemyItemRepository(self.__schema_migrator))
+        self.__image_processor = IImageRequestProcessor(ImageRequestProcessor(self.__item_repository, self.__schema_migrator, self.__config.data_directory, self.__config.dev_mode))
+        self.__image_processor.prepareTransformation =  security.imageTransformationSecurityDecorator(self.__config.allowed_sizes)(self.__image_processor.prepareTransformation)
         
-        return self.__imageProcessor
+        return self.__image_processor
     
     schema_migrator = property(get_schema_migrator, None, None, "PersistenceProvider's Docstring")
-    itemRepository = property(getItemRepository, None, None, "ItemRepository's Docstring")
-    imageProcessor = property(getImageProcessor, None, None, "ImageProcessor's Docstring")
+    item_repository = property(get_item_repository, None, None, "ItemRepository's Docstring")
+    image_processor = property(get_image_processor, None, None, "ImageProcessor's Docstring")
