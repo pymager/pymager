@@ -25,8 +25,8 @@ from imgserver.imgengine.transformationrequest import TransformationRequest
 from imgserver.imgengine.imagerequestprocessor import ImageRequestProcessor
 from imgserver.imgengine.imagerequestprocessor import IImageRequestProcessor
 from imgserver.persistence.persistenceprovider import PersistenceProvider,IPersistenceProvider
-from imgserver.domain.itemrepository import ItemRepository, IItemRepository
-
+from imgserver.domain.itemrepository import ItemRepository
+from imgserver.persistence.sqlalchemyitemrepository import SqlAlchemyItemRepository
 class ServiceConfiguration(object):
     def __init__(self, data_directory, dburi, allowed_sizes, dev_mode):
         self.data_directory = data_directory
@@ -56,7 +56,7 @@ class ImageServerFactory(object):
     def createImageServer(self):
         self.__persistenceProvider = IPersistenceProvider(PersistenceProvider(self.__config.dburi))
         
-        self.__itemRepository = IItemRepository(ItemRepository(self.__persistenceProvider))
+        self.__itemRepository = ItemRepository(SqlAlchemyItemRepository(self.__persistenceProvider))
         self.__imageProcessor = IImageRequestProcessor(ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, self.__config.data_directory, self.__config.dev_mode))
         self.__imageProcessor.prepareTransformation =  security.imageTransformationSecurityDecorator(self.__config.allowed_sizes)(self.__imageProcessor.prepareTransformation)
         

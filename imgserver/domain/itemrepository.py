@@ -18,18 +18,13 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-import logging
-import threading
-import sqlalchemy
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
-from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
+
 from zope.interface import Interface, implements
 from imgserver import domain
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
 
-log = logging.getLogger('persistence.itemrepository')
 
 class DuplicateEntryException(Exception):
     """Thrown when errors happen while processing images """
@@ -42,7 +37,7 @@ class DuplicateEntryException(Exception):
     
     duplicate_id = property(get_duplicate_id, None, None, "The ID that led to the DuplicateEntryException")
 
-class IItemRepository(Interface):
+class ItemRepository(Interface):
     """ DDD repository for Original and Derived Items """
     def find_original_item_by_id(self, item_id):
         """ Find an OriginalItem by its ID """
@@ -68,67 +63,3 @@ class IItemRepository(Interface):
             @raise DuplicateEntryException: when an item with similar characteristics has already been created   """
     def delete(self, item):
         pass
-    
-class ItemRepository(object):
-    implements(IItemRepository)
-    
-    def __init__(self, persistenceProvider):
-        self.__persistenceProvider = persistenceProvider
-        self.__template = persistenceProvider.session_template()
-    
-    def find_original_item_by_id(self, item_id):
-        def callback(session):
-            return session.query(OriginalItem)\
-                .filter(OriginalItem._id==item_id)\
-                .first()
-        return self.__template.do_with_session(callback)
-
-    def find_inconsistent_original_items(self, maxResults=100):
-        def callback(session):
-            return session.query(OriginalItem)\
-                .filter(AbstractItem._status==domain.STATUS_INCONSISTENT)\
-                .limit(maxResults).all()
-        return self.__template.do_with_session(callback)
-    
-    def find_inconsistent_derived_items(self, maxResults=100):
-        def callback(session):
-            return session.query(DerivedItem)\
-                .filter(AbstractItem._status==domain.STATUS_INCONSISTENT)\
-                .limit(maxResults).all()
-        return self.__template.do_with_session(callback)
-    
-    def find_derived_item_by_original_item_id_size_and_format(self, item_id, size, format):
-        def callback(session):
-            o = session.query(DerivedItem)\
-                    .filter_by(_width=size[0])\
-                    .filter_by(_height=size[1])\
-                    .filter_by(_format=format)\
-                    .join('_original_item', aliased=True)\
-                    .filter_by(_id=item_id)\
-                    .first()
-            # FIXME: http://www.sqlalchemy.org/trac/ticket/1082
-            (getattr(o, '_original_item') if hasattr(o, '_original_item') else (lambda: None))
-            return o
-        return self.__template.do_with_session(callback)
-    
-    def create(self, item):
-        def callback(session):
-            session.save(item)
-        try:
-            self.__template.do_with_session(callback)
-        except sqlalchemy.exceptions.IntegrityError, ex: 
-            raise DuplicateEntryException, item.id
-    
-    def update(self, item):
-        def callback(session):
-            session.save_or_update(item)
-        try:
-            self.__template.do_with_session(callback)
-        except sqlalchemy.exceptions.IntegrityError: 
-            raise DuplicateEntryException, item.id
-    
-    def delete(self, item):
-        def callback(session):
-            session.refresh(item)
-            session.delete(item)
-        self.__template.do_with_session(callback)
