@@ -74,12 +74,12 @@ class ItemDoesNotExistError(Exception):
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
     
-    def __init__(self, itemRepository, persistenceProvider, dataDirectory, drop_data=False):
+    def __init__(self, itemRepository, schema_migrator, dataDirectory, drop_data=False):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
         self.__dataDirectory = dataDirectory 
         self.__itemRepository = itemRepository
-        self.__persistenceProvider = persistenceProvider
+        self.__schema_migrator = schema_migrator
         
         if drop_data:
             self.__drop_data()
@@ -246,7 +246,7 @@ class ImageRequestProcessor(object):
             def callback(session):
                 cleanup_in_session(fetch_items, delete_file)
             while has_more_items():
-                self.__persistenceProvider.session_template().do_with_session(callback)
+                self.__schema_migrator.session_template().do_with_session(callback)
         
         def cleanup_derived_items():
             def delete_file(item):
@@ -266,7 +266,7 @@ class ImageRequestProcessor(object):
         cleanup_original_items()
         
     def __drop_data(self):
-        self.__persistenceProvider.drop_all_tables()
+        self.__schema_migrator.drop_all_tables()
         if os.path.exists(self.__dataDirectory):
             shutil.rmtree(self.__dataDirectory)
     
@@ -279,4 +279,4 @@ class ImageRequestProcessor(object):
                 os.makedirs(directory)    
     def __init_data(self):
         self.__init_directories()
-        self.__persistenceProvider.createOrUpgradeSchema()
+        self.__schema_migrator.create_or_upgrade_schema()

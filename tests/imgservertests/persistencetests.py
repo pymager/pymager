@@ -19,7 +19,7 @@
 
 """
 import unittest
-from imgserver import domain, persistence
+from imgserver import domain
 from tests import support
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
@@ -35,8 +35,8 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
     
     def onSetUp(self):
         self._itemRepository = self._imageServerFactory.getItemRepository() 
-        self._persistenceProvider = self._imageServerFactory.getPersistenceProvider()
-        self._template = self._persistenceProvider.session_template()
+        self._schema_migrator = self._imageServerFactory.schema_migrator
+        self._template = self._schema_migrator.session_template()
     
     def testShouldNotFindAnyItemWhenIdDoesNotExist(self):
         assert self._itemRepository.find_original_item_by_id('anyId') is None

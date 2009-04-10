@@ -24,9 +24,11 @@ from imgserver.imgengine import security
 from imgserver.imgengine.transformationrequest import TransformationRequest
 from imgserver.imgengine.imagerequestprocessor import ImageRequestProcessor
 from imgserver.imgengine.imagerequestprocessor import IImageRequestProcessor
-from imgserver.persistence.persistenceprovider import PersistenceProvider,IPersistenceProvider
+from imgserver.persistence.schemamigrator import SchemaMigrator
+from imgserver.persistence.sqlalchemyschemamigrator import SqlAlchemySchemaMigrator
 from imgserver.domain.itemrepository import ItemRepository
 from imgserver.persistence.sqlalchemyitemrepository import SqlAlchemyItemRepository
+
 class ServiceConfiguration(object):
     def __init__(self, data_directory, dburi, allowed_sizes, dev_mode):
         self.data_directory = data_directory
@@ -37,13 +39,13 @@ class ServiceConfiguration(object):
 class ImageServerFactory(object):
     def __init__(self, config):
         super(ImageServerFactory, self)
-        self.__persistenceProvider = None
+        self.__schema_migrator = None
         self.__itemRepository = None
         self.__imageProcessor = None
         self.__config = config
 
-    def getPersistenceProvider(self):
-        return self.__persistenceProvider
+    def get_schema_migrator(self):
+        return self.__schema_migrator
 
 
     def getItemRepository(self):
@@ -54,14 +56,14 @@ class ImageServerFactory(object):
         return self.__imageProcessor
 
     def createImageServer(self):
-        self.__persistenceProvider = IPersistenceProvider(PersistenceProvider(self.__config.dburi))
+        self.__schema_migrator = SchemaMigrator(SqlAlchemySchemaMigrator(self.__config.dburi))
         
-        self.__itemRepository = ItemRepository(SqlAlchemyItemRepository(self.__persistenceProvider))
-        self.__imageProcessor = IImageRequestProcessor(ImageRequestProcessor(self.__itemRepository, self.__persistenceProvider, self.__config.data_directory, self.__config.dev_mode))
+        self.__itemRepository = ItemRepository(SqlAlchemyItemRepository(self.__schema_migrator))
+        self.__imageProcessor = IImageRequestProcessor(ImageRequestProcessor(self.__itemRepository, self.__schema_migrator, self.__config.data_directory, self.__config.dev_mode))
         self.__imageProcessor.prepareTransformation =  security.imageTransformationSecurityDecorator(self.__config.allowed_sizes)(self.__imageProcessor.prepareTransformation)
         
         return self.__imageProcessor
     
-    persistenceProvider = property(getPersistenceProvider, None, None, "PersistenceProvider's Docstring")
+    schema_migrator = property(get_schema_migrator, None, None, "PersistenceProvider's Docstring")
     itemRepository = property(getItemRepository, None, None, "ItemRepository's Docstring")
     imageProcessor = property(getImageProcessor, None, None, "ImageProcessor's Docstring")

@@ -37,10 +37,10 @@ class NoUpgradeScriptError(Exception):
         self.__schema_version = schema_version
         Exception.__init__(self, 'No upgrade script is found for Schema Version: %s' % schema_version)
 
-    def getSchemaVersion(self):
+    def get_schema_version(self):
         return self.__schema_version
     
-    schemaVersion = property(getSchemaVersion, None, None, "The ID that lead to the DuplicateEntryException")
+    schema_version = property(get_schema_version, None, None, "The ID that lead to the DuplicateEntryException")
 
 class _SessionTemplate(object):
     """ Simple helper class akin to Spring-JDBC/Hibernate/ORM Template.
@@ -98,10 +98,10 @@ class Version(object):
         self.name = name
         self.value = value
 
-class IPersistenceProvider(Interface):
+class SchemaMigrator(Interface):
     """ Manages the Schema, Metadata, and stores references to the Engine and Session Maker """
     
-    def createOrUpgradeSchema(self):
+    def create_or_upgrade_schema(self):
         """ Create or Upgrade the database metadata
         @raise NoUpgradeScriptError: when no upgrade script is found for a given 
             database schema version """
@@ -112,8 +112,8 @@ class IPersistenceProvider(Interface):
     def session_template(self):
         """ Creates a Spring JDBC-like template """
          
-class PersistenceProvider(object):
-    implements(IPersistenceProvider)
+class SqlAlchemySchemaMigrator(object):
+    implements(SchemaMigrator)
     def __init__(self, dbstring):
         self.__engine = create_engine(dbstring, encoding='utf-8', echo=False, echo_pool=False, strategy='threadlocal')
         self.__metadata = MetaData()
@@ -174,7 +174,7 @@ class PersistenceProvider(object):
     def drop_all_tables(self):
         self.__metadata.drop_all(self.__engine)
     
-    def createOrUpgradeSchema(self):
+    def create_or_upgrade_schema(self):
         def get_version(session):
             schema_version = None
             try:

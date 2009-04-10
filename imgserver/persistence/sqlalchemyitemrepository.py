@@ -35,9 +35,9 @@ log = logging.getLogger('persistence.itemrepository')
 class SqlAlchemyItemRepository(object):
     implements(ItemRepository)
     
-    def __init__(self, persistenceProvider):
-        self.__persistenceProvider = persistenceProvider
-        self.__template = persistenceProvider.session_template()
+    def __init__(self, schema_migrator):
+        self.__schema_migrator = schema_migrator
+        self.__template = schema_migrator.session_template()
     
     def find_original_item_by_id(self, item_id):
         def callback(session):

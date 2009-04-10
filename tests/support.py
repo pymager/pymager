@@ -53,7 +53,7 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         self._imageServerFactory = None
         self._imgProcessor = None
         self._itemRepository = None
-        self._persistenceProvider = None
+        self._schema_migrator = None
         
         #self.imageServerFactory.getConnection().close()
     

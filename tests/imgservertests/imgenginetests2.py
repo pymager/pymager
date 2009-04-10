@@ -44,8 +44,8 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
     
     def onSetUp(self):
         self._itemRepository = self._imageServerFactory.getItemRepository()
-        self._persistenceProvider = self._imageServerFactory.getPersistenceProvider()
-        self._template = self._persistenceProvider.session_template()
+        self._schema_migrator = self._imageServerFactory.schema_migrator
+        self._template = self._schema_migrator.session_template()
     
     def __assertSampleFileIsSavedCorrectly(self):
         assert os.path.exists(os.path.join(support.AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')) == True
