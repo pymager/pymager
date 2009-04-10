@@ -48,7 +48,7 @@ class IImageRequestProcessor(Interface):
         @rtype: str
         @raise ItemDoesNotExistError: if item_id does not exist"""
         
-    def saveFileToRepository(self, file, imageId):
+    def saveFileToRepository(self, file, image_id):
         """ save the given file to the image server repository. 
         It will then be available for transformations
         @param file: either a filename or a file-like object 
@@ -147,7 +147,7 @@ class ImageRequestProcessor(object):
         self.__wait_for_original_item(item_id)
         return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (original_item.id, self.__extensionForFormat(original_item.format)))
                                
-    def saveFileToRepository(self, file, imageId):
+    def saveFileToRepository(self, file, image_id):
         def filenameSaveStrategy(file, item):
             shutil.copyfile(file, self.__absoluteOriginalFilename(item))
         
@@ -157,7 +157,7 @@ class ImageRequestProcessor(object):
                 shutil.copyfileobj(file, out)
                 out.flush()
 
-        imgengine.checkid(imageId)
+        imgengine.checkid(image_id)
         
         if type(file) == str:
             save = filenameSaveStrategy
@@ -171,7 +171,7 @@ class ImageRequestProcessor(object):
         except IOError, ex:
             raise imgengine.ImageFileNotRecognized(ex)
         
-        item = OriginalItem(imageId, domain.STATUS_INCONSISTENT, img.size, img.format)
+        item = OriginalItem(image_id, domain.STATUS_INCONSISTENT, img.size, img.format)
 
         try:
             # atomic creation
@@ -188,11 +188,11 @@ class ImageRequestProcessor(object):
         self.__itemRepository.update(item)
             
     def prepareTransformation(self, transformationRequest):
-        original_item = self.__itemRepository.find_original_item_by_id(transformationRequest.imageId)
-        self.__required_original_item(transformationRequest.imageId, original_item)
+        original_item = self.__itemRepository.find_original_item_by_id(transformationRequest.image_id)
+        self.__required_original_item(transformationRequest.image_id, original_item)
         
-        self.__wait_for_original_item(transformationRequest.imageId)
-        derivedItem = DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, original_item)
+        self.__wait_for_original_item(transformationRequest.image_id)
+        derivedItem = DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.target_format, original_item)
         
         cached_filename = self.__absoluteCachedFilename(derivedItem)
         relative_cached_filename = self.__relativeCachedFilename(derivedItem)
@@ -206,7 +206,7 @@ class ImageRequestProcessor(object):
             self.__itemRepository.create(derivedItem)
         except DuplicateEntryException :
             def find():
-                return self.__itemRepository.find_derived_item_by_original_item_id_size_and_format(original_item.id, transformationRequest.size, transformationRequest.targetFormat)
+                return self.__itemRepository.find_derived_item_by_original_item_id_size_and_format(original_item.id, transformationRequest.size, transformationRequest.target_format)
             self.__waitForItemStatusOk(find)
             derivedItem = find()
             

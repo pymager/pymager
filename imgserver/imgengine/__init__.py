@@ -24,19 +24,19 @@ class ImageProcessingException(Exception):
         super(ImageProcessingException, self).__init__(message)
         
 class IDNotAuthorized(ImageProcessingException):
-    def __init__(self, imageId):
-        super(IDNotAuthorized, self).__init__('ID contains non alpha numeric characters: %s' % (imageId,))
-        self.imageId = imageId
+    def __init__(self, image_id):
+        super(IDNotAuthorized, self).__init__('ID contains non alpha numeric characters: %s' % (image_id,))
+        self.image_id = image_id
 
 class ImageFileNotRecognized(ImageProcessingException):
     def __init__(self, ex):
         super(ImageFileNotRecognized, self).__init__(ex)
 
 class ImageIDAlreadyExistingException(ImageProcessingException):
-    def __init__(self, imageId):
-        super(ImageIDAlreadyExistingException, self).__init__('An image with the given ID already exists in the repository: %s' % imageId)
-        self.imageId = imageId
+    def __init__(self, image_id):
+        super(ImageIDAlreadyExistingException, self).__init__('An image with the given ID already exists in the repository: %s' % image_id)
+        self.image_id = image_id
         
-def checkid(imageId):
-    if not imageId.isalnum():
-        raise IDNotAuthorized(imageId)
+def checkid(image_id):
+    if not image_id.isalnum():
+        raise IDNotAuthorized(image_id)

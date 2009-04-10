@@ -51,7 +51,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         try:
             self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId-')
         except imgengine.IDNotAuthorized, ex:
-            assert ex.imageId == 'sampleId-'
+            assert ex.image_id == 'sampleId-'
     
     def testSaveBrokenImageShouldThrowException(self):
         try:
@@ -64,7 +64,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         try:
             self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')    
         except imgengine.ImageIDAlreadyExistingException, ex:
-            assert ex.imageId == 'sampleId'
+            assert ex.image_id == 'sampleId'
     
     def testSaveImageShouldUpdateFileSystemAndDatabase(self):
         self._imgProcessor.saveFileToRepository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
