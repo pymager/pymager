@@ -101,9 +101,9 @@ class ImageRequestProcessor(object):
         before processing"""
         return os.path.join (self.__dataDirectory, ORIGINAL_DIRECTORY)
     
-    def __absoluteOriginalFilename(self, originalItem):
+    def __absoluteOriginalFilename(self, original_item):
         """ returns the filename of the original file """
-        return os.path.join (self.__absoluteOriginalDirectory(), '%s.%s' % (originalItem.id, self.__extensionForFormat(originalItem.format)))
+        return os.path.join (self.__absoluteOriginalDirectory(), '%s.%s' % (original_item.id, self.__extensionForFormat(original_item.format)))
     
     def __absoluteCachedFilename(self, derivedItem):
         
@@ -113,7 +113,7 @@ class ImageRequestProcessor(object):
     def __relativeCachedFilename(self, derivedItem):
         """ relative to the base directory """
         return os.path.join ( CACHE_DIRECTORY, 
-                              '%s-%sx%s.%s' % (derivedItem.originalItem.id, derivedItem.size[0], derivedItem.size[1],self.__extensionForFormat(derivedItem.format)))
+                              '%s-%sx%s.%s' % (derivedItem.original_item.id, derivedItem.size[0], derivedItem.size[1],self.__extensionForFormat(derivedItem.format)))
         
     def __extensionForFormat(self, format):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
@@ -138,14 +138,14 @@ class ImageRequestProcessor(object):
             raise ItemDoesNotExistError(item_id)
     
     def originalImageExists(self, item_id):
-        originalItem = self.__itemRepository.findOriginalItemById(item_id)
-        return originalItem is not None
+        original_item = self.__itemRepository.findOriginalItemById(item_id)
+        return original_item is not None
                 
     def getOriginalImagePath(self, item_id):
-        originalItem = self.__itemRepository.findOriginalItemById(item_id)
-        self.__required_original_item(item_id, originalItem)
+        original_item = self.__itemRepository.findOriginalItemById(item_id)
+        self.__required_original_item(item_id, original_item)
         self.__wait_for_original_item(item_id)
-        return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (originalItem.id, self.__extensionForFormat(originalItem.format)))
+        return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (original_item.id, self.__extensionForFormat(original_item.format)))
                                
     def saveFileToRepository(self, file, imageId):
         def filenameSaveStrategy(file, item):
@@ -188,11 +188,11 @@ class ImageRequestProcessor(object):
         self.__itemRepository.update(item)
             
     def prepareTransformation(self, transformationRequest):
-        originalItem = self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
-        self.__required_original_item(transformationRequest.imageId, originalItem)
+        original_item = self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
+        self.__required_original_item(transformationRequest.imageId, original_item)
         
         self.__wait_for_original_item(transformationRequest.imageId)
-        derivedItem = DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, originalItem)
+        derivedItem = DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.targetFormat, original_item)
         
         cached_filename = self.__absoluteCachedFilename(derivedItem)
         relative_cached_filename = self.__relativeCachedFilename(derivedItem)
@@ -206,18 +206,18 @@ class ImageRequestProcessor(object):
             self.__itemRepository.create(derivedItem)
         except DuplicateEntryException :
             def find():
-                return self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(originalItem.id, transformationRequest.size, transformationRequest.targetFormat)
+                return self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(original_item.id, transformationRequest.size, transformationRequest.targetFormat)
             self.__waitForItemStatusOk(find)
             derivedItem = find()
             
         try:
-            img = Image.open(self.__absoluteOriginalFilename(originalItem))
+            img = Image.open(self.__absoluteOriginalFilename(original_item))
         except IOError, ex: 
             raise imgengine.ImageProcessingException(ex)
         
         if transformationRequest.size == img.size and transformationRequest.target_format.upper() == img.format.upper():
             try:
-                shutil.copyfile(self.__absoluteOriginalFilename(originalItem), cached_filename)
+                shutil.copyfile(self.__absoluteOriginalFilename(original_item), cached_filename)
             except IOError, ex:
                 raise imgengine.ImageProcessingException(ex)
         else:   

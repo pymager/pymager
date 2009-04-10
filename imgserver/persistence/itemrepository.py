@@ -103,11 +103,11 @@ class ItemRepository(object):
                     .filter_by(_width=size[0])\
                     .filter_by(_height=size[1])\
                     .filter_by(_format=format)\
-                    .join('_originalItem', aliased=True)\
+                    .join('_original_item', aliased=True)\
                     .filter_by(_id=item_id)\
                     .first()
             # FIXME: http://www.sqlalchemy.org/trac/ticket/1082
-            (getattr(o, '_originalItem') if hasattr(o, '_originalItem') else (lambda: None))
+            (getattr(o, '_original_item') if hasattr(o, '_original_item') else (lambda: None))
             return o
         return self.__template.do_with_session(callback)
     

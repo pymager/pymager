@@ -107,7 +107,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
         assert item.format == domain.IMAGE_FORMAT_JPEG
         assert item.size == (100,100)
         assert item.status == domain.STATUS_OK
-        assert item.originalItem.id == 'sampleId'
+        assert item.original_item.id == 'sampleId'
         
         # result should be consistent across calls (caching..)
         result2 = self._imgProcessor.prepareTransformation(request)

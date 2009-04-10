@@ -156,7 +156,7 @@ class PersistenceProvider(object):
                             'derivedItems' : relation(DerivedItem, 
                                                       primaryjoin=derived_item.c.original_item_id==original_item.c.id,
                                                       cascade='all',
-                                                      backref='_originalItem' 
+                                                      backref='_original_item' 
                                                       #backref=backref('_originalItem', 
                                                       #                cascade="refresh-expire", 
                                                       #                primaryjoin=derived_item.c.original_item_id==original_item.c.id)

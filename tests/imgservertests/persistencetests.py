@@ -79,10 +79,10 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
 
     
     def testShouldUpdateDerivedItem(self):
-        originalItem = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self._itemRepository.create(originalItem)
+        original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        self._itemRepository.create(original_item)
         
-        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
         self._itemRepository.create(item)
         foundItem = self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (100,100),domain.IMAGE_FORMAT_JPEG)
         assert foundItem is not None
@@ -90,11 +90,11 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         assert foundItem.width == 100
         assert foundItem.height == 100
         assert foundItem.format == domain.IMAGE_FORMAT_JPEG
-        assert foundItem.originalItem.id == 'MYID12435'
-        assert foundItem.originalItem.status == domain.STATUS_OK
-        assert foundItem.originalItem.width == 800
-        assert foundItem.originalItem.height == 600
-        assert foundItem.originalItem.format == domain.IMAGE_FORMAT_JPEG
+        assert foundItem.original_item.id == 'MYID12435'
+        assert foundItem.original_item.status == domain.STATUS_OK
+        assert foundItem.original_item.width == 800
+        assert foundItem.original_item.height == 600
+        assert foundItem.original_item.format == domain.IMAGE_FORMAT_JPEG
         _dateTimesAreConsideredEqual(item.last_status_change_date, foundItem.last_status_change_date)
     
     def testShouldNotFindAnyOriginalItem(self):
@@ -102,10 +102,10 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         assert foundItem is None
         
     def testShouldSaveAndFindDerivedItemByOriginalItemIdSizeAndFormat(self):
-        originalItem = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self._itemRepository.create(originalItem)
+        original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        self._itemRepository.create(original_item)
         
-        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
         self._itemRepository.create(item)
         foundItem = self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (100,100), domain.IMAGE_FORMAT_JPEG)
         assert foundItem is not None
@@ -113,18 +113,18 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         assert foundItem.width == 100
         assert foundItem.height == 100
         assert foundItem.format == domain.IMAGE_FORMAT_JPEG
-        assert foundItem.originalItem.id == 'MYID12435'
-        assert foundItem.originalItem.status == domain.STATUS_OK
-        assert foundItem.originalItem.width == 800
-        assert foundItem.originalItem.height == 600
-        assert foundItem.originalItem.format == domain.IMAGE_FORMAT_JPEG
+        assert foundItem.original_item.id == 'MYID12435'
+        assert foundItem.original_item.status == domain.STATUS_OK
+        assert foundItem.original_item.width == 800
+        assert foundItem.original_item.height == 600
+        assert foundItem.original_item.format == domain.IMAGE_FORMAT_JPEG
         _dateTimesAreConsideredEqual(item.last_status_change_date, foundItem.last_status_change_date)
         
     def testDeleteDerivedItemShouldNotDeleteAssociatedOriginalItem(self):
-        originalItem = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self._itemRepository.create(originalItem)
+        original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        self._itemRepository.create(original_item)
         
-        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
         self._itemRepository.create(item)
         
         def callback(session):
@@ -139,10 +139,10 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         assert foundOriginalItem is not None
         
     def testShouldFindDerivedItemsFromOriginalItem(self):
-        originalItem = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self._itemRepository.create(originalItem)
+        original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        self._itemRepository.create(original_item)
         
-        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
         self._itemRepository.create(item)
         
         def callback(session):
@@ -155,37 +155,37 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         self._template.do_with_session(callback)
     
     def testShouldNotFindAnyDerivedItemIfWidthDoesNotMatch(self):
-        originalItem = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self._itemRepository.create(originalItem)
+        original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        self._itemRepository.create(original_item)
         
-        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
         self._itemRepository.create(item)
         foundItem = self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (101,100), domain.IMAGE_FORMAT_JPEG)
         assert foundItem is None
         
     def testShouldNotFindAnyDerivedItemIfHeightDoesNotMatch(self):
-        originalItem = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self._itemRepository.create(originalItem)
+        original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        self._itemRepository.create(original_item)
         
-        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
         self._itemRepository.create(item)
         foundItem = self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (100,101), domain.IMAGE_FORMAT_JPEG)
         assert foundItem is None
     
     def testShouldNotFindAnyDerivedItemIfIdDoesNotMatch(self):
-        originalItem = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self._itemRepository.create(originalItem)
+        original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        self._itemRepository.create(original_item)
         
-        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
         self._itemRepository.create(item)
         foundItem = self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('ANOTHERID', (100,100),domain.IMAGE_FORMAT_JPEG)
         assert foundItem is None
         
     def testShouldNotFindAnyDerivedItemIfFormatNotMatch(self):
-        originalItem = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self._itemRepository.create(originalItem)
+        original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        self._itemRepository.create(original_item)
         
-        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
         self._itemRepository.create(item)
         foundItem = self._itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat('MYID12435', (100,100),'JPEG2')
         assert foundItem is None
@@ -202,13 +202,13 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
             self.fail()
             
     def testSaveTwoDerivedItemsWithSameIDShouldThrowException(self):
-        originalItem = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self._itemRepository.create(originalItem)
-        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+        original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        self._itemRepository.create(original_item)
+        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
         self._itemRepository.create(item)
             
         try:
-            item2 = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+            item2 = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
             self._itemRepository.create(item2)
         except DuplicateEntryException, ex:
             assert 'MYID12435-100x100-JPEG' == ex.duplicateId
@@ -236,18 +236,18 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
     def testShouldFindInconsistentDerivedItems(self):
         
         for i in range(1,15):
-            originalItem = OriginalItem('MYID%s' %i, domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
-            self._itemRepository.create(originalItem)
+            original_item = OriginalItem('MYID%s' %i, domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
+            self._itemRepository.create(original_item)
         
-            item = DerivedItem(domain.STATUS_INCONSISTENT, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+            item = DerivedItem(domain.STATUS_INCONSISTENT, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
             self._itemRepository.create(item)
         
         
         for i in range(16,20):
-            originalItem = OriginalItem('MYID%s' %i, domain.STATUS_OK, (900, 400), domain.IMAGE_FORMAT_JPEG)
-            self._itemRepository.create(originalItem)    
+            original_item = OriginalItem('MYID%s' %i, domain.STATUS_OK, (900, 400), domain.IMAGE_FORMAT_JPEG)
+            self._itemRepository.create(original_item)    
             
-            item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, originalItem)
+            item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
             self._itemRepository.create(item)
         
         items =  self._itemRepository.findInconsistentDerivedItems(10)
