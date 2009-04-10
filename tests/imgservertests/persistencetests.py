@@ -197,7 +197,7 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
         try:
             self._itemRepository.create(item2)
         except DuplicateEntryException, ex:
-            assert 'MYID12435' == ex.duplicateId
+            assert 'MYID12435' == ex.duplicate_id
         else:
             self.fail()
             
@@ -211,7 +211,7 @@ class PersistenceTestCase(support.AbstractIntegrationTestCase):
             item2 = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
             self._itemRepository.create(item2)
         except DuplicateEntryException, ex:
-            assert 'MYID12435-100x100-JPEG' == ex.duplicateId
+            assert 'MYID12435-100x100-JPEG' == ex.duplicate_id
         else:
             self.fail()
             

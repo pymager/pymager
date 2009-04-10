@@ -33,14 +33,14 @@ log = logging.getLogger('persistence.itemrepository')
 
 class DuplicateEntryException(Exception):
     """Thrown when errors happen while processing images """
-    def __init__(self, duplicateId):
-        self.__duplicateId = duplicateId
-        Exception.__init__(self, 'Duplicated ID: %s' % duplicateId)
+    def __init__(self, duplicate_id):
+        self.__duplicate_id = duplicate_id
+        Exception.__init__(self, 'Duplicated ID: %s' % duplicate_id)
 
-    def getDuplicateId(self):
-        return self.__duplicateId
+    def get_duplicate_id(self):
+        return self.__duplicate_id
     
-    duplicateId = property(getDuplicateId, None, None, "The ID that led to the DuplicateEntryException")
+    duplicate_id = property(get_duplicate_id, None, None, "The ID that led to the DuplicateEntryException")
 
 class IItemRepository(Interface):
     """ DDD repository for Original and Derived Items """
