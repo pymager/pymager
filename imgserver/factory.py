@@ -25,7 +25,7 @@ from imgserver.imgengine.transformationrequest import TransformationRequest
 from imgserver.imgengine.imagerequestprocessor import ImageRequestProcessor
 from imgserver.imgengine.imagerequestprocessor import IImageRequestProcessor
 from imgserver.persistence.persistenceprovider import PersistenceProvider,IPersistenceProvider
-from imgserver.persistence.itemrepository import ItemRepository, IItemRepository
+from imgserver.domain.itemrepository import ItemRepository, IItemRepository
 
 class ServiceConfiguration(object):
     def __init__(self, data_directory, dburi, allowed_sizes, dev_mode):

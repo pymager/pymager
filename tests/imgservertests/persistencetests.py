@@ -24,7 +24,7 @@ from tests import support
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
-from imgserver.persistence.itemrepository import DuplicateEntryException
+from imgserver.domain.itemrepository import DuplicateEntryException
 
 def _dateTimesAreConsideredEqual(datetime1, datetime2):
     delta = datetime1 - datetime2

@@ -31,7 +31,7 @@ from imgserver import imgengine
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
-from imgserver.persistence.itemrepository import DuplicateEntryException
+from imgserver.domain.itemrepository import DuplicateEntryException
 
 CACHE_DIRECTORY = "cache"
 ORIGINAL_DIRECTORY = "pictures"
