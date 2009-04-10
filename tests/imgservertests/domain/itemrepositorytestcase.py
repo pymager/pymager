@@ -31,7 +31,7 @@ def _dateTimesAreConsideredEqual(datetime1, datetime2):
     assert delta.days == 0
     assert delta.seconds == 0
 
-class PersistenceTestCase(support.AbstractIntegrationTestCase):
+class ItemRepositoryTestCase(support.AbstractIntegrationTestCase):
     
     def onSetUp(self):
         self._itemRepository = self._imageServerFactory.item_repository 
