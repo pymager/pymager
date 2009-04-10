@@ -44,16 +44,16 @@ class DuplicateEntryException(Exception):
 
 class IItemRepository(Interface):
     """ DDD repository for Original and Derived Items """
-    def findOriginalItemById(self, item_id):
+    def find_original_item_by_id(self, item_id):
         """ Find an OriginalItem by its ID """
     
-    def findInconsistentOriginalItems(self, maxResults=100):
+    def find_inconsistent_original_items(self, maxResults=100):
         """ Find Original Items that are in an inconsistent state """
     
-    def findInconsistentDerivedItems(self, maxResults=100):
+    def find_inconsistent_derived_items(self, maxResults=100):
         """ Find Derived Items that are in an inconsistent state """
     
-    def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
+    def find_derived_item_by_original_item_id_size_and_format(self, item_id, size, format):
         """ Find Derived Items By :
             - the Original Item ID
             - the size of the Derived Item
@@ -76,28 +76,28 @@ class ItemRepository(object):
         self.__persistenceProvider = persistenceProvider
         self.__template = persistenceProvider.session_template()
     
-    def findOriginalItemById(self, item_id):
+    def find_original_item_by_id(self, item_id):
         def callback(session):
             return session.query(OriginalItem)\
                 .filter(OriginalItem._id==item_id)\
                 .first()
         return self.__template.do_with_session(callback)
 
-    def findInconsistentOriginalItems(self, maxResults=100):
+    def find_inconsistent_original_items(self, maxResults=100):
         def callback(session):
             return session.query(OriginalItem)\
                 .filter(AbstractItem._status==domain.STATUS_INCONSISTENT)\
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     
-    def findInconsistentDerivedItems(self, maxResults=100):
+    def find_inconsistent_derived_items(self, maxResults=100):
         def callback(session):
             return session.query(DerivedItem)\
                 .filter(AbstractItem._status==domain.STATUS_INCONSISTENT)\
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     
-    def findDerivedItemByOriginalItemIdSizeAndFormat(self, item_id, size, format):
+    def find_derived_item_by_original_item_id_size_and_format(self, item_id, size, format):
         def callback(session):
             o = session.query(DerivedItem)\
                     .filter_by(_width=size[0])\

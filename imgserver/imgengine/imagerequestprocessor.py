@@ -131,18 +131,18 @@ class ImageRequestProcessor(object):
     
     def __wait_for_original_item(self, item_id):
         """ Wait for the given original item to have a status of STATUS_OK """
-        self.__waitForItemStatusOk(lambda: self.__itemRepository.findOriginalItemById(item_id))
+        self.__waitForItemStatusOk(lambda: self.__itemRepository.find_original_item_by_id(item_id))
     
     def __required_original_item(self, item_id, original_item):
         if original_item is None:
             raise ItemDoesNotExistError(item_id)
     
     def originalImageExists(self, item_id):
-        original_item = self.__itemRepository.findOriginalItemById(item_id)
+        original_item = self.__itemRepository.find_original_item_by_id(item_id)
         return original_item is not None
                 
     def getOriginalImagePath(self, item_id):
-        original_item = self.__itemRepository.findOriginalItemById(item_id)
+        original_item = self.__itemRepository.find_original_item_by_id(item_id)
         self.__required_original_item(item_id, original_item)
         self.__wait_for_original_item(item_id)
         return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (original_item.id, self.__extensionForFormat(original_item.format)))
@@ -188,7 +188,7 @@ class ImageRequestProcessor(object):
         self.__itemRepository.update(item)
             
     def prepareTransformation(self, transformationRequest):
-        original_item = self.__itemRepository.findOriginalItemById(transformationRequest.imageId)
+        original_item = self.__itemRepository.find_original_item_by_id(transformationRequest.imageId)
         self.__required_original_item(transformationRequest.imageId, original_item)
         
         self.__wait_for_original_item(transformationRequest.imageId)
@@ -206,7 +206,7 @@ class ImageRequestProcessor(object):
             self.__itemRepository.create(derivedItem)
         except DuplicateEntryException :
             def find():
-                return self.__itemRepository.findDerivedItemByOriginalItemIdSizeAndFormat(original_item.id, transformationRequest.size, transformationRequest.targetFormat)
+                return self.__itemRepository.find_derived_item_by_original_item_id_size_and_format(original_item.id, transformationRequest.size, transformationRequest.targetFormat)
             self.__waitForItemStatusOk(find)
             derivedItem = find()
             
@@ -251,15 +251,15 @@ class ImageRequestProcessor(object):
         def cleanup_derived_items():
             def delete_file(item):
                 os.remove(self.__absoluteCachedFilename(item))
-            main_loop(lambda: len(self.__itemRepository.findInconsistentDerivedItems(1)) > 0,
-                      lambda: self.__itemRepository.findInconsistentDerivedItems(), 
+            main_loop(lambda: len(self.__itemRepository.find_inconsistent_derived_items(1)) > 0,
+                      lambda: self.__itemRepository.find_inconsistent_derived_items(), 
                       delete_file)
         
         def cleanup_original_items():
             def delete_file(item):
                 os.remove(self.__absoluteOriginalFilename(item))
-            main_loop(lambda: len(self.__itemRepository.findInconsistentOriginalItems(1)) > 0,
-                      lambda: self.__itemRepository.findInconsistentOriginalItems(), 
+            main_loop(lambda: len(self.__itemRepository.find_inconsistent_original_items(1)) > 0,
+                      lambda: self.__itemRepository.find_inconsistent_original_items(), 
                       delete_file)
             
         cleanup_derived_items()
