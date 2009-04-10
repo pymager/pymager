@@ -51,7 +51,7 @@ class DerivedResource(object):
                         (derivedItemUrlDecoder.width,derivedItemUrlDecoder.height),
                         derivedItemUrlDecoder.format)
             try:
-                relative_path = self.__image_processor.prepareTransformation(request)
+                relative_path = self.__image_processor.prepare_transformation(request)
             except ItemDoesNotExistError:
                 raise self.__not_found()
             path = os.path.join(self.__config.data_directory,relative_path)

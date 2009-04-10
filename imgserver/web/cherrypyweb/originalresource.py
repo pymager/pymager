@@ -59,7 +59,7 @@ class OriginalResource(object):
     # @cherrypy.expose
     def default_GET(self, item_id):
         try:
-            relative_path = self.__image_processor.getOriginalImagePath(item_id)
+            relative_path = self.__image_processor.get_original_image_path(item_id)
         except ItemDoesNotExistError:
             raise cherrypy.NotFound(cherrypy.request.path_info)
         else:
@@ -87,7 +87,7 @@ class OriginalResource(object):
             keep_blank_values=True)
 
         theFile = formFields[FILE_FIELD_NAME]
-        self.__image_processor.saveFileToRepository(theFile.file, item_id)
+        self.__image_processor.save_file_to_repository(theFile.file, item_id)
         
         #myFieldStorage.strategy.deleteTempFile(theFile)
         raise cherrypy.HTTPRedirect('%s%s' % (cherrypy.request.script_name, cherrypy.request.path_info)) 

@@ -43,19 +43,19 @@ LOCK_WAIT_SECONDS = 1
 class IImageRequestProcessor(Interface):
     """ Processes ImageRequest objects and does the required work to prepare the images """
     
-    def getOriginalImagePath(self, item_id):
+    def get_original_image_path(self, item_id):
         """@return: the relative path of the original image that has the given item_id 
         @rtype: str
         @raise ItemDoesNotExistError: if item_id does not exist"""
         
-    def saveFileToRepository(self, file, image_id):
+    def save_file_to_repository(self, file, image_id):
         """ save the given file to the image server repository. 
         It will then be available for transformations
         @param file: either a filename or a file-like object 
         that is opened in binary mode
         """
     
-    def prepareTransformation(self, transformationRequest):
+    def prepare_transformation(self, transformationRequest):
         """ Takes an ImageRequest and prepare the output for it. 
         Updates the database so that it is in sync with the filesystem
         @return: the path to the generated file (relative to the data directory)
@@ -63,7 +63,7 @@ class IImageRequestProcessor(Interface):
         @raise ImageProcessingException in case of any non-recoverable error 
         """
     
-    def _cleanupInconsistentItems(self):
+    def cleanup_inconsistent_items(self):
         """ deletes the files and items whose status is not OK (startup cleanup)"""
 
 class ItemDoesNotExistError(Exception):
@@ -85,7 +85,7 @@ class ImageRequestProcessor(object):
             self.__drop_data()
         
         self.__init_data()
-        self._cleanupInconsistentItems()
+        self.cleanup_inconsistent_items()
         
     def __initDirectories(self):
         """ Creates the work directories needed to run this processor """
@@ -141,13 +141,13 @@ class ImageRequestProcessor(object):
         original_item = self.__itemRepository.find_original_item_by_id(item_id)
         return original_item is not None
                 
-    def getOriginalImagePath(self, item_id):
+    def get_original_image_path(self, item_id):
         original_item = self.__itemRepository.find_original_item_by_id(item_id)
         self.__required_original_item(item_id, original_item)
         self.__wait_for_original_item(item_id)
         return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (original_item.id, self.__extensionForFormat(original_item.format)))
                                
-    def saveFileToRepository(self, file, image_id):
+    def save_file_to_repository(self, file, image_id):
         def filenameSaveStrategy(file, item):
             shutil.copyfile(file, self.__absoluteOriginalFilename(item))
         
@@ -187,7 +187,7 @@ class ImageRequestProcessor(object):
         item.status = domain.STATUS_OK
         self.__itemRepository.update(item)
             
-    def prepareTransformation(self, transformationRequest):
+    def prepare_transformation(self, transformationRequest):
         original_item = self.__itemRepository.find_original_item_by_id(transformationRequest.image_id)
         self.__required_original_item(transformationRequest.image_id, original_item)
         
@@ -235,7 +235,7 @@ class ImageRequestProcessor(object):
         
         return relative_cached_filename
     
-    def _cleanupInconsistentItems(self):
+    def cleanup_inconsistent_items(self):
         def cleanup_in_session(fetch_items, delete_file):
             items = fetch_items()
             for i in items:

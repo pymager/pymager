@@ -35,7 +35,7 @@ def init_imageprocessor(config):
     #        [(100,100), (800,600)], True)
     from pkg_resources import resource_filename
     if config.dev_mode:
-        imageProcessor.saveFileToRepository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
+        imageProcessor.save_file_to_repository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
     return imageProcessor
 
 # allowed_sizes=[(100,100), (800,600)]

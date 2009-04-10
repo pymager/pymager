@@ -60,7 +60,7 @@ class ImageServerFactory(object):
         
         self.__item_repository = ItemRepository(SqlAlchemyItemRepository(self.__schema_migrator))
         self.__image_processor = IImageRequestProcessor(ImageRequestProcessor(self.__item_repository, self.__schema_migrator, self.__config.data_directory, self.__config.dev_mode))
-        self.__image_processor.prepareTransformation =  security.imageTransformationSecurityDecorator(self.__config.allowed_sizes)(self.__image_processor.prepareTransformation)
+        self.__image_processor.prepare_transformation =  security.imageTransformationSecurityDecorator(self.__config.allowed_sizes)(self.__image_processor.prepare_transformation)
         
         return self.__image_processor
     

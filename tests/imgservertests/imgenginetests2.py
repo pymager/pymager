@@ -53,7 +53,7 @@ class ImageEngineTestsCase(support.AbstractIntegrationTestCase):
             
     def testSaveImageShouldAcceptFileLikeObjectAsImageSource(self):
         with open(JPG_SAMPLE_IMAGE_FILENAME, 'rb') as fobj:
-            self._image_server.saveFileToRepository(fobj, 'sampleId')
+            self._image_server.save_file_to_repository(fobj, 'sampleId')
             
         self.__assertSampleFileIsSavedCorrectly()
 
