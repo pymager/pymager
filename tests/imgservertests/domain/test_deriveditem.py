@@ -39,11 +39,11 @@ class DerivedItemTestCase(unittest.TestCase):
     
     def test_should_create_item_using_width_and_height_expressed_as_string(self):
         item = DerivedItem(domain.STATUS_OK, ('100', '100'), domain.IMAGE_FORMAT_JPEG, self.original_item)
-        self.__item_should_match(item)
+        _item_should_match(item)
     
     def test_should_create_item_using_width_and_height_expressed_as_int(self):
         item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, self.original_item)
-        self.__item_should_match(item)
+        _item_should_match(item)
         
     def test_setting_status_should_update_last_status_change_date(self):
         item = DerivedItem(domain.STATUS_INCONSISTENT, (100, 100), domain.IMAGE_FORMAT_JPEG, self.original_item)
@@ -92,14 +92,14 @@ class DerivedItemTestCase(unittest.TestCase):
         else:
             self.fail()
     
-    def __item_should_match(self, item):
-        assert item.status == domain.STATUS_OK
-        assert item.width == 100
-        assert item.height == 100
-        assert item.format == domain.IMAGE_FORMAT_JPEG
-        assert item.original_item.id =='MYID12435'
-        assert item.original_item.status == domain.STATUS_OK
-        assert item.original_item.width == 800
-        assert item.original_item.height == 600
-        assert item.original_item.format == domain.IMAGE_FORMAT_JPEG
-        assertionutils.last_status_date_should_be_now(item)
+def _item_should_match(item):
+    assert item.status == domain.STATUS_OK
+    assert item.width == 100
+    assert item.height == 100
+    assert item.format == domain.IMAGE_FORMAT_JPEG
+    assert item.original_item.id =='MYID12435'
+    assert item.original_item.status == domain.STATUS_OK
+    assert item.original_item.width == 800
+    assert item.original_item.height == 600
+    assert item.original_item.format == domain.IMAGE_FORMAT_JPEG
+    assertionutils.last_status_date_should_be_now(item)

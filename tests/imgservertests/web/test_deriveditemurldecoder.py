@@ -24,7 +24,7 @@ from imgserver.web.deriveditemurldecoder import DerivedItemUrlDecoder,UrlDecodin
 
 class DerivedItemUrlDecoderTestCase(unittest.TestCase):
         
-    def testShouldBeAbleToDecodeUrlSegment(self):
+    def test_should_decode_url_segment(self):
         url_segment = 'item123-800x600.JPEG'
         decoded = DerivedItemUrlDecoder(url_segment)
         self.assertEqual('item123', decoded.itemid)
@@ -32,17 +32,14 @@ class DerivedItemUrlDecoderTestCase(unittest.TestCase):
         self.assertEqual(600, decoded.height)
         self.assertEqual('JPEG', decoded.format)
     
-    def testFormatShouldBeUppercased(self):
+    def test_format_should_be_uppercased(self):
         url_segment = 'item123-800x600.jpeg'
         decoded = DerivedItemUrlDecoder(url_segment)
         self.assertEqual('JPEG', decoded.format)
     
-    def testBadUrlSegmentShouldThrowException(self):
+    def test_should_detect_bad_url(self):
         try:
             decoded = DerivedItemUrlDecoder('item123800x600.jpg')
             self.fail()
         except UrlDecodingError:
             pass
-
-def suite():
-    return unittest.TestSuite(unittest.makeSuite(DerivedItemUrlDecoderTestCase, 'test'))

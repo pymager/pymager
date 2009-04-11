@@ -23,7 +23,7 @@ import unittest
 
 class ConfigTestCase(unittest.TestCase):
     
-    def testShouldContain6Elements(self):
+    def test_should_contain_six_elements(self):
         dirs = config.config_directories('bla')
         assert dirs is not None
         self.assertEquals(6, len(dirs))

@@ -27,24 +27,16 @@ from imgserver.domain.deriveditem import DerivedItem
 from tests.imgservertests import assertionutils
 
 class OriginalItemTestCase(unittest.TestCase):
-        
-    def __checkItem(self, item):
-        assert item.id == 'MYID12435'
-        assert item.status == domain.STATUS_OK
-        assert item.width == 800
-        assert item.height == 600
-        assert item.format == domain.IMAGE_FORMAT_JPEG
-        assertionutils.last_status_date_should_be_now(item)
-        
-    def testShouldBeAbleToCreateItemWithWidthAndHeightAsString(self):
-        item = OriginalItem('MYID12435', domain.STATUS_OK, ('800', '600'), domain.IMAGE_FORMAT_JPEG)
-        self.__checkItem(item)
     
-    def testShouldBeAbleToCreateItemWithWidthAndHeightAsInt(self):
+    def test_should_create_item_using_width_and_height_expressed_as_string(self):
+        item = OriginalItem('MYID12435', domain.STATUS_OK, ('800', '600'), domain.IMAGE_FORMAT_JPEG)
+        _item_should_match(item)
+    
+    def test_should_create_item_using_width_and_height_expressed_as_int(self):
         item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-        self.__checkItem(item)
+        _item_should_match(item)
         
-    def testShouldNotBeAbleToCreateItemWithNullId(self):
+    def test_id_should_be_mandatory_at_creation_time(self):
         try:
             OriginalItem(None, domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
         except Exception:
@@ -52,7 +44,7 @@ class OriginalItemTestCase(unittest.TestCase):
         else:
             self.fail()
             
-    def testShouldNotBeAbleToCreateItemWithNullStatus(self):
+    def test_status_should_be_mandatory_at_creation_time(self):
         try:
             OriginalItem('MYID12435', None, (800, 600), domain.IMAGE_FORMAT_JPEG)
         except Exception:
@@ -60,7 +52,7 @@ class OriginalItemTestCase(unittest.TestCase):
         else:
             self.fail()
             
-    def testShouldNotBeAbleToCreateItemWithNullWidth(self):
+    def test_width_should_be_mandatory_at_creation_time(self):
         try:
             OriginalItem('MYID12435', domain.STATUS_OK, (None, 600), domain.IMAGE_FORMAT_JPEG)
         except Exception:
@@ -68,7 +60,7 @@ class OriginalItemTestCase(unittest.TestCase):
         else:
             self.fail()
     
-    def testShouldNotBeAbleToCreateItemWithNullHeight(self):
+    def test_heiht_should_be_mandatory_at_creation_time(self):
         try:
             OriginalItem('MYID12435', domain.STATUS_OK, (800, None), domain.IMAGE_FORMAT_JPEG)
         except Exception:
@@ -76,7 +68,7 @@ class OriginalItemTestCase(unittest.TestCase):
         else:
             self.fail()
     
-    def testShouldNotBeAbleToCreateItemWithNullFormat(self):
+    def test_format_should_be_mandatory_at_creation_time(self):
         try:
             OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), None)
         except Exception:
@@ -84,9 +76,17 @@ class OriginalItemTestCase(unittest.TestCase):
         else:
             self.fail()
     
-    def testSetStatusShouldUpdatelast_status_change_date(self):
+    def test_setting_status_should_update_status_change_date(self):
         item = OriginalItem('MYID12435', domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
         # fuck date by breaking encapsulation
         item._last_status_change_date = datetime.utcnow() - timedelta(1)
         item.status = domain.STATUS_OK
         assertionutils.last_status_date_should_be_now(item)
+        
+def _item_should_match(item):
+    assert item.id == 'MYID12435'
+    assert item.status == domain.STATUS_OK
+    assert item.width == 800
+    assert item.height == 600
+    assert item.format == domain.IMAGE_FORMAT_JPEG
+    assertionutils.last_status_date_should_be_now(item)
