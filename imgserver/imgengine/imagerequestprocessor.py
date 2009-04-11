@@ -63,6 +63,10 @@ class IImageRequestProcessor(Interface):
         @raise ImageProcessingException in case of any non-recoverable error 
         """
     
+    def delete(self, item_id):
+        """ Deletes the given item, and its associated item (in the case of an original 
+        item that has derived items based on it)"""
+    
     def cleanup_inconsistent_items(self):
         """ deletes the files and items whose status is not OK (startup cleanup)"""
 
@@ -264,7 +268,10 @@ class ImageRequestProcessor(object):
             
         cleanup_derived_items()
         cleanup_original_items()
-        
+    
+    def delete(self, item_id):
+        pass
+            
     def __drop_data(self):
         self.__schema_migrator.drop_all_tables()
         if os.path.exists(self.__data_directory):

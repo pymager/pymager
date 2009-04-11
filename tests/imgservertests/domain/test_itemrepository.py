@@ -20,18 +20,18 @@
 """
 import unittest
 from imgserver import domain
-from tests import support
 from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
 from imgserver.domain.itemrepository import DuplicateEntryException
+from tests.imgservertests.abstractintegrationtestcase import AbstractIntegrationTestCase
 
 def _dateTimesAreConsideredEqual(datetime1, datetime2):
     delta = datetime1 - datetime2
     assert delta.days == 0
     assert delta.seconds == 0
 
-class ItemRepositoryTestCase(support.AbstractIntegrationTestCase):
+class ItemRepositoryTestCase(AbstractIntegrationTestCase):
     
     def onSetUp(self):
         self._itemRepository = self._imageServerFactory.item_repository 

@@ -19,5 +19,5 @@ setup(
     scripts = ['imgserver-standalone.py'],
     include_package_data = True,
     data_files = [('etc', ['etc/imgserver-cherrypy.conf', 'etc/imgserver.conf'])],
-    test_suite= "tests"
+    test_suite= "nose.collector"
 )
