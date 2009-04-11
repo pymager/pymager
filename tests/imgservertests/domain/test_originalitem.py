@@ -34,7 +34,7 @@ class OriginalItemTestCase(unittest.TestCase):
         assert item.width == 800
         assert item.height == 600
         assert item.format == domain.IMAGE_FORMAT_JPEG
-        assertionutils.check_last_status_date(item)
+        assertionutils.last_status_date_should_be_now(item)
         
     def testShouldBeAbleToCreateItemWithWidthAndHeightAsString(self):
         item = OriginalItem('MYID12435', domain.STATUS_OK, ('800', '600'), domain.IMAGE_FORMAT_JPEG)
@@ -89,4 +89,4 @@ class OriginalItemTestCase(unittest.TestCase):
         # fuck date by breaking encapsulation
         item._last_status_change_date = datetime.utcnow() - timedelta(1)
         item.status = domain.STATUS_OK
-        assertionutils.check_last_status_date(item)
+        assertionutils.last_status_date_should_be_now(item)
