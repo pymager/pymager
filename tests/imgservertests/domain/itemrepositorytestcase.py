@@ -52,16 +52,6 @@ class ItemRepositoryTestCase(support.AbstractIntegrationTestCase):
         assert foundItem.height == 600
         assert foundItem.format == domain.IMAGE_FORMAT_JPEG
         _dateTimesAreConsideredEqual(item.last_status_change_date, foundItem.last_status_change_date)
-        
-    def testShouldDeleteOriginalItem(self):
-        def callback(session):
-            item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
-            self._itemRepository.create(item)
-            self._itemRepository.delete(self._itemRepository.find_original_item_by_id('MYID12435'))
-        self._template.do_with_session(callback)    
-        
-        foundItem = self._itemRepository.find_original_item_by_id('MYID12435')
-        assert foundItem is None
     
     def testShouldUpdateOriginalItem(self):
         item = OriginalItem('MYID12435', domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
@@ -119,6 +109,16 @@ class ItemRepositoryTestCase(support.AbstractIntegrationTestCase):
         assert foundItem.original_item.height == 600
         assert foundItem.original_item.format == domain.IMAGE_FORMAT_JPEG
         _dateTimesAreConsideredEqual(item.last_status_change_date, foundItem.last_status_change_date)
+    
+    def testShouldDeleteOriginalItem(self):
+        def callback(session):
+            item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+            self._itemRepository.create(item)
+            self._itemRepository.delete(self._itemRepository.find_original_item_by_id('MYID12435'))
+        self._template.do_with_session(callback)    
+        
+        foundItem = self._itemRepository.find_original_item_by_id('MYID12435')
+        assert foundItem is None
         
     def testDeleteDerivedItemShouldNotDeleteAssociatedOriginalItem(self):
         original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
@@ -137,6 +137,24 @@ class ItemRepositoryTestCase(support.AbstractIntegrationTestCase):
         
         foundOriginalItem = self._itemRepository.find_original_item_by_id('MYID12435')
         assert foundOriginalItem is not None
+    
+    def testDeleteOriginalItemShouldDeleteAssociatedDerivedItems(self):
+        original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        self._itemRepository.create(original_item)
+        
+        item = DerivedItem(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_item)
+        self._itemRepository.create(item)
+        
+        def callback(session):
+            session.delete(self._itemRepository.find_original_item_by_id('MYID12435'))
+            
+        self._template.do_with_session(callback)
+        
+        found_derived_item = self._itemRepository.find_derived_item_by_original_item_id_size_and_format('MYID12435', (100,100), domain.IMAGE_FORMAT_JPEG)
+        assert found_derived_item is None
+        
+        found_original_item = self._itemRepository.find_original_item_by_id('MYID12435')
+        assert found_original_item is None
         
     def testShouldFindDerivedItemsFromOriginalItem(self):
         original_item = OriginalItem('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
