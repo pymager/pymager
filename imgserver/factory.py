@@ -20,7 +20,7 @@
 """
 import os
 from imgserver import imgengine, persistence
-from imgserver.imgengine import security
+from imgserver.imgengine import image_transformation_security_decorator
 from imgserver.imgengine.transformationrequest import TransformationRequest
 from imgserver.imgengine.imagerequestprocessor import ImageRequestProcessor
 from imgserver.imgengine.imagerequestprocessor import IImageRequestProcessor
@@ -60,7 +60,7 @@ class ImageServerFactory(object):
         
         self.__item_repository = ItemRepository(SqlAlchemyItemRepository(self.__schema_migrator))
         self.__image_processor = IImageRequestProcessor(ImageRequestProcessor(self.__item_repository, self.__schema_migrator, self.__config.data_directory, self.__config.dev_mode))
-        self.__image_processor.prepare_transformation =  security.imageTransformationSecurityDecorator(self.__config.allowed_sizes)(self.__image_processor.prepare_transformation)
+        self.__image_processor.prepare_transformation =  image_transformation_security_decorator.image_transformation_security_decorator(self.__config.allowed_sizes)(self.__image_processor.prepare_transformation)
         
         return self.__image_processor
     

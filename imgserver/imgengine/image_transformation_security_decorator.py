@@ -23,7 +23,7 @@ class SecurityCheckException(Exception):
     def __init__(self, message):
         Exception.__init__(self, message)
 
-def imageTransformationSecurityDecorator(authorized_sizes):
+def image_transformation_security_decorator(authorized_sizes):
     """ Throws an exception if the decorated method receives a 
     tranformation request with a wrong size"""
     def decorator(func):
