@@ -120,17 +120,14 @@ class ImageRequestProcessor(object):
         self.__item_repository = item_repository
         self.__schema_migrator = schema_migrator
         self.__path_generator = PathGenerator(FlatPathGenerator(data_directory))
-        self.__original_items_directory = Path(data_directory,[CACHE_DIRECTORY])
-        self.__derived_items_directory = Path(data_directory, [ORIGINAL_DIRECTORY])
+        self.__original_items_directory = Path(data_directory).append(CACHE_DIRECTORY)
+        self.__derived_items_directory = Path(data_directory).append(ORIGINAL_DIRECTORY)
         
         if drop_data:
             self.__drop_data()
         
         self.__init_data()
         self.cleanup_inconsistent_items()
-        
-    def __extensionForFormat(self, format):
-        return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
 
     def __waitForItemStatusOk(self, pollingCallback):
         """ Wait for the status property of the object returned by pollingCallback() to be STATUS_OK
