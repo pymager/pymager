@@ -75,6 +75,41 @@ class ItemDoesNotExistError(Exception):
         super(ItemDoesNotExistError, self).__init__()
         self.item_id = item_id
 
+class Path(object):
+    def __init__(self, reference_directory, path_elements=[]):
+        self.__reference_directory = reference_directory
+        self.__path_elements = path_elements
+    
+    def absolute(self):
+        return os.path.join(self.__reference_directory, *self.__path_elements)
+    
+    def relative(self):
+        return os.path.join(*self.__path_elements)
+
+    def append(self, path_element):
+        return Path(self.__reference_directory, self.__path_elements + [path_element])
+    
+class PathGenerator(Interface):
+    def original_path(self, original_item):
+        """returns a Path object for the given original item"""
+    
+    def derived_path(self, derived_item):
+        """ returns a Path object for the given derived item"""
+
+class FlatPathGenerator(object):
+    implements(PathGenerator)
+    def __init__(self, data_directory):
+        self.__data_directory = data_directory
+    
+    def __extension_for_format(self, format):
+        return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
+    
+    def original_path(self, original_item):
+        return Path(self.__data_directory).append(ORIGINAL_DIRECTORY).append('%s.%s' % (original_item.id, self.__extension_for_format(original_item.format)))
+    
+    def derived_path(self, derived_item):
+        return Path(self.__data_directory).append(CACHE_DIRECTORY).append('%s-%sx%s.%s' % (derived_item.original_item.id, derived_item.size[0], derived_item.size[1],self.__extension_for_format(derived_item.format)))
+    
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
     
@@ -84,40 +119,15 @@ class ImageRequestProcessor(object):
         self.__data_directory = data_directory 
         self.__item_repository = item_repository
         self.__schema_migrator = schema_migrator
+        self.__path_generator = PathGenerator(FlatPathGenerator(data_directory))
+        self.__original_items_directory = Path(data_directory,[CACHE_DIRECTORY])
+        self.__derived_items_directory = Path(data_directory, [ORIGINAL_DIRECTORY])
         
         if drop_data:
             self.__drop_data()
         
         self.__init_data()
         self.cleanup_inconsistent_items()
-        
-    def __initDirectories(self):
-        """ Creates the work directories needed to run this processor """
-        
-        
-    def __absoluteCacheDirectory(self):
-        """ @return: the directory that will be used for caching image processing 
-        results """
-        return os.path.join(self.__data_directory, CACHE_DIRECTORY)
-    
-    def __absoluteOriginalDirectory(self):
-        """ @return. the directory that will be used to store original files, 
-        before processing"""
-        return os.path.join (self.__data_directory, ORIGINAL_DIRECTORY)
-    
-    def __absoluteOriginalFilename(self, original_item):
-        """ returns the filename of the original file """
-        return os.path.join (self.__absoluteOriginalDirectory(), '%s.%s' % (original_item.id, self.__extensionForFormat(original_item.format)))
-    
-    def __absoluteCachedFilename(self, derivedItem):
-        
-        return os.path.join( self.__data_directory,
-                            self.__relativeCachedFilename(derivedItem))
-    
-    def __relativeCachedFilename(self, derivedItem):
-        """ relative to the base directory """
-        return os.path.join ( CACHE_DIRECTORY, 
-                              '%s-%sx%s.%s' % (derivedItem.original_item.id, derivedItem.size[0], derivedItem.size[1],self.__extensionForFormat(derivedItem.format)))
         
     def __extensionForFormat(self, format):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
@@ -149,15 +159,15 @@ class ImageRequestProcessor(object):
         original_item = self.__item_repository.find_original_item_by_id(item_id)
         self.__required_original_item(item_id, original_item)
         self.__wait_for_original_item(item_id)
-        return os.path.join (ORIGINAL_DIRECTORY, '%s.%s' % (original_item.id, self.__extensionForFormat(original_item.format)))
+        return self.__path_generator.original_path(original_item).relative()
                                
     def save_file_to_repository(self, file, image_id):
         def filenameSaveStrategy(file, item):
-            shutil.copyfile(file, self.__absoluteOriginalFilename(item))
+            shutil.copyfile(file, self.__path_generator.original_path(item).absolute())
         
         def fileLikeSaveStrategy(file, item):
             file.seek(0)
-            with open(self.__absoluteOriginalFilename(item), "w+b") as out:
+            with open(self.__path_generator.original_path(item).absolute(), "w+b") as out:
                 shutil.copyfileobj(file, out)
                 out.flush()
 
@@ -196,10 +206,10 @@ class ImageRequestProcessor(object):
         self.__required_original_item(transformationRequest.image_id, original_item)
         
         self.__wait_for_original_item(transformationRequest.image_id)
-        derivedItem = DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.target_format, original_item)
+        derived_item = DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.target_format, original_item)
         
-        cached_filename = self.__absoluteCachedFilename(derivedItem)
-        relative_cached_filename = self.__relativeCachedFilename(derivedItem)
+        cached_filename = self.__path_generator.derived_path(derived_item).absolute()
+        relative_cached_filename = self.__path_generator.derived_path(derived_item).relative()
 
         # if image is already cached...
         if os.path.exists(cached_filename):
@@ -207,21 +217,21 @@ class ImageRequestProcessor(object):
         
         # otherwise, c'est parti to convert the stuff
         try:
-            self.__item_repository.create(derivedItem)
+            self.__item_repository.create(derived_item)
         except DuplicateEntryException :
             def find():
                 return self.__item_repository.find_derived_item_by_original_item_id_size_and_format(original_item.id, transformationRequest.size, transformationRequest.target_format)
             self.__waitForItemStatusOk(find)
-            derivedItem = find()
+            derived_item = find()
             
         try:
-            img = Image.open(self.__absoluteOriginalFilename(original_item))
+            img = Image.open(self.__path_generator.original_path(original_item).absolute())
         except IOError, ex: 
             raise imgengine.ImageProcessingException(ex)
         
         if transformationRequest.size == img.size and transformationRequest.target_format.upper() == img.format.upper():
             try:
-                shutil.copyfile(self.__absoluteOriginalFilename(original_item), cached_filename)
+                shutil.copyfile(self.__path_generator.original_path(original_item).absolute(), cached_filename)
             except IOError, ex:
                 raise imgengine.ImageProcessingException(ex)
         else:   
@@ -234,8 +244,8 @@ class ImageRequestProcessor(object):
             except IOError, ex:
                 raise imgengine.ImageProcessingException(ex)
         
-        derivedItem.status = domain.STATUS_OK
-        self.__item_repository.update(derivedItem)
+        derived_item.status = domain.STATUS_OK
+        self.__item_repository.update(derived_item)
         
         return relative_cached_filename
     
@@ -254,14 +264,14 @@ class ImageRequestProcessor(object):
         
         def cleanup_derived_items():
             def delete_file(item):
-                os.remove(self.__absoluteCachedFilename(item))
+                os.remove(self.__path_generator.derived_path(item).absolute())
             main_loop(lambda: len(self.__item_repository.find_inconsistent_derived_items(1)) > 0,
                       lambda: self.__item_repository.find_inconsistent_derived_items(), 
                       delete_file)
         
         def cleanup_original_items():
             def delete_file(item):
-                os.remove(self.__absoluteOriginalFilename(item))
+                os.remove(self.__path_generator.original_path(item).absolute())
             main_loop(lambda: len(self.__item_repository.find_inconsistent_original_items(1)) > 0,
                       lambda: self.__item_repository.find_inconsistent_original_items(), 
                       delete_file)
@@ -281,7 +291,7 @@ class ImageRequestProcessor(object):
         if not os.path.exists(self.__data_directory):
             os.makedirs(self.__data_directory)
         for directory in \
-            [self.__absoluteCacheDirectory(), self.__absoluteOriginalDirectory()]:
+            [self.__original_items_directory.absolute(), self.__derived_items_directory.absolute()]:
             if not os.path.exists(directory):
                 os.makedirs(directory)    
     def __init_data(self):
