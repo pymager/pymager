@@ -74,9 +74,6 @@ class ItemDoesNotExistError(Exception):
     def __init__(self,item_id):
         super(ItemDoesNotExistError, self).__init__()
         self.item_id = item_id
-
-
-
  
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
@@ -88,8 +85,6 @@ class ImageRequestProcessor(object):
         self.__item_repository = item_repository
         self.__schema_migrator = schema_migrator
         self.__path_generator = PathGenerator(FlatPathGenerator(data_directory))
-        self.__original_items_directory = Path(data_directory).append(flatpathgenerator.CACHE_DIRECTORY)
-        self.__derived_items_directory = Path(data_directory).append(flatpathgenerator.ORIGINAL_DIRECTORY)
         
         if drop_data:
             self.__drop_data()
@@ -256,7 +251,7 @@ class ImageRequestProcessor(object):
         if not os.path.exists(self.__data_directory):
             os.makedirs(self.__data_directory)
         for directory in \
-            [self.__original_items_directory.absolute(), self.__derived_items_directory.absolute()]:
+            [Path(self.__data_directory).append(flatpathgenerator.CACHE_DIRECTORY).absolute(), Path(self.__data_directory).append(flatpathgenerator.ORIGINAL_DIRECTORY).absolute()]:
             if not os.path.exists(directory):
                 os.makedirs(directory)    
     def __init_data(self):
