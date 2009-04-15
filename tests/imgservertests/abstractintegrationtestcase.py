@@ -42,7 +42,7 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         
         self._imageServerFactory = factory.ImageServerFactory(config)
         self._image_server = self._imageServerFactory.create_image_server()
-        self._item_repository = self._imageServerFactory.item_repository        
+        self._image_metadata_repository = self._imageServerFactory.image_metadata_repository        
     
         (getattr(self, 'onSetUp') if hasattr(self, 'onSetUp') else (lambda: None))()  
         
@@ -52,7 +52,7 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         (getattr(self, 'onTearDown') if hasattr(self, 'onTearDown') else (lambda: None))()
         self._imageServerFactory = None
         self._image_server = None
-        self._item_repository = None
+        self._image_metadata_repository = None
         self._schema_migrator = None
         
         #self.imageServerFactory.getConnection().close()

@@ -40,7 +40,7 @@ JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
 class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     
     def onSetUp(self):
-        self._item_repository = self._imageServerFactory.item_repository
+        self._image_metadata_repository = self._imageServerFactory.image_metadata_repository
         self._schema_migrator = self._imageServerFactory.schema_migrator
         self._template = self._schema_migrator.session_template()
     
@@ -68,7 +68,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         
         self._sample_file_should_be_saved_correctly()
         
-        item = self._item_repository.find_original_image_metadata_by_id('sampleId')
+        item = self._image_metadata_repository.find_original_image_metadata_by_id('sampleId')
         assert item is not None
         assert item.id == 'sampleId'
         assert item.format == domain.IMAGE_FORMAT_JPEG
@@ -95,7 +95,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         result = self._image_server.prepare_transformation(request)
         assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-100x100.jpg')) == True
         
-        item = self._item_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
+        item = self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
         assert item is not None
         assert item.id == 'sampleId-100x100-JPEG'
         assert item.format == domain.IMAGE_FORMAT_JPEG
@@ -120,12 +120,12 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         
         # now mark 5 of the original items as inconsistent, as well as their associated derived items
         def mark_original_image_metadatas_as_inconsistent(itemNumber):
-            item = self._item_repository.find_original_image_metadata_by_id('item%s' % itemNumber)
+            item = self._image_metadata_repository.find_original_image_metadata_by_id('item%s' % itemNumber)
             for di in item.derivedItems:
                 di.status = domain.STATUS_INCONSISTENT
-                self._item_repository.update(di)
+                self._image_metadata_repository.update(di)
             item.status = domain.STATUS_INCONSISTENT
-            self._item_repository.update(item)
+            self._image_metadata_repository.update(item)
         
         for i in range(1,6):
             def callback(session):
@@ -133,36 +133,36 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
             self._template.do_with_session(callback)
             
         # finally, mark a few additional derived items as inconsistent, with their original item staying OK
-        to_crush = [ self._item_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (100,100),domain.IMAGE_FORMAT_JPEG),
-                    self._item_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (200,200),domain.IMAGE_FORMAT_JPEG),
-                    self._item_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (300,300),domain.IMAGE_FORMAT_JPEG),
-                    self._item_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (400,400),domain.IMAGE_FORMAT_JPEG) ]
+        to_crush = [ self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (100,100),domain.IMAGE_FORMAT_JPEG),
+                    self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (200,200),domain.IMAGE_FORMAT_JPEG),
+                    self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (300,300),domain.IMAGE_FORMAT_JPEG),
+                    self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (400,400),domain.IMAGE_FORMAT_JPEG) ]
         for item in to_crush:
             item.status = domain.STATUS_INCONSISTENT
-            self._item_repository.update(item)
+            self._image_metadata_repository.update(item)
         
         self._image_server.cleanup_inconsistent_items()
         
         # items 1 to 5 should not exist anymore (DB and file)
         for i in range(1,6):
-            item = self._item_repository.find_original_image_metadata_by_id('item%s' % i)
+            item = self._image_metadata_repository.find_original_image_metadata_by_id('item%s' % i)
             assert item is None
             assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'item%s.jpg' %(i))) == False
         
         # items 6 to 10 should still be OK
         for i in range(6,11):
-            item = self._item_repository.find_original_image_metadata_by_id('item%s' % i)
+            item = self._image_metadata_repository.find_original_image_metadata_by_id('item%s' % i)
             assert item is not None
             assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'item%s.jpg' %(i))) 
         
         # a few Derived Items that should be KO
-        assert self._item_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (100,100),domain.IMAGE_FORMAT_JPEG) is None
+        assert self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (100,100),domain.IMAGE_FORMAT_JPEG) is None
         assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'item6-100x100.jpg')) == False
-        assert self._item_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (200,200),domain.IMAGE_FORMAT_JPEG) is None
+        assert self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (200,200),domain.IMAGE_FORMAT_JPEG) is None
         assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'item6-200x200.jpg')) == False
         
         # a few Derived Items that should be OK
-        assert self._item_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item7', (200,200),domain.IMAGE_FORMAT_JPEG) is not None
+        assert self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item7', (200,200),domain.IMAGE_FORMAT_JPEG) is not None
         assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'item7-200x200.jpg')) == True
     
     def test_should_return_original_image_path(self):

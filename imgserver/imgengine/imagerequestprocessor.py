@@ -79,11 +79,11 @@ class ItemDoesNotExistError(Exception):
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
     
-    def __init__(self, item_repository, schema_migrator, data_directory, drop_data=False):
+    def __init__(self, image_metadata_repository, schema_migrator, data_directory, drop_data=False):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
         self.__data_directory = data_directory 
-        self.__item_repository = item_repository
+        self.__image_metadata_repository = image_metadata_repository
         self.__schema_migrator = schema_migrator
         self.__path_generator = PathGenerator(FlatPathGenerator(data_directory))
         
@@ -106,14 +106,14 @@ class ImageRequestProcessor(object):
     
     def __wait_for_original_image_metadata(self, item_id):
         """ Wait for the given original item to have a status of STATUS_OK """
-        self.__wait_for_item_status_ok(lambda: self.__item_repository.find_original_image_metadata_by_id(item_id))
+        self.__wait_for_item_status_ok(lambda: self.__image_metadata_repository.find_original_image_metadata_by_id(item_id))
     
     def __required_original_image_metadata(self, item_id, original_image_metadata):
         if original_image_metadata is None:
             raise ItemDoesNotExistError(item_id)
                     
     def get_original_image_path(self, item_id):
-        original_image_metadata = self.__item_repository.find_original_image_metadata_by_id(item_id)
+        original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(item_id)
         self.__required_original_image_metadata(item_id, original_image_metadata)
         self.__wait_for_original_image_metadata(item_id)
         return self.__path_generator.original_path(original_image_metadata).relative()
@@ -146,7 +146,7 @@ class ImageRequestProcessor(object):
 
         try:
             # atomic creation
-            self.__item_repository.create(item)
+            self.__image_metadata_repository.create(item)
         except DuplicateEntryException, ex:
             raise imgengine.ImageIDAlreadyExistingException(item.id)
         else:
@@ -156,10 +156,10 @@ class ImageRequestProcessor(object):
                 raise imgengine.ImageProcessingException(ex)
         
         item.status = domain.STATUS_OK
-        self.__item_repository.update(item)
+        self.__image_metadata_repository.update(item)
             
     def prepare_transformation(self, transformationRequest):
-        original_image_metadata = self.__item_repository.find_original_image_metadata_by_id(transformationRequest.image_id)
+        original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(transformationRequest.image_id)
         self.__required_original_image_metadata(transformationRequest.image_id, original_image_metadata)
         
         self.__wait_for_original_image_metadata(transformationRequest.image_id)
@@ -174,10 +174,10 @@ class ImageRequestProcessor(object):
         
         # otherwise, c'est parti to convert the stuff
         try:
-            self.__item_repository.create(derived_image_metadata)
+            self.__image_metadata_repository.create(derived_image_metadata)
         except DuplicateEntryException :
             def find():
-                return self.__item_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format(original_image_metadata.id, transformationRequest.size, transformationRequest.target_format)
+                return self.__image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format(original_image_metadata.id, transformationRequest.size, transformationRequest.target_format)
             self.__wait_for_item_status_ok(find)
             derived_image_metadata = find()
             
@@ -202,23 +202,27 @@ class ImageRequestProcessor(object):
                 raise imgengine.ImageProcessingException(ex)
         
         derived_image_metadata.status = domain.STATUS_OK
-        self.__item_repository.update(derived_image_metadata)
+        self.__image_metadata_repository.update(derived_image_metadata)
         
         return relative_cached_filename
     
     def cleanup_inconsistent_items(self):
-        for command in [DeleteImagesCommand(self.__item_repository, 
+        for command in [DeleteImagesCommand(self.__image_metadata_repository, 
                                        self.__schema_migrator.session_template(), 
                                        self.__path_generator,
-                                       lambda: self.__item_repository.find_inconsistent_derived_image_metadatas()), 
-                        DeleteImagesCommand(self.__item_repository, 
+                                       lambda: self.__image_metadata_repository.find_inconsistent_derived_image_metadatas()), 
+                        DeleteImagesCommand(self.__image_metadata_repository, 
                                        self.__schema_migrator.session_template(), 
                                        self.__path_generator,
-                                       lambda: self.__item_repository.find_inconsistent_original_image_metadatas())]:
+                                       lambda: self.__image_metadata_repository.find_inconsistent_original_image_metadatas())]:
             command.execute()
     
     def delete(self, item_id):
         pass
+        #DeleteImagesCommand(self.__image_metadata_repository, 
+        #                    self.__schema_migrator.session_template(), 
+        #                    self.__path_generator,
+        #                    lambda: self.__image_metadata_repository.find_)
             
     def __drop_data(self):
         self.__schema_migrator.drop_all_tables()

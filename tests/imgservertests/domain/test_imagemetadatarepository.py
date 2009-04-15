@@ -29,7 +29,7 @@ from tests.imgservertests.abstractintegrationtestcase import AbstractIntegration
 class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
     
     def onSetUp(self):
-        self._itemRepository = self._imageServerFactory.item_repository 
+        self._itemRepository = self._imageServerFactory.image_metadata_repository 
         self._schema_migrator = self._imageServerFactory.schema_migrator
         self._template = self._schema_migrator.session_template()
     
