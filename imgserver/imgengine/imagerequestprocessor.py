@@ -36,6 +36,7 @@ from imgserver.resources.path import Path
 from imgserver.resources import flatpathgenerator
 from imgserver.resources.flatpathgenerator import FlatPathGenerator
 from imgserver.resources.pathgenerator import PathGenerator
+from imgserver.imgengine.deleteimagescommand import DeleteImagesCommand
 
 LOCK_MAX_RETRIES = 10
 LOCK_WAIT_SECONDS = 1
@@ -206,34 +207,25 @@ class ImageRequestProcessor(object):
         return relative_cached_filename
     
     def cleanup_inconsistent_items(self):
-        def cleanup_in_session(fetch_items, delete_file):
-            items = fetch_items()
-            for i in items:
-                delete_file(i)
-                self.__item_repository.delete(i)
-            
-        def main_loop(has_more_items, fetch_items, delete_file):
-            def callback(session):
-                cleanup_in_session(fetch_items, delete_file)
-            while has_more_items():
-                self.__schema_migrator.session_template().do_with_session(callback)
         
         def cleanup_derived_items():
             def delete_file(item):
                 os.remove(self.__path_generator.derived_path(item).absolute())
-            main_loop(lambda: len(self.__item_repository.find_inconsistent_derived_items(1)) > 0,
-                      lambda: self.__item_repository.find_inconsistent_derived_items(), 
-                      delete_file)
-        
+            return DeleteImagesCommand(self.__item_repository, 
+                                                        self.__schema_migrator.session_template(), 
+                                                        lambda: self.__item_repository.find_inconsistent_derived_items(), 
+                                                        delete_file)
         def cleanup_original_items():
             def delete_file(item):
                 os.remove(self.__path_generator.original_path(item).absolute())
-            main_loop(lambda: len(self.__item_repository.find_inconsistent_original_items(1)) > 0,
-                      lambda: self.__item_repository.find_inconsistent_original_items(), 
-                      delete_file)
             
-        cleanup_derived_items()
-        cleanup_original_items()
+            return DeleteImagesCommand(self.__item_repository, 
+                                                        self.__schema_migrator.session_template(), 
+                                                        lambda: self.__item_repository.find_inconsistent_original_items(), 
+                                                        delete_file)
+            
+        for command in [cleanup_derived_items(), cleanup_original_items()]:
+            command.execute()
     
     def delete(self, item_id):
         pass
