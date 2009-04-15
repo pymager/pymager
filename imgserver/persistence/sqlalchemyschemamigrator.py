@@ -130,7 +130,7 @@ class SqlAlchemySchemaMigrator(object):
                polymorphic_identity='ORIGINAL_ITEM', \
                column_prefix='_',
                properties={
-                            'derivedItems' : relation(DerivedImageMetadata, 
+                            'derived_items' : relation(DerivedImageMetadata, 
                                                       primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id,
                                                       cascade='all',
                                                       backref='_original_image_metadata' 
@@ -141,7 +141,7 @@ class SqlAlchemySchemaMigrator(object):
                            }) 
         mapper(DerivedImageMetadata, derived_image_metadata, 
                properties={ 
-                           #'_originalItem' : relation(OriginalImageMetadata, primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id, backref='derivedItems')
+                           #'_originalItem' : relation(OriginalImageMetadata, primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id, backref='derived_items')
                            }, inherits=AbstractImageMetadata , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
         mapper(Version, version)
     

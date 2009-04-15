@@ -121,7 +121,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         # now mark 5 of the original items as inconsistent, as well as their associated derived items
         def mark_original_image_metadatas_as_inconsistent(itemNumber):
             item = self._image_metadata_repository.find_original_image_metadata_by_id('item%s' % itemNumber)
-            for di in item.derivedItems:
+            for di in item.derived_items:
                 di.status = domain.STATUS_INCONSISTENT
                 self._image_metadata_repository.update(di)
             item.status = domain.STATUS_INCONSISTENT

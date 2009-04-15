@@ -66,7 +66,9 @@ class IImageRequestProcessor(Interface):
     
     def delete(self, item_id):
         """ Deletes the given item, and its associated item (in the case of an original 
-        item that has derived items based on it)"""
+        item that has derived items based on it)
+        @raise ItemDoesNotExistError: if item_id does not exist
+        """
     
     def cleanup_inconsistent_items(self):
         """ deletes the files and items whose status is not OK (startup cleanup)"""
@@ -218,11 +220,15 @@ class ImageRequestProcessor(object):
             command.execute()
     
     def delete(self, item_id):
-        pass
-        #DeleteImagesCommand(self.__image_metadata_repository, 
-        #                    self.__schema_migrator.session_template(), 
-        #                    self.__path_generator,
-        #                    lambda: self.__image_metadata_repository.find_)
+        def image_metadatas_to_delete():
+            original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(item_id)
+            self.__required_original_image_metadata(item_id, original_image_metadata)
+            return original_image_metadata.derived_items + [original_image_metadata]
+        
+        DeleteImagesCommand(self.__image_metadata_repository, 
+                            self.__schema_migrator.session_template(), 
+                            self.__path_generator,
+                            lambda: self.__schema_migrator.session_template().do_with_session(image_metadatas_to_delete))
             
     def __drop_data(self):
         self.__schema_migrator.drop_all_tables()

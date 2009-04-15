@@ -157,9 +157,9 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
         def callback(session):
             found_item = self._itemRepository.find_original_image_metadata_by_id('MYID12435')    
             assert found_item is not None
-            assert found_item.derivedItems is not None
-            assert len(found_item.derivedItems) == 1
-            assert found_item.derivedItems[0].id == item.id
+            assert found_item.derived_items is not None
+            assert len(found_item.derived_items) == 1
+            assert found_item.derived_items[0].id == item.id
         
         self._template.do_with_session(callback)
     
