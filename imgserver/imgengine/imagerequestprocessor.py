@@ -32,10 +32,10 @@ from imgserver.domain.abstractitem import AbstractItem
 from imgserver.domain.originalitem import OriginalItem
 from imgserver.domain.deriveditem import DerivedItem
 from imgserver.domain.itemrepository import DuplicateEntryException
-
-CACHE_DIRECTORY = "cache"
-ORIGINAL_DIRECTORY = "pictures"
-FORMAT_EXTENSIONS = { "JPEG" : "jpg" }
+from imgserver.resources.path import Path
+from imgserver.resources import flatpathgenerator
+from imgserver.resources.flatpathgenerator import FlatPathGenerator
+from imgserver.resources.pathgenerator import PathGenerator
 
 LOCK_MAX_RETRIES = 10
 LOCK_WAIT_SECONDS = 1
@@ -75,41 +75,9 @@ class ItemDoesNotExistError(Exception):
         super(ItemDoesNotExistError, self).__init__()
         self.item_id = item_id
 
-class Path(object):
-    def __init__(self, reference_directory, path_elements=[]):
-        self.__reference_directory = reference_directory
-        self.__path_elements = path_elements
-    
-    def absolute(self):
-        return os.path.join(self.__reference_directory, *self.__path_elements)
-    
-    def relative(self):
-        return os.path.join(*self.__path_elements)
 
-    def append(self, path_element):
-        return Path(self.__reference_directory, self.__path_elements + [path_element])
-    
-class PathGenerator(Interface):
-    def original_path(self, original_item):
-        """returns a Path object for the given original item"""
-    
-    def derived_path(self, derived_item):
-        """ returns a Path object for the given derived item"""
 
-class FlatPathGenerator(object):
-    implements(PathGenerator)
-    def __init__(self, data_directory):
-        self.__data_directory = data_directory
-    
-    def __extension_for_format(self, format):
-        return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
-    
-    def original_path(self, original_item):
-        return Path(self.__data_directory).append(ORIGINAL_DIRECTORY).append('%s.%s' % (original_item.id, self.__extension_for_format(original_item.format)))
-    
-    def derived_path(self, derived_item):
-        return Path(self.__data_directory).append(CACHE_DIRECTORY).append('%s-%sx%s.%s' % (derived_item.original_item.id, derived_item.size[0], derived_item.size[1],self.__extension_for_format(derived_item.format)))
-    
+ 
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
     
@@ -120,8 +88,8 @@ class ImageRequestProcessor(object):
         self.__item_repository = item_repository
         self.__schema_migrator = schema_migrator
         self.__path_generator = PathGenerator(FlatPathGenerator(data_directory))
-        self.__original_items_directory = Path(data_directory).append(CACHE_DIRECTORY)
-        self.__derived_items_directory = Path(data_directory).append(ORIGINAL_DIRECTORY)
+        self.__original_items_directory = Path(data_directory).append(flatpathgenerator.CACHE_DIRECTORY)
+        self.__derived_items_directory = Path(data_directory).append(flatpathgenerator.ORIGINAL_DIRECTORY)
         
         if drop_data:
             self.__drop_data()
