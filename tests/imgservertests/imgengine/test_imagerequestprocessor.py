@@ -178,13 +178,6 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         except ItemDoesNotExistError, ex:
             self.assertEquals('anyItem', ex.item_id)
         
-    def test_original_image_should_exist(self):
-        self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
-        self.assertTrue(self._image_server.originalImageExists('sampleId'))
-    
-    def test_original_image_should_not_exist(self):
-        self.assertFalse(self._image_server.originalImageExists('sampleId'))   
-    
     def _sample_file_should_be_saved_correctly(self):
         assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')) == True
         self.assertEquals(os.path.getsize(JPG_SAMPLE_IMAGE_FILENAME), os.path.getsize(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')))        

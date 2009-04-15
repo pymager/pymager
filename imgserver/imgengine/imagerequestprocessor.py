@@ -110,11 +110,7 @@ class ImageRequestProcessor(object):
     def __required_original_item(self, item_id, original_item):
         if original_item is None:
             raise ItemDoesNotExistError(item_id)
-    
-    def originalImageExists(self, item_id):
-        original_item = self.__item_repository.find_original_item_by_id(item_id)
-        return original_item is not None
-                
+                    
     def get_original_image_path(self, item_id):
         original_item = self.__item_repository.find_original_item_by_id(item_id)
         self.__required_original_item(item_id, original_item)
@@ -122,10 +118,10 @@ class ImageRequestProcessor(object):
         return self.__path_generator.original_path(original_item).relative()
                                
     def save_file_to_repository(self, file, image_id):
-        def filenameSaveStrategy(file, item):
+        def filename_save_strategy(file, item):
             shutil.copyfile(file, self.__path_generator.original_path(item).absolute())
         
-        def fileLikeSaveStrategy(file, item):
+        def file_like_save_strategy(file, item):
             file.seek(0)
             with open(self.__path_generator.original_path(item).absolute(), "w+b") as out:
                 shutil.copyfileobj(file, out)
@@ -134,9 +130,9 @@ class ImageRequestProcessor(object):
         imgengine.checkid(image_id)
         
         if type(file) == str:
-            save = filenameSaveStrategy
+            save = filename_save_strategy
         else:
-            save = fileLikeSaveStrategy
+            save = file_like_save_strategy
         
         # Check that the image is not broken
         try:
