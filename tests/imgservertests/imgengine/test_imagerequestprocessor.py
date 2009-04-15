@@ -86,7 +86,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         try:
             request = TransformationRequest('nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)
         except ItemDoesNotExistError, ex:
-            self.assertEquals('nonexisting', ex.item_id)
+            self.assertEquals('nonexisting', ex.image_id)
     
     def test_preparing_transformation_should_update_file_system_and_database(self):
         self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
@@ -176,7 +176,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
             self._image_server.get_original_image_path('anyItem')
             self.fail()
         except ItemDoesNotExistError, ex:
-            self.assertEquals('anyItem', ex.item_id)
+            self.assertEquals('anyItem', ex.image_id)
         
     def _sample_file_should_be_saved_correctly(self):
         assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')) == True

@@ -39,7 +39,7 @@ class DuplicateEntryException(Exception):
 
 class ImageMetadataRepository(Interface):
     """ DDD repository for Original and Derived Items """
-    def find_original_image_metadata_by_id(self, item_id):
+    def find_original_image_metadata_by_id(self, image_id):
         """ Find an OriginalImageMetadata by its ID """
     
     def find_inconsistent_original_image_metadatas(self, maxResults=100):
@@ -48,7 +48,7 @@ class ImageMetadataRepository(Interface):
     def find_inconsistent_derived_image_metadatas(self, maxResults=100):
         """ Find Derived Items that are in an inconsistent state """
     
-    def find_derived_image_metadata_by_original_image_metadata_id_size_and_format(self, item_id, size, format):
+    def find_derived_image_metadata_by_original_image_metadata_id_size_and_format(self, image_id, size, format):
         """ Find Derived Items By :
             - the Original Item ID
             - the size of the Derived Item

@@ -44,10 +44,10 @@ LOCK_WAIT_SECONDS = 1
 class IImageRequestProcessor(Interface):
     """ Processes ImageRequest objects and does the required work to prepare the images """
     
-    def get_original_image_path(self, item_id):
-        """@return: the relative path of the original image that has the given item_id 
+    def get_original_image_path(self, image_id):
+        """@return: the relative path of the original image that has the given image_id 
         @rtype: str
-        @raise ItemDoesNotExistError: if item_id does not exist"""
+        @raise ItemDoesNotExistError: if image_id does not exist"""
         
     def save_file_to_repository(self, file, image_id):
         """ save the given file to the image server repository. 
@@ -60,23 +60,23 @@ class IImageRequestProcessor(Interface):
         """ Takes an ImageRequest and prepare the output for it. 
         Updates the database so that it is in sync with the filesystem
         @return: the path to the generated file (relative to the data directory)
-        @raise ItemDoesNotExistError: if item_id does not exist
+        @raise ItemDoesNotExistError: if image_id does not exist
         @raise ImageProcessingException in case of any non-recoverable error 
         """
     
-    def delete(self, item_id):
+    def delete(self, image_id):
         """ Deletes the given item, and its associated item (in the case of an original 
         item that has derived items based on it)
-        @raise ItemDoesNotExistError: if item_id does not exist
+        @raise ItemDoesNotExistError: if image_id does not exist
         """
     
     def cleanup_inconsistent_items(self):
         """ deletes the files and items whose status is not OK (startup cleanup)"""
 
 class ItemDoesNotExistError(Exception):
-    def __init__(self,item_id):
+    def __init__(self,image_id):
         super(ItemDoesNotExistError, self).__init__()
-        self.item_id = item_id
+        self.image_id = image_id
  
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
@@ -106,18 +106,18 @@ class ImageRequestProcessor(object):
             item = pollingCallback()
             i=i+1
     
-    def __wait_for_original_image_metadata(self, item_id):
+    def __wait_for_original_image_metadata(self, image_id):
         """ Wait for the given original item to have a status of STATUS_OK """
-        self.__wait_for_item_status_ok(lambda: self.__image_metadata_repository.find_original_image_metadata_by_id(item_id))
+        self.__wait_for_item_status_ok(lambda: self.__image_metadata_repository.find_original_image_metadata_by_id(image_id))
     
-    def __required_original_image_metadata(self, item_id, original_image_metadata):
+    def __required_original_image_metadata(self, image_id, original_image_metadata):
         if original_image_metadata is None:
-            raise ItemDoesNotExistError(item_id)
+            raise ItemDoesNotExistError(image_id)
                     
-    def get_original_image_path(self, item_id):
-        original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(item_id)
-        self.__required_original_image_metadata(item_id, original_image_metadata)
-        self.__wait_for_original_image_metadata(item_id)
+    def get_original_image_path(self, image_id):
+        original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(image_id)
+        self.__required_original_image_metadata(image_id, original_image_metadata)
+        self.__wait_for_original_image_metadata(image_id)
         return self.__path_generator.original_path(original_image_metadata).relative()
                                
     def save_file_to_repository(self, file, image_id):
@@ -219,10 +219,10 @@ class ImageRequestProcessor(object):
                                        lambda: self.__image_metadata_repository.find_inconsistent_original_image_metadatas())]:
             command.execute()
     
-    def delete(self, item_id):
+    def delete(self, image_id):
         def image_metadatas_to_delete():
-            original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(item_id)
-            self.__required_original_image_metadata(item_id, original_image_metadata)
+            original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(image_id)
+            self.__required_original_image_metadata(image_id, original_image_metadata)
             return list(original_image_metadata.derived_image_metadatas) + [original_image_metadata]
         
         DeleteImagesCommand(self.__image_metadata_repository, 

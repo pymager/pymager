@@ -57,16 +57,16 @@ class OriginalResource(object):
     
     # http://tools.cherrypy.org/wiki/DirectToDiskFileUpload
     # @cherrypy.expose
-    def default_GET(self, item_id):
+    def default_GET(self, image_id):
         try:
-            relative_path = self.__image_processor.get_original_image_path(item_id)
+            relative_path = self.__image_processor.get_original_image_path(image_id)
         except ItemDoesNotExistError:
             raise cherrypy.NotFound(cherrypy.request.path_info)
         else:
             path = os.path.join(self.__config.data_directory,relative_path)
             return serve_file(path)
     
-    def default_POST(self, item_id):
+    def default_POST(self, image_id):
         """ See http://tools.cherrypy.org/wiki/DirectToDiskFileUpload 
         """
         cherrypy.response.timeout = 3600
@@ -87,7 +87,7 @@ class OriginalResource(object):
             keep_blank_values=True)
 
         theFile = formFields[FILE_FIELD_NAME]
-        self.__image_processor.save_file_to_repository(theFile.file, item_id)
+        self.__image_processor.save_file_to_repository(theFile.file, image_id)
         
         #myFieldStorage.strategy.deleteTempFile(theFile)
         raise cherrypy.HTTPRedirect('%s%s' % (cherrypy.request.script_name, cherrypy.request.path_info)) 

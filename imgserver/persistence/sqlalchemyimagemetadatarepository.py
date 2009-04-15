@@ -39,10 +39,10 @@ class SqlAlchemyImageMetadataRepository(object):
         self.__schema_migrator = schema_migrator
         self.__template = schema_migrator.session_template()
     
-    def find_original_image_metadata_by_id(self, item_id):
+    def find_original_image_metadata_by_id(self, image_id):
         def callback(session):
             return session.query(OriginalImageMetadata)\
-                .filter(OriginalImageMetadata._id==item_id)\
+                .filter(OriginalImageMetadata._id==image_id)\
                 .first()
         return self.__template.do_with_session(callback)
 
@@ -60,14 +60,14 @@ class SqlAlchemyImageMetadataRepository(object):
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     
-    def find_derived_image_metadata_by_original_image_metadata_id_size_and_format(self, item_id, size, format):
+    def find_derived_image_metadata_by_original_image_metadata_id_size_and_format(self, image_id, size, format):
         def callback(session):
             o = session.query(DerivedImageMetadata)\
                     .filter_by(_width=size[0])\
                     .filter_by(_height=size[1])\
                     .filter_by(_format=format)\
                     .join('_original_image_metadata', aliased=True)\
-                    .filter_by(_id=item_id)\
+                    .filter_by(_id=image_id)\
                     .first()
             # FIXME: http://www.sqlalchemy.org/trac/ticket/1082
             (getattr(o, '_original_image_metadata') if hasattr(o, '_original_image_metadata') else (lambda: None))
