@@ -92,7 +92,7 @@ class ImageRequestProcessor(object):
         self.__init_data()
         self.cleanup_inconsistent_items()
 
-    def __waitForItemStatusOk(self, pollingCallback):
+    def __wait_for_item_status_ok(self, pollingCallback):
         """ Wait for the status property of the object returned by pollingCallback() to be STATUS_OK
         It honors LOCK_MAX_RETRIES and LOCK_WAIT_SECONDS
         """
@@ -105,7 +105,7 @@ class ImageRequestProcessor(object):
     
     def __wait_for_original_item(self, item_id):
         """ Wait for the given original item to have a status of STATUS_OK """
-        self.__waitForItemStatusOk(lambda: self.__item_repository.find_original_item_by_id(item_id))
+        self.__wait_for_item_status_ok(lambda: self.__item_repository.find_original_item_by_id(item_id))
     
     def __required_original_item(self, item_id, original_item):
         if original_item is None:
@@ -181,7 +181,7 @@ class ImageRequestProcessor(object):
         except DuplicateEntryException :
             def find():
                 return self.__item_repository.find_derived_item_by_original_item_id_size_and_format(original_item.id, transformationRequest.size, transformationRequest.target_format)
-            self.__waitForItemStatusOk(find)
+            self.__wait_for_item_status_ok(find)
             derived_item = find()
             
         try:
