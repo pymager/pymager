@@ -125,7 +125,7 @@ class SqlAlchemySchemaMigrator(object):
             Column('value', Integer)
         )
         
-        abstract_item = Table('abstract_item', self.__metadata,
+        abstract_image_metadata = Table('abstract_image_metadata', self.__metadata,
             Column('id', String(255), primary_key=True),
             Column('status', String(255), index=True, nullable=False),
             Column('last_status_change_date', DateTime, index=True, nullable=False),
@@ -136,16 +136,16 @@ class SqlAlchemySchemaMigrator(object):
         )
         
         original_image_metadata = Table('original_image_metadata', self.__metadata,  
-            Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True)
+            Column('id', String(255), ForeignKey('abstract_image_metadata.id'), primary_key=True)
         )
         
         derived_image_metadata = Table('derived_image_metadata', self.__metadata,
-            Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
+            Column('id', String(255), ForeignKey('abstract_image_metadata.id'), primary_key=True),
             Column('original_image_metadata_id', String(255), ForeignKey('original_image_metadata.id', ondelete="CASCADE"))
         )
 
-        mapper(AbstractImageMetadata, abstract_item, \
-               polymorphic_on=abstract_item.c.type, \
+        mapper(AbstractImageMetadata, abstract_image_metadata, \
+               polymorphic_on=abstract_image_metadata.c.type, \
                polymorphic_identity='ABSTRACT_ITEM', \
                column_prefix='_') 
         mapper(OriginalImageMetadata, original_image_metadata, \
