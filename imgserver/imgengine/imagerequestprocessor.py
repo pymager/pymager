@@ -223,7 +223,7 @@ class ImageRequestProcessor(object):
         def image_metadatas_to_delete():
             original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(item_id)
             self.__required_original_image_metadata(item_id, original_image_metadata)
-            return original_image_metadata.derived_items + [original_image_metadata]
+            return list(original_image_metadata.derived_image_metadatas) + [original_image_metadata]
         
         DeleteImagesCommand(self.__image_metadata_repository, 
                             self.__schema_migrator.session_template(), 
