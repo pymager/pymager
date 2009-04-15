@@ -55,6 +55,12 @@ class AbstractItem(object):
         return self._format        
     def get_size(self):
         return (self.width, self.height)
+    
+    def associated_image_path(self, path_generator):
+        """ @param: path_generator: a imgserver.resources.pathgenerator.PathGenerator object
+            @return: a imgserver.resources.path.Path object
+        """
+        raise NotImplementedError()
 
     id = property(get_id, None, None, None)
     status = property(get_status, set_status, None, None)

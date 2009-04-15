@@ -24,3 +24,6 @@ class OriginalItem(AbstractItem):
     def __init__(self, itemId, status, size, format):
         assert itemId is not None
         super(OriginalItem, self).__init__(itemId, status, size, format)
+    
+    def associated_image_path(self, path_generator):
+        return path_generator.original_path(self)

@@ -30,4 +30,7 @@ class DerivedItem(AbstractItem):
     def get_original_item(self):
         return self._original_item
     
+    def associated_image_path(self, path_generator):
+        return path_generator.derived_path(self)
+    
     original_item = property(get_original_item, None, None, None)

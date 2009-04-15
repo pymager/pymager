@@ -207,24 +207,14 @@ class ImageRequestProcessor(object):
         return relative_cached_filename
     
     def cleanup_inconsistent_items(self):
-        
-        def cleanup_derived_items():
-            def delete_file(item):
-                os.remove(self.__path_generator.derived_path(item).absolute())
-            return DeleteImagesCommand(self.__item_repository, 
-                                                        self.__schema_migrator.session_template(), 
-                                                        lambda: self.__item_repository.find_inconsistent_derived_items(), 
-                                                        delete_file)
-        def cleanup_original_items():
-            def delete_file(item):
-                os.remove(self.__path_generator.original_path(item).absolute())
-            
-            return DeleteImagesCommand(self.__item_repository, 
-                                                        self.__schema_migrator.session_template(), 
-                                                        lambda: self.__item_repository.find_inconsistent_original_items(), 
-                                                        delete_file)
-            
-        for command in [cleanup_derived_items(), cleanup_original_items()]:
+        for command in [DeleteImagesCommand(self.__item_repository, 
+                                       self.__schema_migrator.session_template(), 
+                                       self.__path_generator,
+                                       lambda: self.__item_repository.find_inconsistent_derived_items()), 
+                        DeleteImagesCommand(self.__item_repository, 
+                                       self.__schema_migrator.session_template(), 
+                                       self.__path_generator,
+                                       lambda: self.__item_repository.find_inconsistent_original_items())]:
             command.execute()
     
     def delete(self, item_id):
@@ -239,7 +229,8 @@ class ImageRequestProcessor(object):
         if not os.path.exists(self.__data_directory):
             os.makedirs(self.__data_directory)
         for directory in \
-            [Path(self.__data_directory).append(flatpathgenerator.CACHE_DIRECTORY).absolute(), Path(self.__data_directory).append(flatpathgenerator.ORIGINAL_DIRECTORY).absolute()]:
+            [Path(self.__data_directory).append(flatpathgenerator.CACHE_DIRECTORY).absolute(), 
+             Path(self.__data_directory).append(flatpathgenerator.ORIGINAL_DIRECTORY).absolute()]:
             if not os.path.exists(directory):
                 os.makedirs(directory)    
     def __init_data(self):
