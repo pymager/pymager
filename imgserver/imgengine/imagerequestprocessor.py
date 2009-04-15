@@ -28,10 +28,10 @@ from zope.interface import Interface, implements
 from imgserver import domain
 from imgserver import persistence
 from imgserver import imgengine
-from imgserver.domain.abstractitem import AbstractItem
-from imgserver.domain.originalitem import OriginalItem
-from imgserver.domain.deriveditem import DerivedItem
-from imgserver.domain.itemrepository import DuplicateEntryException
+from imgserver.domain.abstractimagemetadata import AbstractImageMetadata
+from imgserver.domain.originalimagemetadata import OriginalImageMetadata
+from imgserver.domain.derivedimagemetadata import DerivedImageMetadata
+from imgserver.domain.imagemetadatarepository import DuplicateEntryException
 from imgserver.resources.path import Path
 from imgserver.resources import flatpathgenerator
 from imgserver.resources.flatpathgenerator import FlatPathGenerator
@@ -104,19 +104,19 @@ class ImageRequestProcessor(object):
             item = pollingCallback()
             i=i+1
     
-    def __wait_for_original_item(self, item_id):
+    def __wait_for_original_image_metadata(self, item_id):
         """ Wait for the given original item to have a status of STATUS_OK """
-        self.__wait_for_item_status_ok(lambda: self.__item_repository.find_original_item_by_id(item_id))
+        self.__wait_for_item_status_ok(lambda: self.__item_repository.find_original_image_metadata_by_id(item_id))
     
-    def __required_original_item(self, item_id, original_item):
-        if original_item is None:
+    def __required_original_image_metadata(self, item_id, original_image_metadata):
+        if original_image_metadata is None:
             raise ItemDoesNotExistError(item_id)
                     
     def get_original_image_path(self, item_id):
-        original_item = self.__item_repository.find_original_item_by_id(item_id)
-        self.__required_original_item(item_id, original_item)
-        self.__wait_for_original_item(item_id)
-        return self.__path_generator.original_path(original_item).relative()
+        original_image_metadata = self.__item_repository.find_original_image_metadata_by_id(item_id)
+        self.__required_original_image_metadata(item_id, original_image_metadata)
+        self.__wait_for_original_image_metadata(item_id)
+        return self.__path_generator.original_path(original_image_metadata).relative()
                                
     def save_file_to_repository(self, file, image_id):
         def filename_save_strategy(file, item):
@@ -142,7 +142,7 @@ class ImageRequestProcessor(object):
         except IOError, ex:
             raise imgengine.ImageFileNotRecognized(ex)
         
-        item = OriginalItem(image_id, domain.STATUS_INCONSISTENT, img.size, img.format)
+        item = OriginalImageMetadata(image_id, domain.STATUS_INCONSISTENT, img.size, img.format)
 
         try:
             # atomic creation
@@ -159,14 +159,14 @@ class ImageRequestProcessor(object):
         self.__item_repository.update(item)
             
     def prepare_transformation(self, transformationRequest):
-        original_item = self.__item_repository.find_original_item_by_id(transformationRequest.image_id)
-        self.__required_original_item(transformationRequest.image_id, original_item)
+        original_image_metadata = self.__item_repository.find_original_image_metadata_by_id(transformationRequest.image_id)
+        self.__required_original_image_metadata(transformationRequest.image_id, original_image_metadata)
         
-        self.__wait_for_original_item(transformationRequest.image_id)
-        derived_item = DerivedItem(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.target_format, original_item)
+        self.__wait_for_original_image_metadata(transformationRequest.image_id)
+        derived_image_metadata = DerivedImageMetadata(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.target_format, original_image_metadata)
         
-        cached_filename = self.__path_generator.derived_path(derived_item).absolute()
-        relative_cached_filename = self.__path_generator.derived_path(derived_item).relative()
+        cached_filename = self.__path_generator.derived_path(derived_image_metadata).absolute()
+        relative_cached_filename = self.__path_generator.derived_path(derived_image_metadata).relative()
 
         # if image is already cached...
         if os.path.exists(cached_filename):
@@ -174,21 +174,21 @@ class ImageRequestProcessor(object):
         
         # otherwise, c'est parti to convert the stuff
         try:
-            self.__item_repository.create(derived_item)
+            self.__item_repository.create(derived_image_metadata)
         except DuplicateEntryException :
             def find():
-                return self.__item_repository.find_derived_item_by_original_item_id_size_and_format(original_item.id, transformationRequest.size, transformationRequest.target_format)
+                return self.__item_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format(original_image_metadata.id, transformationRequest.size, transformationRequest.target_format)
             self.__wait_for_item_status_ok(find)
-            derived_item = find()
+            derived_image_metadata = find()
             
         try:
-            img = Image.open(self.__path_generator.original_path(original_item).absolute())
+            img = Image.open(self.__path_generator.original_path(original_image_metadata).absolute())
         except IOError, ex: 
             raise imgengine.ImageProcessingException(ex)
         
         if transformationRequest.size == img.size and transformationRequest.target_format.upper() == img.format.upper():
             try:
-                shutil.copyfile(self.__path_generator.original_path(original_item).absolute(), cached_filename)
+                shutil.copyfile(self.__path_generator.original_path(original_image_metadata).absolute(), cached_filename)
             except IOError, ex:
                 raise imgengine.ImageProcessingException(ex)
         else:   
@@ -201,8 +201,8 @@ class ImageRequestProcessor(object):
             except IOError, ex:
                 raise imgengine.ImageProcessingException(ex)
         
-        derived_item.status = domain.STATUS_OK
-        self.__item_repository.update(derived_item)
+        derived_image_metadata.status = domain.STATUS_OK
+        self.__item_repository.update(derived_image_metadata)
         
         return relative_cached_filename
     
@@ -210,11 +210,11 @@ class ImageRequestProcessor(object):
         for command in [DeleteImagesCommand(self.__item_repository, 
                                        self.__schema_migrator.session_template(), 
                                        self.__path_generator,
-                                       lambda: self.__item_repository.find_inconsistent_derived_items()), 
+                                       lambda: self.__item_repository.find_inconsistent_derived_image_metadatas()), 
                         DeleteImagesCommand(self.__item_repository, 
                                        self.__schema_migrator.session_template(), 
                                        self.__path_generator,
-                                       lambda: self.__item_repository.find_inconsistent_original_items())]:
+                                       lambda: self.__item_repository.find_inconsistent_original_image_metadatas())]:
             command.execute()
     
     def delete(self, item_id):

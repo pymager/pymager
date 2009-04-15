@@ -21,7 +21,7 @@
 import os
 from imgserver import domain
 from imgserver.imgengine.transformationrequest import TransformationRequest 
-from imgserver.web.deriveditemurldecoder import DerivedItemUrlDecoder,UrlDecodingError
+from imgserver.web.derivedimagemetadataurldecoder import DerivedImageMetadataUrlDecoder,UrlDecodingError
 from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
 import cherrypy
 from cherrypy.lib.static import serve_file
@@ -42,7 +42,7 @@ class DerivedResource(object):
     @cherrypy.expose
     def default(self, derived_urisegment):
         try:
-            derivedItemUrlDecoder = DerivedItemUrlDecoder(derived_urisegment)
+            derivedItemUrlDecoder = DerivedImageMetadataUrlDecoder(derived_urisegment)
         except UrlDecodingError:
             raise self.__not_found()
         else:

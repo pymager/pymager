@@ -20,9 +20,9 @@
 """
 from datetime import datetime
 
-class AbstractItem(object):
+class AbstractImageMetadata(object):
     def __init__(self, itemId, status, size, format):
-        super(AbstractItem, self).__init__()
+        super(AbstractImageMetadata, self).__init__()
         
         assert size is not None
         assert len(size) == 2

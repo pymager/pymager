@@ -21,9 +21,9 @@
 
 from zope.interface import Interface, implements
 from imgserver import domain
-from imgserver.domain.abstractitem import AbstractItem
-from imgserver.domain.originalitem import OriginalItem
-from imgserver.domain.deriveditem import DerivedItem
+from imgserver.domain.abstractimagemetadata import AbstractImageMetadata
+from imgserver.domain.originalimagemetadata import OriginalImageMetadata
+from imgserver.domain.derivedimagemetadata import DerivedImageMetadata
 
 
 class DuplicateEntryException(Exception):
@@ -37,18 +37,18 @@ class DuplicateEntryException(Exception):
     
     duplicate_id = property(get_duplicate_id, None, None, "The ID that led to the DuplicateEntryException")
 
-class ItemRepository(Interface):
+class ImageMetadataRepository(Interface):
     """ DDD repository for Original and Derived Items """
-    def find_original_item_by_id(self, item_id):
-        """ Find an OriginalItem by its ID """
+    def find_original_image_metadata_by_id(self, item_id):
+        """ Find an OriginalImageMetadata by its ID """
     
-    def find_inconsistent_original_items(self, maxResults=100):
+    def find_inconsistent_original_image_metadatas(self, maxResults=100):
         """ Find Original Items that are in an inconsistent state """
     
-    def find_inconsistent_derived_items(self, maxResults=100):
+    def find_inconsistent_derived_image_metadatas(self, maxResults=100):
         """ Find Derived Items that are in an inconsistent state """
     
-    def find_derived_item_by_original_item_id_size_and_format(self, item_id, size, format):
+    def find_derived_image_metadata_by_original_image_metadata_id_size_and_format(self, item_id, size, format):
         """ Find Derived Items By :
             - the Original Item ID
             - the size of the Derived Item

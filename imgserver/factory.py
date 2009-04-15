@@ -26,8 +26,8 @@ from imgserver.imgengine.imagerequestprocessor import ImageRequestProcessor
 from imgserver.imgengine.imagerequestprocessor import IImageRequestProcessor
 from imgserver.persistence.schemamigrator import SchemaMigrator
 from imgserver.persistence.sqlalchemyschemamigrator import SqlAlchemySchemaMigrator
-from imgserver.domain.itemrepository import ItemRepository
-from imgserver.persistence.sqlalchemyitemrepository import SqlAlchemyItemRepository
+from imgserver.domain.imagemetadatarepository import ImageMetadataRepository
+from imgserver.persistence.sqlalchemyimagemetadatarepository import SqlAlchemyImageMetadataRepository
 
 class ServiceConfiguration(object):
     def __init__(self, data_directory, dburi, allowed_sizes, dev_mode):
@@ -58,12 +58,12 @@ class ImageServerFactory(object):
     def create_image_server(self):
         self.__schema_migrator = SchemaMigrator(SqlAlchemySchemaMigrator(self.__config.dburi))
         
-        self.__item_repository = ItemRepository(SqlAlchemyItemRepository(self.__schema_migrator))
+        self.__item_repository = ImageMetadataRepository(SqlAlchemyImageMetadataRepository(self.__schema_migrator))
         self.__image_processor = IImageRequestProcessor(ImageRequestProcessor(self.__item_repository, self.__schema_migrator, self.__config.data_directory, self.__config.dev_mode))
         self.__image_processor.prepare_transformation =  image_transformation_security_decorator.image_transformation_security_decorator(self.__config.allowed_sizes)(self.__image_processor.prepare_transformation)
         
         return self.__image_processor
     
     schema_migrator = property(get_schema_migrator, None, None, "PersistenceProvider's Docstring")
-    item_repository = property(get_item_repository, None, None, "ItemRepository's Docstring")
+    item_repository = property(get_item_repository, None, None, "ImageMetadataRepository's Docstring")
     image_processor = property(get_image_processor, None, None, "ImageProcessor's Docstring")

@@ -18,19 +18,19 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.domain.abstractitem import AbstractItem 
+from imgserver.domain.abstractimagemetadata import AbstractImageMetadata 
 
-class DerivedItem(AbstractItem):
-    def __init__(self, status, size, format, original_item):
-        assert original_item is not None
-        self._original_item = original_item
+class DerivedImageMetadata(AbstractImageMetadata):
+    def __init__(self, status, size, format, original_image_metadata):
+        assert original_image_metadata is not None
+        self._original_image_metadata = original_image_metadata
         
-        super(DerivedItem, self).__init__("%s-%sx%s-%s" % (original_item.id, size[0], size[1], format),status, size, format)
+        super(DerivedImageMetadata, self).__init__("%s-%sx%s-%s" % (original_image_metadata.id, size[0], size[1], format),status, size, format)
 
-    def get_original_item(self):
-        return self._original_item
+    def get_original_image_metadata(self):
+        return self._original_image_metadata
     
     def associated_image_path(self, path_generator):
         return path_generator.derived_path(self)
     
-    original_item = property(get_original_item, None, None, None)
+    original_image_metadata = property(get_original_image_metadata, None, None, None)

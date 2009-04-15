@@ -18,11 +18,11 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.domain.itemrepository import ItemRepository, DuplicateEntryException
+from imgserver.domain.imagemetadatarepository import ImageMetadataRepository, DuplicateEntryException
 from imgserver import domain
-from imgserver.domain.abstractitem import AbstractItem
-from imgserver.domain.originalitem import OriginalItem
-from imgserver.domain.deriveditem import DerivedItem
+from imgserver.domain.abstractimagemetadata import AbstractImageMetadata
+from imgserver.domain.originalimagemetadata import OriginalImageMetadata
+from imgserver.domain.derivedimagemetadata import DerivedImageMetadata
 from zope.interface import Interface, implements
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
@@ -30,47 +30,47 @@ from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backre
 import logging
 import threading
 
-log = logging.getLogger('persistence.itemrepository')
+log = logging.getLogger('persistence.imagemetadatarepository')
 
-class SqlAlchemyItemRepository(object):
-    implements(ItemRepository)
+class SqlAlchemyImageMetadataRepository(object):
+    implements(ImageMetadataRepository)
     
     def __init__(self, schema_migrator):
         self.__schema_migrator = schema_migrator
         self.__template = schema_migrator.session_template()
     
-    def find_original_item_by_id(self, item_id):
+    def find_original_image_metadata_by_id(self, item_id):
         def callback(session):
-            return session.query(OriginalItem)\
-                .filter(OriginalItem._id==item_id)\
+            return session.query(OriginalImageMetadata)\
+                .filter(OriginalImageMetadata._id==item_id)\
                 .first()
         return self.__template.do_with_session(callback)
 
-    def find_inconsistent_original_items(self, maxResults=100):
+    def find_inconsistent_original_image_metadatas(self, maxResults=100):
         def callback(session):
-            return session.query(OriginalItem)\
-                .filter(AbstractItem._status==domain.STATUS_INCONSISTENT)\
+            return session.query(OriginalImageMetadata)\
+                .filter(AbstractImageMetadata._status==domain.STATUS_INCONSISTENT)\
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     
-    def find_inconsistent_derived_items(self, maxResults=100):
+    def find_inconsistent_derived_image_metadatas(self, maxResults=100):
         def callback(session):
-            return session.query(DerivedItem)\
-                .filter(AbstractItem._status==domain.STATUS_INCONSISTENT)\
+            return session.query(DerivedImageMetadata)\
+                .filter(AbstractImageMetadata._status==domain.STATUS_INCONSISTENT)\
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     
-    def find_derived_item_by_original_item_id_size_and_format(self, item_id, size, format):
+    def find_derived_image_metadata_by_original_image_metadata_id_size_and_format(self, item_id, size, format):
         def callback(session):
-            o = session.query(DerivedItem)\
+            o = session.query(DerivedImageMetadata)\
                     .filter_by(_width=size[0])\
                     .filter_by(_height=size[1])\
                     .filter_by(_format=format)\
-                    .join('_original_item', aliased=True)\
+                    .join('_original_image_metadata', aliased=True)\
                     .filter_by(_id=item_id)\
                     .first()
             # FIXME: http://www.sqlalchemy.org/trac/ticket/1082
-            (getattr(o, '_original_item') if hasattr(o, '_original_item') else (lambda: None))
+            (getattr(o, '_original_image_metadata') if hasattr(o, '_original_image_metadata') else (lambda: None))
             return o
         return self.__template.do_with_session(callback)
     

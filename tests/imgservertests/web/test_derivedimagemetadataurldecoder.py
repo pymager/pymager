@@ -20,13 +20,13 @@
 """
 import exceptions
 import unittest
-from imgserver.web.deriveditemurldecoder import DerivedItemUrlDecoder,UrlDecodingError
+from imgserver.web.derivedimagemetadataurldecoder import DerivedImageMetadataUrlDecoder,UrlDecodingError
 
-class DerivedItemUrlDecoderTestCase(unittest.TestCase):
+class DerivedImageMetadataUrlDecoderTestCase(unittest.TestCase):
         
     def test_should_decode_url_segment(self):
         url_segment = 'item123-800x600.JPEG'
-        decoded = DerivedItemUrlDecoder(url_segment)
+        decoded = DerivedImageMetadataUrlDecoder(url_segment)
         self.assertEqual('item123', decoded.itemid)
         self.assertEqual(800, decoded.width)
         self.assertEqual(600, decoded.height)
@@ -34,12 +34,12 @@ class DerivedItemUrlDecoderTestCase(unittest.TestCase):
     
     def test_format_should_be_uppercased(self):
         url_segment = 'item123-800x600.jpeg'
-        decoded = DerivedItemUrlDecoder(url_segment)
+        decoded = DerivedImageMetadataUrlDecoder(url_segment)
         self.assertEqual('JPEG', decoded.format)
     
     def test_should_detect_bad_url(self):
         try:
-            decoded = DerivedItemUrlDecoder('item123800x600.jpg')
+            decoded = DerivedImageMetadataUrlDecoder('item123800x600.jpg')
             self.fail()
         except UrlDecodingError:
             pass

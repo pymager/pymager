@@ -35,9 +35,9 @@ class FlatPathGenerator(object):
     def __extension_for_format(self, format):
         return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
     
-    def original_path(self, original_item):
-        return Path(self.__data_directory).append(ORIGINAL_DIRECTORY).append('%s.%s' % (original_item.id, self.__extension_for_format(original_item.format)))
+    def original_path(self, original_image_metadata):
+        return Path(self.__data_directory).append(ORIGINAL_DIRECTORY).append('%s.%s' % (original_image_metadata.id, self.__extension_for_format(original_image_metadata.format)))
     
-    def derived_path(self, derived_item):
-        return Path(self.__data_directory).append(CACHE_DIRECTORY).append('%s-%sx%s.%s' % (derived_item.original_item.id, derived_item.size[0], derived_item.size[1],self.__extension_for_format(derived_item.format)))
+    def derived_path(self, derived_image_metadata):
+        return Path(self.__data_directory).append(CACHE_DIRECTORY).append('%s-%sx%s.%s' % (derived_image_metadata.original_image_metadata.id, derived_image_metadata.size[0], derived_image_metadata.size[1],self.__extension_for_format(derived_image_metadata.format)))
    
