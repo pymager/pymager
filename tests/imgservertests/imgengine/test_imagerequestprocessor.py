@@ -42,7 +42,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     def onSetUp(self):
         self._image_metadata_repository = self._imageServerFactory.image_metadata_repository
         self._schema_migrator = self._imageServerFactory.schema_migrator
-        self._template = self._schema_migrator.session_template()
+        self._template = self._imageServerFactory.session_template
     
     def test_image_id_should_only_contain_alphanumeric_characters(self):
         try:

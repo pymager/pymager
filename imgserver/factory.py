@@ -19,6 +19,9 @@
 
 """
 import os
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
+from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
+
 from imgserver import imgengine, persistence
 from imgserver.imgengine import image_transformation_security_decorator
 from imgserver.imgengine.transformationrequest import TransformationRequest
@@ -28,6 +31,7 @@ from imgserver.persistence.schemamigrator import SchemaMigrator
 from imgserver.persistence.sqlalchemyschemamigrator import SqlAlchemySchemaMigrator
 from imgserver.domain.imagemetadatarepository import ImageMetadataRepository
 from imgserver.persistence.sqlalchemyimagemetadatarepository import SqlAlchemyImageMetadataRepository
+from imgserver.persistence.sessiontemplate import SessionTemplate
 
 class ServiceConfiguration(object):
     def __init__(self, data_directory, dburi, allowed_sizes, dev_mode):
@@ -47,19 +51,30 @@ class ImageServerFactory(object):
     def get_schema_migrator(self):
         return self.__schema_migrator
 
-
     def get_image_metadata_repository(self):
         return self.__image_metadata_repository
 
-
     def get_image_processor(self):
         return self.__image_processor
-
+    
+    def get_engine(self):
+        return self.__engine
+    
+    def get_sessionmaker(self):
+        return self.__sessionmaker
+    
+    def get_session_template(self):
+        return self.__session_template
+    
     def create_image_server(self):
-        self.__schema_migrator = SchemaMigrator(SqlAlchemySchemaMigrator(self.__config.dburi))
+        self.__engine = create_engine(self.__config.dburi, encoding='utf-8', echo=False, echo_pool=False) # strategy='threadlocal'
+        self.__sessionmaker = scoped_session(sessionmaker(bind=self.__engine, autoflush=True, transactional=True))
+        self.__session_template = SessionTemplate(self.__sessionmaker)
         
-        self.__image_metadata_repository = ImageMetadataRepository(SqlAlchemyImageMetadataRepository(self.__schema_migrator))
-        self.__image_processor = IImageRequestProcessor(ImageRequestProcessor(self.__image_metadata_repository, self.__schema_migrator, self.__config.data_directory, self.__config.dev_mode))
+        self.__schema_migrator = SchemaMigrator(SqlAlchemySchemaMigrator(self.__engine, self.__session_template))
+        
+        self.__image_metadata_repository = ImageMetadataRepository(SqlAlchemyImageMetadataRepository(self.__session_template))
+        self.__image_processor = IImageRequestProcessor(ImageRequestProcessor(self.__image_metadata_repository, self.__schema_migrator, self.__config.data_directory, self.__session_template, self.__config.dev_mode))
         self.__image_processor.prepare_transformation =  image_transformation_security_decorator.image_transformation_security_decorator(self.__config.allowed_sizes)(self.__image_processor.prepare_transformation)
         
         return self.__image_processor
@@ -67,3 +82,7 @@ class ImageServerFactory(object):
     schema_migrator = property(get_schema_migrator, None, None, "PersistenceProvider's Docstring")
     image_metadata_repository = property(get_image_metadata_repository, None, None, "ImageMetadataRepository's Docstring")
     image_processor = property(get_image_processor, None, None, "ImageProcessor's Docstring")
+    engine = property(get_engine, None, None, "ImageProcessor's Docstring")
+    sessionmaker = property(get_sessionmaker, None, None, "ImageProcessor's Docstring")
+    session_template = property(get_session_template, None, None, "ImageProcessor's Docstring")
+    

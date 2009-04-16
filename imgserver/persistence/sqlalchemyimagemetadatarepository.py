@@ -35,9 +35,8 @@ log = logging.getLogger('persistence.imagemetadatarepository')
 class SqlAlchemyImageMetadataRepository(object):
     implements(ImageMetadataRepository)
     
-    def __init__(self, schema_migrator):
-        self.__schema_migrator = schema_migrator
-        self.__template = schema_migrator.session_template()
+    def __init__(self, session_template):
+        self.__template = session_template
     
     def find_original_image_metadata_by_id(self, image_id):
         def callback(session):

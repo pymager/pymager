@@ -81,13 +81,14 @@ class ItemDoesNotExistError(Exception):
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
     
-    def __init__(self, image_metadata_repository, schema_migrator, data_directory, drop_data=False):
+    def __init__(self, image_metadata_repository, schema_migrator, data_directory, session_template, drop_data=False):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
         self.__data_directory = data_directory 
         self.__image_metadata_repository = image_metadata_repository
         self.__schema_migrator = schema_migrator
         self.__path_generator = PathGenerator(FlatPathGenerator(data_directory))
+        self.__session_template = session_template
         
         if drop_data:
             self.__drop_data()
@@ -210,11 +211,11 @@ class ImageRequestProcessor(object):
     
     def cleanup_inconsistent_items(self):
         for command in [DeleteImagesCommand(self.__image_metadata_repository, 
-                                       self.__schema_migrator.session_template(), 
+                                       self.__session_template, 
                                        self.__path_generator,
                                        lambda: self.__image_metadata_repository.find_inconsistent_derived_image_metadatas()), 
                         DeleteImagesCommand(self.__image_metadata_repository, 
-                                       self.__schema_migrator.session_template(), 
+                                       self.__session_template, 
                                        self.__path_generator,
                                        lambda: self.__image_metadata_repository.find_inconsistent_original_image_metadatas())]:
             command.execute()
@@ -226,7 +227,7 @@ class ImageRequestProcessor(object):
             return list(original_image_metadata.derived_image_metadatas) + [original_image_metadata]
         
         DeleteImagesCommand(self.__image_metadata_repository, 
-                            self.__schema_migrator.session_template(), 
+                            self.__session_template, 
                             self.__path_generator,
                             lambda: image_metadatas_to_delete()).execute()
             
