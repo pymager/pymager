@@ -181,3 +181,27 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     def _sample_file_should_be_saved_correctly(self):
         assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')) == True
         self.assertEquals(os.path.getsize(JPG_SAMPLE_IMAGE_FILENAME), os.path.getsize(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')))        
+    
+    def test_deleting_image_should_delete_original_image_and_all_derived_images(self):
+        self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+        
+        self._image_server.prepare_transformation(TransformationRequest('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG))
+        self._image_server.prepare_transformation(TransformationRequest('sampleId', (200,200), domain.IMAGE_FORMAT_JPEG))
+        self._image_server.delete('sampleId')
+        
+        self._sample_original_image_should_not_be_present()
+        self._sample_100x100_image_should_not_be_present()
+        self._sample_200x200_image_should_not_be_present()
+    
+    def _sample_original_image_should_not_be_present(self):
+        self.assertFalse(os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')))
+        assert self._image_metadata_repository.find_original_image_metadata_by_id('sampleId') is None
+            
+    def _sample_100x100_image_should_not_be_present(self):
+        self.assertFalse(os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-100x100.jpg')))
+        assert self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG) is None
+    
+    def _sample_200x200_image_should_not_be_present(self):
+        self.assertFalse(os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-200x200.jpg')))
+        assert self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('sampleId', (200,200), domain.IMAGE_FORMAT_JPEG) is None
+                  

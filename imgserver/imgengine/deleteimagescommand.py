@@ -16,14 +16,14 @@ class DeleteImagesCommand(object):
         self.__session_template = session_template
         self.__fetch_items_callback = fetch_items_callback
         
-    def __cleanup_in_session(self, fetch_items):
-        items = fetch_items()
+    def __cleanup_in_session(self):
+        items = self.__fetch_items_callback()
         for i in items:
             os.remove(i.associated_image_path(self.__path_generator).absolute())
             self.__image_metadata_repository.delete(i)
         
     def execute(self):
         def execute_in_session(session):
-            self.__cleanup_in_session(self.__fetch_items_callback)
+            self.__cleanup_in_session()
         self.__session_template.do_with_session(execute_in_session)
     

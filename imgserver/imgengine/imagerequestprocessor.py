@@ -228,7 +228,7 @@ class ImageRequestProcessor(object):
         DeleteImagesCommand(self.__image_metadata_repository, 
                             self.__schema_migrator.session_template(), 
                             self.__path_generator,
-                            lambda: self.__schema_migrator.session_template().do_with_session(image_metadatas_to_delete))
+                            lambda: image_metadatas_to_delete()).execute()
             
     def __drop_data(self):
         self.__schema_migrator.drop_all_tables()
