@@ -47,6 +47,9 @@ class ImageServerFactory(object):
         self.__image_metadata_repository = None
         self.__image_processor = None
         self.__config = config
+        self.__engine = None
+        self.__session_template = None
+        self.__sessionmaker = None 
 
     def get_schema_migrator(self):
         return self.__schema_migrator
