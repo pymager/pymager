@@ -55,6 +55,9 @@ class OriginalResource(object):
         dispatch_method_name = 'default_%s' %(cherrypy.request.method) 
         return (getattr(self, dispatch_method_name) if hasattr(self, dispatch_method_name) else (lambda: None))(*args, **kwargs)  
     
+    def default_DELETE(self, image_id):
+        self.__image_processor.delete(image_id)
+    
     # http://tools.cherrypy.org/wiki/DirectToDiskFileUpload
     # @cherrypy.expose
     def default_GET(self, image_id):
