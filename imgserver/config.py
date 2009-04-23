@@ -24,6 +24,11 @@ import os
 GLOBAL_CONFIG_FILENAME = 'imgserver-cherrypy.conf'
 IMGSERVER_CONFIG_FILENAME = 'imgserver.conf'
 
+_app_config = None
+
+def app_config():
+    return _app_config
+    
 class ConfigFileNotFoundError(Exception):
     def __init(self, directories):
         self.directories = directories
@@ -74,3 +79,7 @@ def parse_config(current_python_filename, filename):
         except IOError, e:
             pass
     raise ConfigFileNotFoundError(confdirs)
+
+def set_app_config(app_config):
+    global _app_config
+    _app_config = app_config

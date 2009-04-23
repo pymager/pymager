@@ -22,27 +22,38 @@ import os
 import cgi
 import time
 import tempfile
+import md5
 import cherrypy
 from cherrypy.lib.static import serve_file
 from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
+from imgserver import config
 
 FILE_FIELD_NAME = "file"
 PERMISSIONS = 0644
 TMP_DIR = "fileuploads"
+BASIC_AUTH_REALM = "Image Server"
 
-def noBodyProcess():
+def disable_body_processing():
     """Sets cherrypy.request.process_request_body = False, giving
     us direct control of the file upload destination. By default
     cherrypy loads it to memory, we are directing it to disk."""
-    if cherrypy.request.method == 'POST':
+    if cherrypy.request.method in ('POST', 'DELETE'):
         cherrypy.request.process_request_body = False
 
-cherrypy.tools.noBodyProcess = cherrypy.Tool('before_request_body', noBodyProcess)
+def enable_basic_auth():
+    """Enables basic authentication when we are running in the dev_mode."""
+    def fetch_users():
+        return {'test': md5.new('test').hexdigest()}
+    if cherrypy.request.method in ('POST','DELETE', 'PUT') and config.app_config().dev_mode:
+        cherrypy.tools.basic_auth.callable(realm = BASIC_AUTH_REALM, users = fetch_users)
+
+cherrypy.tools.disable_body_processing = cherrypy.Tool('before_request_body', disable_body_processing)
+cherrypy.tools.enable_basic_auth = cherrypy.Tool('before_request_body', enable_basic_auth)
 
 class OriginalResource(object):
-    def __init__(self, config, image_processor):
+    def __init__(self, app_config, image_processor):
         super(OriginalResource, self).__init__()
-        self.__config = config
+        self.__app_config = app_config
         self.__image_processor = image_processor
         
     @cherrypy.expose
@@ -50,7 +61,8 @@ class OriginalResource(object):
         return "Original Resource!"
     
     @cherrypy.expose
-    @cherrypy.tools.noBodyProcess()
+    @cherrypy.tools.enable_basic_auth()
+    @cherrypy.tools.disable_body_processing()
     def default(self, *args, **kwargs):
         dispatch_method_name = 'default_%s' %(cherrypy.request.method) 
         return (getattr(self, dispatch_method_name) if hasattr(self, dispatch_method_name) else (lambda: None))(*args, **kwargs)  
@@ -66,7 +78,7 @@ class OriginalResource(object):
         except ItemDoesNotExistError:
             raise cherrypy.NotFound(cherrypy.request.path_info)
         else:
-            path = os.path.join(self.__config.data_directory,relative_path)
+            path = os.path.join(self.__app_config.data_directory,relative_path)
             return serve_file(path)
     
     def default_POST(self, image_id):
