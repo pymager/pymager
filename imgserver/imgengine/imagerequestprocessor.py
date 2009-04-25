@@ -37,6 +37,9 @@ from imgserver.resources import flatpathgenerator
 from imgserver.resources.flatpathgenerator import FlatPathGenerator
 from imgserver.resources.pathgenerator import PathGenerator
 from imgserver.imgengine.deleteimagescommand import DeleteImagesCommand
+from imgserver.imgengine.imagefilenotrecognizedexception import ImageFileNotRecognized
+from imgserver.imgengine.imageidalreadyexistingexception import ImageIDAlreadyExistingException
+from imgserver.imgengine.imageprocessingexception import ImageProcessingException
 
 LOCK_MAX_RETRIES = 10
 LOCK_WAIT_SECONDS = 1
@@ -143,7 +146,7 @@ class ImageRequestProcessor(object):
             img = Image.open(file)
             img.verify()
         except IOError, ex:
-            raise imgengine.ImageFileNotRecognized(ex)
+            raise ImageFileNotRecognized(ex)
         
         item = OriginalImageMetadata(image_id, domain.STATUS_INCONSISTENT, img.size, img.format)
 
@@ -151,12 +154,12 @@ class ImageRequestProcessor(object):
             # atomic creation
             self.__image_metadata_repository.create(item)
         except DuplicateEntryException, ex:
-            raise imgengine.ImageIDAlreadyExistingException(item.id)
+            raise ImageIDAlreadyExistingException(item.id)
         else:
             try:
                 save(file, item)
             except IOError, ex:
-                raise imgengine.ImageProcessingException(ex)
+                raise ImageProcessingException(ex)
         
         item.status = domain.STATUS_OK
         self.__image_metadata_repository.update(item)
@@ -187,13 +190,13 @@ class ImageRequestProcessor(object):
         try:
             img = Image.open(self.__path_generator.original_path(original_image_metadata).absolute())
         except IOError, ex: 
-            raise imgengine.ImageProcessingException(ex)
+            raise ImageProcessingException(ex)
         
         if transformationRequest.size == img.size and transformationRequest.target_format.upper() == img.format.upper():
             try:
                 shutil.copyfile(self.__path_generator.original_path(original_image_metadata).absolute(), cached_filename)
             except IOError, ex:
-                raise imgengine.ImageProcessingException(ex)
+                raise ImageProcessingException(ex)
         else:   
             target_image = ImageOps.fit(image=img, 
                                         size=transformationRequest.size, 
@@ -202,7 +205,7 @@ class ImageRequestProcessor(object):
             try:
                 target_image.save(cached_filename)
             except IOError, ex:
-                raise imgengine.ImageProcessingException(ex)
+                raise ImageProcessingException(ex)
         
         derived_image_metadata.status = domain.STATUS_OK
         self.__image_metadata_repository.update(derived_image_metadata)

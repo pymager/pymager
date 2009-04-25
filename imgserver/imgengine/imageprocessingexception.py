@@ -18,8 +18,7 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.imgengine.imageidnotauthorizedexception import IDNotAuthorized
-        
-def checkid(image_id):
-    if not image_id.isalnum():
-        raise IDNotAuthorized(image_id)
+class ImageProcessingException(Exception):
+    """Thrown when errors happen while processing images """
+    def __init__(self, message):
+        super(ImageProcessingException, self).__init__(message)

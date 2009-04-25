@@ -30,6 +30,10 @@ from imgserver import imgengine, domain
 from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
 from imgserver.imgengine.transformationrequest import TransformationRequest
 from tests.imgservertests.abstractintegrationtestcase import AbstractIntegrationTestCase
+from imgserver.imgengine.imagefilenotrecognizedexception import ImageFileNotRecognized
+from imgserver.imgengine.imageidalreadyexistingexception import ImageIDAlreadyExistingException
+from imgserver.imgengine.imageprocessingexception import ImageProcessingException
+from imgserver.imgengine.imageidnotauthorizedexception import IDNotAuthorized
 
 #JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'sami.jpg')
 #BROKEN_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'brokenImage.jpg')
@@ -47,20 +51,20 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     def test_image_id_should_only_contain_alphanumeric_characters(self):
         try:
             self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId-')
-        except imgengine.IDNotAuthorized, ex:
+        except IDNotAuthorized, ex:
             assert ex.image_id == 'sampleId-'
     
     def test_should_not_save_broken_image(self):
         try:
             self._image_server.save_file_to_repository(BROKEN_IMAGE_FILENAME, 'sampleId')
-        except imgengine.ImageFileNotRecognized, ex:
+        except ImageFileNotRecognized, ex:
             pass
     
     def test_should_not_save_image_with_existing_id(self):
         self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         try:
             self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')    
-        except imgengine.ImageIDAlreadyExistingException, ex:
+        except ImageIDAlreadyExistingException, ex:
             assert ex.image_id == 'sampleId'
     
     def test_saving_image_should_update_file_system_and_database(self):

@@ -18,8 +18,8 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.imgengine.imageidnotauthorizedexception import IDNotAuthorized
-        
-def checkid(image_id):
-    if not image_id.isalnum():
-        raise IDNotAuthorized(image_id)
+from imgserver.imgengine.imageprocessingexception import ImageProcessingException
+class ImageIDAlreadyExistingException(ImageProcessingException):
+    def __init__(self, image_id):
+        super(ImageIDAlreadyExistingException, self).__init__('An image with the given ID already exists in the repository: %s' % image_id)
+        self.image_id = image_id
