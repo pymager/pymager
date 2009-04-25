@@ -21,7 +21,7 @@
 import shutil
 
 from imgserver.factory import ImageServerFactory, ServiceConfiguration
-from imgserver.web.cherrypyweb.toplevelresource import TopLevelResource
+from imgserver.web.toplevelresource import TopLevelResource
 import imgserver.config
 
 def init_imageprocessor(config):    

@@ -18,8 +18,8 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.web.cherrypyweb.originalresource import OriginalResource
-from imgserver.web.cherrypyweb.derivedresource import DerivedResource
+from imgserver.web.originalresource import OriginalResource
+from imgserver.web.derivedresource import DerivedResource
 import cherrypy
 
 class TopLevelResource(object):
