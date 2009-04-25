@@ -6,3 +6,15 @@ $ python setup.py test
 
 Run the service
 $ python imgserver.py 
+
+
+To implement clients :
+* 404
+ - Resource does not exist (GET/POST)
+* 400 
+ - Unsupported Format (POST)
+ - Invalid requested format (GET)
+* 409 
+ - Image ID already exists (POST)
+* 403
+ - Resize characteristics not allowed (GET)

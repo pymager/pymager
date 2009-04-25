@@ -18,13 +18,16 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+import cherrypy
 from imgserver.web.originalresource import OriginalResource
 from imgserver.web.derivedresource import DerivedResource
-import cherrypy
+from imgserver import config
+from pkg_resources import resource_filename
 
 class TopLevelResource(object):
-    def __init__(self, config, image_processor):
-        self.__config = config
+    _cp_config = {'error_page.404': resource_filename('imgserver.web.templates', 'error-default.html')}
+    def __init__(self, app_config, image_processor):
+        self.__config = app_config
         self.__image_processor = image_processor
         self.original = OriginalResource(config, image_processor)
         self.derived = DerivedResource(config, image_processor)

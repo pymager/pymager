@@ -46,8 +46,5 @@ def create_site(config):
         allowed_sizes=config['allowed_sizes'] if (config.__contains__('allowed_sizes')) else None,
         dev_mode= config['dev_mode'] if (config.__contains__('dev_mode')) else False)
     imgserver.config.set_app_config(app_config)
-    top_level_resource = \
-        TopLevelResource(
-            app_config, 
-            init_imageprocessor(app_config))
+    top_level_resource = TopLevelResource(app_config, init_imageprocessor(app_config))
     return top_level_resource 
