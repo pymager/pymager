@@ -27,6 +27,7 @@ import cherrypy
 from cherrypy.lib.static import serve_file
 from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
 from imgserver import config
+from imgserver.imgengine.imageidalreadyexistingexception import ImageIDAlreadyExistingException
 
 FILE_FIELD_NAME = "file"
 PERMISSIONS = 0644
@@ -106,8 +107,13 @@ class OriginalResource(object):
             keep_blank_values=True)
 
         theFile = formFields[FILE_FIELD_NAME]
-        self.__image_processor.save_file_to_repository(theFile.file, image_id)
-        
-        #myFieldStorage.strategy.deleteTempFile(theFile)
-        raise cherrypy.HTTPRedirect('%s%s' % (cherrypy.request.script_name, cherrypy.request.path_info)) 
+        try:
+            self.__image_processor.save_file_to_repository(theFile.file, image_id)
+        except ImageIDAlreadyExistingException:
+            raise cherrypy.HTTPError(status=409, message="Image ID Already Exists")
+        except ImageFileNotRecognized:
+            raise cherrypy.HTTPError(status=400, message="Unknown Image Format")
+        else:
+            #myFieldStorage.strategy.deleteTempFile(theFile)
+            raise cherrypy.HTTPRedirect('%s%s' % (cherrypy.request.script_name, cherrypy.request.path_info)) 
         

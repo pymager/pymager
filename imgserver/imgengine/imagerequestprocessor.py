@@ -57,6 +57,9 @@ class IImageRequestProcessor(Interface):
         It will then be available for transformations
         @param file: either a filename or a file-like object 
         that is opened in binary mode
+        @raise ImageIDAlreadyExistingException
+        @raise ImageFileNotRecognized
+        @rasie ImageProcessingException
         """
     
     def prepare_transformation(self, transformationRequest):
