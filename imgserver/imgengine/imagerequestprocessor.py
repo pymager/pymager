@@ -57,9 +57,9 @@ class IImageRequestProcessor(Interface):
         It will then be available for transformations
         @param file: either a filename or a file-like object 
         that is opened in binary mode
-        @raise ImageIDAlreadyExistingException
+        @raise ImageIDAlreadyExistingException 
         @raise ImageFileNotRecognized
-        @rasie ImageProcessingException
+        @raise ImageProcessingException if unknown exceptions happen during the save process
         """
     
     def prepare_transformation(self, transformationRequest):
@@ -112,6 +112,8 @@ class ImageRequestProcessor(object):
             time.sleep(LOCK_WAIT_SECONDS)
             item = pollingCallback()
             i=i+1
+        if i == LOCK_MAX_RETRIES:
+            raise ImageProcessingException('Item seems to be locked forever')
     
     def __wait_for_original_image_metadata(self, image_id):
         """ Wait for the given original item to have a status of STATUS_OK """
