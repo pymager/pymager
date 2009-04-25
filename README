@@ -12,9 +12,10 @@ To implement clients :
 * 404
  - Resource does not exist (GET/POST)
  - IDNotAuthorized (POST/GET)
- - URL decoding error (GET)
+ - URL decoding error (GET derived)
 * 400 
  - Unsupported Format (POST)
+ - Invalid Multipart request (POST) (not implemented yet)
  - Invalid requested format (GET) (not implemented yet)
 * 409 
  - Image ID already exists (POST)

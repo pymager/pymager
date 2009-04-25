@@ -26,8 +26,9 @@ from pkg_resources import resource_filename
 
 class TopLevelResource(object):
     _cp_config = {
-        'error_page.404': resource_filename('imgserver.web.templates', 'error-default.html'),
         'error_page.400': resource_filename('imgserver.web.templates', 'error-default.html'),
+        'error_page.403': resource_filename('imgserver.web.templates', 'error-default.html'),
+        'error_page.404': resource_filename('imgserver.web.templates', 'error-default.html'),
         'error_page.409': resource_filename('imgserver.web.templates', 'error-default.html')
     }
     def __init__(self, app_config, image_processor):
