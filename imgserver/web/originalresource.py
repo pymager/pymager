@@ -22,7 +22,7 @@ import os
 import cgi
 import time
 import tempfile
-import md5
+import hashlib
 import cherrypy
 from cherrypy.lib.static import serve_file
 from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
@@ -43,7 +43,11 @@ def disable_body_processing():
 def enable_basic_auth():
     """Enables basic authentication when we are running in the dev_mode."""
     def fetch_users():
-        return {'test': md5.new('test').hexdigest()}
+        def md5pass(password):
+            m = hashlib.md5()
+            m.update(password)
+            return m.hexdigest()
+        return {'test': md5pass('test')}
     if cherrypy.request.method in ('POST','DELETE', 'PUT') and config.app_config().dev_mode:
         cherrypy.tools.basic_auth.callable(realm = BASIC_AUTH_REALM, users = fetch_users)
 
