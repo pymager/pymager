@@ -75,7 +75,10 @@ class OriginalResource(object):
         return (getattr(self, dispatch_method_name) if hasattr(self, dispatch_method_name) else (lambda: None))(*args, **kwargs)  
     
     def default_DELETE(self, image_id):
-        self.__image_processor.delete(image_id)
+        try:
+            self.__image_processor.delete(image_id)
+        except ItemDoesNotExistError:
+            raise cherrypy.NotFound(cherrypy.request.path_info)
     
     # http://tools.cherrypy.org/wiki/DirectToDiskFileUpload
     # @cherrypy.expose
@@ -107,8 +110,12 @@ class OriginalResource(object):
             headers=lcHDRS,
             environ={'REQUEST_METHOD':'POST'},
             keep_blank_values=True)
-
-        theFile = formFields[FILE_FIELD_NAME]
+        
+        if FILE_FIELD_NAME not in formFields:
+            raise cherrypy.HTTPError(status=400, message="Multipart Request does not contain a 'file' parameter")
+        
+        theFile = formFields[FILE_FIELD_NAME]  
+            
         try:
             self.__image_processor.save_file_to_repository(theFile.file, image_id)
         except ImageIDAlreadyExistingException:

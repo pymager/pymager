@@ -11,14 +11,14 @@ $ python imgserver.py
 HTTP Error Codes that are returned
 * 400 
  - {original} Unsupported Format (POST)
- - {original} Invalid Multipart request (POST) (TODO: not implemented yet) : should never happen if client is coded properly
- - {derived} Invalid requested format (GET) (TODO: not implemented yet) : should never happen if client does not allow requesting unknown image formats
- - {original} Supplied ID does not use the correct ID format (POST) (FIXME: should disappear) : should never if client API checks ID format before submitting
+ - DEV: {original} Invalid Multipart request (POST) : only for dev, should never happen if client is coded properly
+ - DEV: {derived} Invalid requested format (GET) (TODO: not implemented yet) : only for dev, should never happen if client does not allow requesting unknown image formats
+ - DEPRECATED: {original} Supplied ID does not use the correct ID format (POST) (FIXME: should disappear) : should never happen if client API checks ID format before submitting
 * 404
- - {original, derived} Resource does not exist (GET) 
- - {derived} URL decoding error (GET) : should never happen if client generates URLs correctly
+ - {original, derived} Resource does not exist (GET, DELETE) 
+ - DEV: {derived} URL decoding error (GET) : should never happen if client generates URLs correctly
 * 405
- - {original, derived}: the supported method is not authorized (e.g. DELETE issues on derived/) (TODO: not implemented yet) : should never happen as clients are not supposed to expose more than is currently available
+ - TODO: {original, derived}: the supported method is not authorized (e.g. DELETE issues on derived/) (TODO: not implemented yet) : should never happen as clients are not supposed to expose more than is currently available
 * 409 
  - Image ID already exists (POST)
 * 403
