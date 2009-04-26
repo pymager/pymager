@@ -8,15 +8,17 @@ Run the service
 $ python imgserver.py 
 
 
-To implement clients :
-* 404
- - Resource does not exist (GET/POST)
- - IDNotAuthorized (POST/GET)
- - URL decoding error (GET derived)
+HTTP Error Codes that are returned
 * 400 
- - Unsupported Format (POST)
- - Invalid Multipart request (POST) (not implemented yet)
- - Invalid requested format (GET) (not implemented yet)
+ - {original} Unsupported Format (POST)
+ - {original} Invalid Multipart request (POST) (TODO: not implemented yet) : should never happen if client is coded properly
+ - {derived} Invalid requested format (GET) (TODO: not implemented yet) : should never happen if client does not allow requesting unknown image formats
+ - {original} Supplied ID does not use the correct ID format (POST) (FIXME: should disappear) : should never if client API checks ID format before submitting
+* 404
+ - {original, derived} Resource does not exist (GET) 
+ - {derived} URL decoding error (GET) : should never happen if client generates URLs correctly
+* 405
+ - {original, derived}: the supported method is not authorized (e.g. DELETE issues on derived/) (TODO: not implemented yet) : should never happen as clients are not supposed to expose more than is currently available
 * 409 
  - Image ID already exists (POST)
 * 403

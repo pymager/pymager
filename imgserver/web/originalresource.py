@@ -29,6 +29,7 @@ from imgserver import config
 from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
 from imgserver.imgengine.imageidalreadyexistingexception import ImageIDAlreadyExistingException
 from imgserver.imgengine.imageidnotauthorizedexception import IDNotAuthorized
+from imgserver.imgengine.imagefilenotrecognizedexception import ImageFileNotRecognized
 
 FILE_FIELD_NAME = "file"
 PERMISSIONS = 0644
@@ -115,7 +116,7 @@ class OriginalResource(object):
         except ImageFileNotRecognized:
             raise cherrypy.HTTPError(status=400, message="Unknown Image Format")
         except IDNotAuthorized:
-            raise cherrypy.NotFound(cherrypy.request.path_info)
+            raise cherrypy.HTTPError(status=400, message="Image ID is invalid")
         else:
             #myFieldStorage.strategy.deleteTempFile(theFile)
             raise cherrypy.HTTPRedirect('%s%s' % (cherrypy.request.script_name, cherrypy.request.path_info)) 
