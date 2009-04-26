@@ -14,6 +14,8 @@ HTTP Error Codes that are returned
  - DEV: {original} Invalid Multipart request (POST) : only for dev, should never happen if client is coded properly
  - DEV/TODO: {derived} Invalid requested format (GET) (TODO: not implemented yet) : only for dev, should never happen if client does not allow requesting unknown image formats
  - DEPRECATED: {original} Supplied ID does not use the correct ID format (POST) (FIXME: should disappear) : should never happen if client API checks ID format before submitting
+* 403
+ - Resize characteristics not allowed (GET)
 * 404
  - {original, derived} Resource does not exist (GET, DELETE) 
  - DEV: {derived} URL decoding error (GET) : should never happen if client generates URLs correctly
@@ -21,7 +23,5 @@ HTTP Error Codes that are returned
  - TODO: {original, derived}: the supported method is not authorized (e.g. DELETE issues on derived/) (TODO: not implemented yet) : should never happen as clients are not supposed to expose more than is currently available
 * 409 
  - Image ID already exists (POST)
-* 403
- - Resize characteristics not allowed (GET)
 * 500
  - various, unexpected errors (IO exceptions, etc..)
