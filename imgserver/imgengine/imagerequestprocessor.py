@@ -34,7 +34,7 @@ from imgserver.domain.derivedimagemetadata import DerivedImageMetadata
 from imgserver.domain.imagemetadatarepository import DuplicateEntryException
 from imgserver.resources.path import Path
 from imgserver.resources import flatpathgenerator
-from imgserver.resources.flatpathgenerator import FlatPathGenerator
+from imgserver.resources.imageformatmapper import ImageFormatMapper
 from imgserver.resources.pathgenerator import PathGenerator
 from imgserver.imgengine.deleteimagescommand import DeleteImagesCommand
 from imgserver.imgengine.imagefilenotrecognizedexception import ImageFileNotRecognized
@@ -46,6 +46,12 @@ LOCK_WAIT_SECONDS = 1
         
 class IImageRequestProcessor(Interface):
     """ Processes ImageRequest objects and does the required work to prepare the images """
+    
+    def supports_format(self, output_format):
+        """
+        @param output_format: a String that represents an image format (e.g. JPEG) 
+        @return whether the given output_format is supported
+        """
     
     def get_original_image_path(self, image_id):
         """@return: the relative path of the original image that has the given image_id 
@@ -87,13 +93,14 @@ class ItemDoesNotExistError(Exception):
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
     
-    def __init__(self, image_metadata_repository, schema_migrator, data_directory, session_template, drop_data=False):
+    def __init__(self, image_metadata_repository, path_generator, image_format_mapper, schema_migrator, data_directory, session_template, drop_data=False):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
         self.__data_directory = data_directory 
         self.__image_metadata_repository = image_metadata_repository
+        self.__image_format_mapper = ImageFormatMapper(image_format_mapper)
         self.__schema_migrator = schema_migrator
-        self.__path_generator = PathGenerator(FlatPathGenerator(data_directory))
+        self.__path_generator = PathGenerator(path_generator)
         self.__session_template = session_template
         
         if drop_data:
@@ -101,7 +108,10 @@ class ImageRequestProcessor(object):
         
         self.__init_data()
         self.cleanup_inconsistent_items()
-
+    
+    def supports_format(self, output_format):
+        return self.__image_format_mapper.supports_format(output_format)
+        
     def __wait_for_item_status_ok(self, pollingCallback):
         """ Wait for the status property of the object returned by pollingCallback() to be STATUS_OK
         It honors LOCK_MAX_RETRIES and LOCK_WAIT_SECONDS

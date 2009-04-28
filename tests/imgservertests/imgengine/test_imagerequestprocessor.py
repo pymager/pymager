@@ -47,7 +47,10 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         self._image_metadata_repository = self._imageServerFactory.image_metadata_repository
         self._schema_migrator = self._imageServerFactory.schema_migrator
         self._template = self._imageServerFactory.session_template
-    
+   
+    def test_jpg_should_be_supported(self):
+        self.assertTrue(self._image_server.supports_format('JPEG'))
+        
     def test_image_id_should_only_contain_alphanumeric_characters(self):
         try:
             self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId-')

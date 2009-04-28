@@ -21,19 +21,21 @@
 from zope.interface import implements
 from imgserver.resources.path import Path
 from imgserver.resources.pathgenerator import PathGenerator
+from imgserver.resources.imageformatmapper import ImageFormatMapper
 
 CACHE_DIRECTORY = "cache"
 ORIGINAL_DIRECTORY = "pictures"
 
-FORMAT_EXTENSIONS = { "JPEG" : "jpg" }
+
 
 class FlatPathGenerator(object):
     implements(PathGenerator)
-    def __init__(self, data_directory):
+    def __init__(self, image_format_mapper, data_directory):
+        self.__image_format_mapper = ImageFormatMapper(image_format_mapper)
         self.__data_directory = data_directory
     
     def __extension_for_format(self, format):
-        return FORMAT_EXTENSIONS[format.upper()] if FORMAT_EXTENSIONS.__contains__(format.upper()) else format.lower()
+        return self.__image_format_mapper.format_to_extension(format)
     
     def original_path(self, original_image_metadata):
         return Path(self.__data_directory).append(ORIGINAL_DIRECTORY).append('%s.%s' % (original_image_metadata.id, self.__extension_for_format(original_image_metadata.format)))
