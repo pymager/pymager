@@ -18,11 +18,7 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.domain.imagemetadatarepository import ImageMetadataRepository, DuplicateEntryException
 from imgserver import domain
-from imgserver.domain.abstractimagemetadata import AbstractImageMetadata
-from imgserver.domain.originalimagemetadata import OriginalImageMetadata
-from imgserver.domain.derivedimagemetadata import DerivedImageMetadata
 from zope.interface import Interface, implements
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
@@ -33,35 +29,35 @@ import threading
 log = logging.getLogger('persistence.imagemetadatarepository')
 
 class SqlAlchemyImageMetadataRepository(object):
-    implements(ImageMetadataRepository)
+    implements(domain.ImageMetadataRepository)
     
     def __init__(self, session_template):
         self.__template = session_template
     
     def find_original_image_metadata_by_id(self, image_id):
         def callback(session):
-            return session.query(OriginalImageMetadata)\
-                .filter(OriginalImageMetadata._id==image_id)\
+            return session.query(domain.OriginalImageMetadata)\
+                .filter(domain.OriginalImageMetadata._id==image_id)\
                 .first()
         return self.__template.do_with_session(callback)
 
     def find_inconsistent_original_image_metadatas(self, maxResults=100):
         def callback(session):
-            return session.query(OriginalImageMetadata)\
-                .filter(AbstractImageMetadata._status==domain.STATUS_INCONSISTENT)\
+            return session.query(domain.OriginalImageMetadata)\
+                .filter(domain.AbstractImageMetadata._status==domain.STATUS_INCONSISTENT)\
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     
     def find_inconsistent_derived_image_metadatas(self, maxResults=100):
         def callback(session):
-            return session.query(DerivedImageMetadata)\
-                .filter(AbstractImageMetadata._status==domain.STATUS_INCONSISTENT)\
+            return session.query(domain.DerivedImageMetadata)\
+                .filter(domain.AbstractImageMetadata._status==domain.STATUS_INCONSISTENT)\
                 .limit(maxResults).all()
         return self.__template.do_with_session(callback)
     
     def find_derived_image_metadata_by_original_image_metadata_id_size_and_format(self, image_id, size, format):
         def callback(session):
-            o = session.query(DerivedImageMetadata)\
+            o = session.query(domain.DerivedImageMetadata)\
                     .filter_by(_width=size[0])\
                     .filter_by(_height=size[1])\
                     .filter_by(_format=format)\
@@ -79,7 +75,7 @@ class SqlAlchemyImageMetadataRepository(object):
         try:
             self.__template.do_with_session(callback)
         except sqlalchemy.exceptions.IntegrityError, ex: 
-            raise DuplicateEntryException, item.id
+            raise domain.DuplicateEntryException, item.id
     
     def update(self, item):
         def callback(session):
@@ -87,7 +83,7 @@ class SqlAlchemyImageMetadataRepository(object):
         try:
             self.__template.do_with_session(callback)
         except sqlalchemy.exceptions.IntegrityError: 
-            raise DuplicateEntryException, item.id
+            raise domain.DuplicateEntryException, item.id
     
     def delete(self, item):
         def callback(session):

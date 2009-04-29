@@ -20,10 +20,9 @@
 """
 
 from zope.interface import Interface, implements
-from imgserver import domain
-from imgserver.domain.abstractimagemetadata import AbstractImageMetadata
-from imgserver.domain.originalimagemetadata import OriginalImageMetadata
-from imgserver.domain.derivedimagemetadata import DerivedImageMetadata
+from imgserver.domain._abstractimagemetadata import AbstractImageMetadata
+from imgserver.domain._originalimagemetadata import OriginalImageMetadata
+from imgserver.domain._derivedimagemetadata import DerivedImageMetadata
 
 
 class DuplicateEntryException(Exception):

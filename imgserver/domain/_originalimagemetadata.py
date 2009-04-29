@@ -18,7 +18,7 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.domain.abstractimagemetadata import AbstractImageMetadata
+from imgserver.domain._abstractimagemetadata import AbstractImageMetadata
 
 class OriginalImageMetadata(AbstractImageMetadata):
     def __init__(self, itemId, status, size, format):

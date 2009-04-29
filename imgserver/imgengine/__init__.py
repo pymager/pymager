@@ -18,8 +18,12 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.imgengine.imageidnotauthorizedexception import IDNotAuthorized
+from imgserver.imgengine._imageprocessingexception import ImageProcessingException
+from imgserver.imgengine._illegalimageidexception import IllegalImageIdException
+from imgserver.imgengine._imageformatnotrecognizedexception import ImageFormatNotRecognizedException
+from imgserver.imgengine._imageidalreadyexistsexception import ImageIDAlreadyExistsException
+from imgserver.imgengine._imagemetadatanotfoundexception import ImageMetadataNotFoundException
         
 def checkid(image_id):
     if not image_id.isalnum():
-        raise IDNotAuthorized(image_id)
+        raise IllegalImageIdException(image_id)

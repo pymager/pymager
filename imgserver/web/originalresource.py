@@ -26,10 +26,10 @@ import hashlib
 import cherrypy
 from cherrypy.lib.static import serve_file
 from imgserver import config
-from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
-from imgserver.imgengine.imageidalreadyexistingexception import ImageIDAlreadyExistingException
-from imgserver.imgengine.imageidnotauthorizedexception import IDNotAuthorized
-from imgserver.imgengine.imagefilenotrecognizedexception import ImageFileNotRecognized
+from imgserver.imgengine.imagerequestprocessor import ImageMetadataNotFoundException
+from imgserver.imgengine.imageidalreadyexistingexception import ImageIDAlreadyExistsException
+from imgserver.imgengine.imageidnotauthorizedexception import IllegalImageIdException
+from imgserver.imgengine.imagefilenotrecognizedexception import ImageFormatNotRecognizedException
 
 FILE_FIELD_NAME = "file"
 PERMISSIONS = 0644
@@ -77,7 +77,7 @@ class OriginalResource(object):
     def default_DELETE(self, image_id):
         try:
             self.__image_processor.delete(image_id)
-        except ItemDoesNotExistError:
+        except ImageMetadataNotFoundException:
             raise cherrypy.NotFound(cherrypy.request.path_info)
     
     # http://tools.cherrypy.org/wiki/DirectToDiskFileUpload
@@ -85,7 +85,7 @@ class OriginalResource(object):
     def default_GET(self, image_id):
         try:
             relative_path = self.__image_processor.get_original_image_path(image_id)
-        except ItemDoesNotExistError:
+        except ImageMetadataNotFoundException:
             raise cherrypy.NotFound(cherrypy.request.path_info)
         else:
             path = os.path.join(self.__app_config.data_directory,relative_path)
@@ -118,11 +118,11 @@ class OriginalResource(object):
             
         try:
             self.__image_processor.save_file_to_repository(theFile.file, image_id)
-        except ImageIDAlreadyExistingException:
+        except ImageIDAlreadyExistsException:
             raise cherrypy.HTTPError(status=409, message="Image ID Already Exists")
-        except ImageFileNotRecognized:
+        except ImageFormatNotRecognizedException:
             raise cherrypy.HTTPError(status=400, message="Unknown Image Format")
-        except IDNotAuthorized:
+        except IllegalImageIdException:
             raise cherrypy.HTTPError(status=400, message="Image ID is invalid")
         else:
             #myFieldStorage.strategy.deleteTempFile(theFile)

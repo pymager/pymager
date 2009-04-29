@@ -27,13 +27,8 @@ import exceptions
 from threading import Thread
 from pkg_resources import resource_filename
 from imgserver import imgengine, domain
-from imgserver.imgengine.imagerequestprocessor import ItemDoesNotExistError
 from imgserver.imgengine.transformationrequest import TransformationRequest
 from tests.imgservertests.abstractintegrationtestcase import AbstractIntegrationTestCase
-from imgserver.imgengine.imagefilenotrecognizedexception import ImageFileNotRecognized
-from imgserver.imgengine.imageidalreadyexistingexception import ImageIDAlreadyExistingException
-from imgserver.imgengine.imageprocessingexception import ImageProcessingException
-from imgserver.imgengine.imageidnotauthorizedexception import IDNotAuthorized
 
 #JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'sami.jpg')
 #BROKEN_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'brokenImage.jpg')
@@ -54,20 +49,20 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     def test_image_id_should_only_contain_alphanumeric_characters(self):
         try:
             self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId-')
-        except IDNotAuthorized, ex:
+        except imgengine.IllegalImageIdException, ex:
             assert ex.image_id == 'sampleId-'
     
     def test_should_not_save_broken_image(self):
         try:
             self._image_server.save_file_to_repository(BROKEN_IMAGE_FILENAME, 'sampleId')
-        except ImageFileNotRecognized, ex:
+        except imgengine.ImageFormatNotRecognizedException, ex:
             pass
     
     def test_should_not_save_image_with_existing_id(self):
         self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         try:
             self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')    
-        except ImageIDAlreadyExistingException, ex:
+        except imgengine.ImageIDAlreadyExistsException, ex:
             assert ex.image_id == 'sampleId'
     
     def test_saving_image_should_update_file_system_and_database(self):
@@ -92,7 +87,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     def test_should_not_prepare_transformation_when_id_does_not_exist(self):
         try:
             request = TransformationRequest('nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)
-        except ItemDoesNotExistError, ex:
+        except imgengine.ImageMetadataNotFoundException, ex:
             self.assertEquals('nonexisting', ex.image_id)
     
     def test_preparing_transformation_should_update_file_system_and_database(self):
@@ -182,7 +177,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         try:
             self._image_server.get_original_image_path('anyItem')
             self.fail()
-        except ItemDoesNotExistError, ex:
+        except imgengine.ImageMetadataNotFoundException, ex:
             self.assertEquals('anyItem', ex.image_id)
         
     def _sample_file_should_be_saved_correctly(self):

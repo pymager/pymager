@@ -21,24 +21,21 @@
 import unittest
 from datetime import datetime, timedelta
 from imgserver import domain
-from imgserver.domain.abstractimagemetadata import AbstractImageMetadata
-from imgserver.domain.originalimagemetadata import OriginalImageMetadata
-from imgserver.domain.derivedimagemetadata import DerivedImageMetadata
 from tests.imgservertests import assertionutils
 
 class OriginalImageMetadataTestCase(unittest.TestCase):
     
     def test_should_create_item_using_width_and_height_expressed_as_string(self):
-        item = OriginalImageMetadata('MYID12435', domain.STATUS_OK, ('800', '600'), domain.IMAGE_FORMAT_JPEG)
+        item = domain.OriginalImageMetadata('MYID12435', domain.STATUS_OK, ('800', '600'), domain.IMAGE_FORMAT_JPEG)
         _item_should_match(item)
     
     def test_should_create_item_using_width_and_height_expressed_as_int(self):
-        item = OriginalImageMetadata('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        item = domain.OriginalImageMetadata('MYID12435', domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
         _item_should_match(item)
         
     def test_id_should_be_mandatory_at_creation_time(self):
         try:
-            OriginalImageMetadata(None, domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
+            domain.OriginalImageMetadata(None, domain.STATUS_OK, (800, 600), domain.IMAGE_FORMAT_JPEG)
         except Exception:
             pass
         else:
@@ -46,7 +43,7 @@ class OriginalImageMetadataTestCase(unittest.TestCase):
             
     def test_status_should_be_mandatory_at_creation_time(self):
         try:
-            OriginalImageMetadata('MYID12435', None, (800, 600), domain.IMAGE_FORMAT_JPEG)
+            domain.OriginalImageMetadata('MYID12435', None, (800, 600), domain.IMAGE_FORMAT_JPEG)
         except Exception:
             pass
         else:
@@ -54,7 +51,7 @@ class OriginalImageMetadataTestCase(unittest.TestCase):
             
     def test_width_should_be_mandatory_at_creation_time(self):
         try:
-            OriginalImageMetadata('MYID12435', domain.STATUS_OK, (None, 600), domain.IMAGE_FORMAT_JPEG)
+            domain.OriginalImageMetadata('MYID12435', domain.STATUS_OK, (None, 600), domain.IMAGE_FORMAT_JPEG)
         except Exception:
             pass
         else:
@@ -62,7 +59,7 @@ class OriginalImageMetadataTestCase(unittest.TestCase):
     
     def test_heiht_should_be_mandatory_at_creation_time(self):
         try:
-            OriginalImageMetadata('MYID12435', domain.STATUS_OK, (800, None), domain.IMAGE_FORMAT_JPEG)
+            domain.OriginalImageMetadata('MYID12435', domain.STATUS_OK, (800, None), domain.IMAGE_FORMAT_JPEG)
         except Exception:
             pass
         else:
@@ -70,14 +67,14 @@ class OriginalImageMetadataTestCase(unittest.TestCase):
     
     def test_format_should_be_mandatory_at_creation_time(self):
         try:
-            OriginalImageMetadata('MYID12435', domain.STATUS_OK, (800, 600), None)
+            domain.OriginalImageMetadata('MYID12435', domain.STATUS_OK, (800, 600), None)
         except Exception:
             pass
         else:
             self.fail()
     
     def test_setting_status_should_update_status_change_date(self):
-        item = OriginalImageMetadata('MYID12435', domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        item = domain.OriginalImageMetadata('MYID12435', domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
         # fuck date by breaking encapsulation
         item._last_status_change_date = datetime.utcnow() - timedelta(1)
         item.status = domain.STATUS_OK

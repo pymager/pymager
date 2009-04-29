@@ -18,8 +18,9 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.imgengine.imageprocessingexception import ImageProcessingException
-class ImageIDAlreadyExistingException(ImageProcessingException):
-    def __init__(self, image_id):
-        super(ImageIDAlreadyExistingException, self).__init__('An image with the given ID already exists in the repository: %s' % image_id)
+from imgserver.imgengine._imageprocessingexception import ImageProcessingException
+  
+class ImageMetadataNotFoundException(ImageProcessingException):
+    def __init__(self,image_id):
+        super(ImageMetadataNotFoundException, self).__init__('Impossible to find any metadata for Image %s' % image_id)
         self.image_id = image_id

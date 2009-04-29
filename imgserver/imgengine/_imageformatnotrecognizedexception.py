@@ -18,13 +18,8 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.domain._abstractimagemetadata import AbstractImageMetadata
-from imgserver.domain._derivedimagemetadata import DerivedImageMetadata
-from imgserver.domain._originalimagemetadata import OriginalImageMetadata
-from imgserver.domain._imagemetadatarepository import ImageMetadataRepository
-from imgserver.domain._imagemetadatarepository import DuplicateEntryException
-# The possible statuses of a domain object
-STATUS_INCONSISTENT = 'INCONSISTENT'
-STATUS_OK = 'OK'
+from imgserver.imgengine._imageprocessingexception import ImageProcessingException
 
-IMAGE_FORMAT_JPEG = 'JPEG'
+class ImageFormatNotRecognizedException(ImageProcessingException):
+    def __init__(self, ex):
+        super(ImageFormatNotRecognizedException, self).__init__(ex)

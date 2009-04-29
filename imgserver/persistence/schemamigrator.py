@@ -25,9 +25,6 @@ from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, 
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
 from zope.interface import Interface, implements
 from imgserver import domain
-from imgserver.domain.abstractimagemetadata import AbstractImageMetadata
-from imgserver.domain.originalimagemetadata import OriginalImageMetadata
-from imgserver.domain.derivedimagemetadata import DerivedImageMetadata
 
 log = logging.getLogger('persistence.persistenceprovider')
 
@@ -144,16 +141,16 @@ class SqlAlchemySchemaMigrator(object):
             Column('original_image_metadata_id', String(255), ForeignKey('original_image_metadata.id', ondelete="CASCADE"))
         )
 
-        mapper(AbstractImageMetadata, abstract_image_metadata, \
+        mapper(domain.AbstractImageMetadata, abstract_image_metadata, \
                polymorphic_on=abstract_image_metadata.c.type, \
                polymorphic_identity='ABSTRACT_ITEM', \
                column_prefix='_') 
-        mapper(OriginalImageMetadata, original_image_metadata, \
-               inherits=AbstractImageMetadata, \
+        mapper(domain.OriginalImageMetadata, original_image_metadata, \
+               inherits=domain.AbstractImageMetadata, \
                polymorphic_identity='ORIGINAL_ITEM', \
                column_prefix='_',
                properties={
-                            'derived_image_metadatas' : relation(DerivedImageMetadata, 
+                            'derived_image_metadatas' : relation(domain.DerivedImageMetadata, 
                                                       primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id,
                                                       cascade='all',
                                                       backref='_original_image_metadata' 
@@ -162,10 +159,10 @@ class SqlAlchemySchemaMigrator(object):
                                                       #                primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id)
                                                       ) 
                            }) 
-        mapper(DerivedImageMetadata, derived_image_metadata, 
+        mapper(domain.DerivedImageMetadata, derived_image_metadata, 
                properties={ 
-                           #'_originalItem' : relation(OriginalImageMetadata, primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id, backref='derived_image_metadatas')
-                           }, inherits=AbstractImageMetadata , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
+                           #'_originalItem' : relation(domain.OriginalImageMetadata, primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id, backref='derived_image_metadatas')
+                           }, inherits=domain.AbstractImageMetadata , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
         mapper(Version, version)
     
     def session_template(self):

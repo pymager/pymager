@@ -18,8 +18,19 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.imgengine.imageprocessingexception import ImageProcessingException
+from imgserver.domain._abstractimagemetadata import AbstractImageMetadata 
 
-class ImageFileNotRecognized(ImageProcessingException):
-    def __init__(self, ex):
-        super(ImageFileNotRecognized, self).__init__(ex)
+class DerivedImageMetadata(AbstractImageMetadata):
+    def __init__(self, status, size, format, original_image_metadata):
+        assert original_image_metadata is not None
+        self._original_image_metadata = original_image_metadata
+        
+        super(DerivedImageMetadata, self).__init__("%s-%sx%s-%s" % (original_image_metadata.id, size[0], size[1], format),status, size, format)
+
+    def get_original_image_metadata(self):
+        return self._original_image_metadata
+    
+    def associated_image_path(self, path_generator):
+        return path_generator.derived_path(self)
+    
+    original_image_metadata = property(get_original_image_metadata, None, None, None)

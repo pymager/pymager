@@ -28,19 +28,11 @@ from zope.interface import Interface, implements
 from imgserver import domain
 from imgserver import persistence
 from imgserver import imgengine
-from imgserver.domain.abstractimagemetadata import AbstractImageMetadata
-from imgserver.domain.originalimagemetadata import OriginalImageMetadata
-from imgserver.domain.derivedimagemetadata import DerivedImageMetadata
-from imgserver.domain.imagemetadatarepository import DuplicateEntryException
 from imgserver.resources.path import Path
 from imgserver.resources import flatpathgenerator
 from imgserver.resources.imageformatmapper import ImageFormatMapper
 from imgserver.resources.pathgenerator import PathGenerator
-from imgserver.imgengine.deleteimagescommand import DeleteImagesCommand
-from imgserver.imgengine.imagefilenotrecognizedexception import ImageFileNotRecognized
-from imgserver.imgengine.imageidalreadyexistingexception import ImageIDAlreadyExistingException
-from imgserver.imgengine.imageprocessingexception import ImageProcessingException
-
+from imgserver.imgengine._deleteimagescommand import DeleteImagesCommand
 LOCK_MAX_RETRIES = 10
 LOCK_WAIT_SECONDS = 1
         
@@ -56,39 +48,35 @@ class IImageRequestProcessor(Interface):
     def get_original_image_path(self, image_id):
         """@return: the relative path of the original image that has the given image_id 
         @rtype: str
-        @raise ItemDoesNotExistError: if image_id does not exist"""
+        @raise imgengine.ImageMetadataNotFoundException: if image_id does not exist"""
         
     def save_file_to_repository(self, file, image_id):
         """ save the given file to the image server repository. 
         It will then be available for transformations
         @param file: either a filename or a file-like object 
         that is opened in binary mode
-        @raise ImageIDAlreadyExistingException 
-        @raise ImageFileNotRecognized
-        @raise ImageProcessingException if unknown exceptions happen during the save process
+        @raise imgengine.ImageIDAlreadyExistsException 
+        @raise imgengine.ImageFormatNotRecognizedException
+        @raise imgengine.ImageProcessingException if unknown exceptions happen during the save process
         """
     
     def prepare_transformation(self, transformationRequest):
         """ Takes an ImageRequest and prepare the output for it. 
         Updates the database so that it is in sync with the filesystem
         @return: the path to the generated file (relative to the data directory)
-        @raise ItemDoesNotExistError: if image_id does not exist
-        @raise ImageProcessingException in case of any non-recoverable error 
+        @raise imgengine.ImageMetadataNotFoundException: if image_id does not exist
+        @raise imgengine.ImageProcessingException in case of any non-recoverable error 
         """
     
     def delete(self, image_id):
         """ Deletes the given item, and its associated item (in the case of an original 
         item that has derived items based on it)
-        @raise ItemDoesNotExistError: if image_id does not exist
+        @raise imgengine.ImageMetadataNotFoundException: if image_id does not exist
         """
     
     def cleanup_inconsistent_items(self):
         """ deletes the files and items whose status is not OK (startup cleanup)"""
 
-class ItemDoesNotExistError(Exception):
-    def __init__(self,image_id):
-        super(ItemDoesNotExistError, self).__init__()
-        self.image_id = image_id
  
 class ImageRequestProcessor(object):
     implements(IImageRequestProcessor)
@@ -123,7 +111,7 @@ class ImageRequestProcessor(object):
             item = pollingCallback()
             i=i+1
         if i == LOCK_MAX_RETRIES:
-            raise ImageProcessingException('Item seems to be locked forever')
+            raise imgengine.ImageProcessingException('Item seems to be locked forever')
     
     def __wait_for_original_image_metadata(self, image_id):
         """ Wait for the given original item to have a status of STATUS_OK """
@@ -131,7 +119,7 @@ class ImageRequestProcessor(object):
     
     def __required_original_image_metadata(self, image_id, original_image_metadata):
         if original_image_metadata is None:
-            raise ItemDoesNotExistError(image_id)
+            raise imgengine.ImageMetadataNotFoundException(image_id)
                     
     def get_original_image_path(self, image_id):
         original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(image_id)
@@ -161,20 +149,20 @@ class ImageRequestProcessor(object):
             img = Image.open(file)
             img.verify()
         except IOError, ex:
-            raise ImageFileNotRecognized(ex)
+            raise imgengine.ImageFormatNotRecognizedException(ex)
         
-        item = OriginalImageMetadata(image_id, domain.STATUS_INCONSISTENT, img.size, img.format)
+        item = domain.OriginalImageMetadata(image_id, domain.STATUS_INCONSISTENT, img.size, img.format)
 
         try:
             # atomic creation
             self.__image_metadata_repository.create(item)
-        except DuplicateEntryException, ex:
-            raise ImageIDAlreadyExistingException(item.id)
+        except domain.DuplicateEntryException, ex:
+            raise imgengine.ImageIDAlreadyExistsException(item.id)
         else:
             try:
                 save(file, item)
             except IOError, ex:
-                raise ImageProcessingException(ex)
+                raise imgengine.ImageProcessingException(ex)
         
         item.status = domain.STATUS_OK
         self.__image_metadata_repository.update(item)
@@ -184,7 +172,7 @@ class ImageRequestProcessor(object):
         self.__required_original_image_metadata(transformationRequest.image_id, original_image_metadata)
         
         self.__wait_for_original_image_metadata(transformationRequest.image_id)
-        derived_image_metadata = DerivedImageMetadata(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.target_format, original_image_metadata)
+        derived_image_metadata = domain.DerivedImageMetadata(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.target_format, original_image_metadata)
         
         cached_filename = self.__path_generator.derived_path(derived_image_metadata).absolute()
         relative_cached_filename = self.__path_generator.derived_path(derived_image_metadata).relative()
@@ -196,7 +184,7 @@ class ImageRequestProcessor(object):
         # otherwise, c'est parti to convert the stuff
         try:
             self.__image_metadata_repository.create(derived_image_metadata)
-        except DuplicateEntryException :
+        except domain.DuplicateEntryException :
             def find():
                 return self.__image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format(original_image_metadata.id, transformationRequest.size, transformationRequest.target_format)
             self.__wait_for_item_status_ok(find)
@@ -205,13 +193,13 @@ class ImageRequestProcessor(object):
         try:
             img = Image.open(self.__path_generator.original_path(original_image_metadata).absolute())
         except IOError, ex: 
-            raise ImageProcessingException(ex)
+            raise imgengine.ImageProcessingException(ex)
         
         if transformationRequest.size == img.size and transformationRequest.target_format.upper() == img.format.upper():
             try:
                 shutil.copyfile(self.__path_generator.original_path(original_image_metadata).absolute(), cached_filename)
             except IOError, ex:
-                raise ImageProcessingException(ex)
+                raise imgengine.ImageProcessingException(ex)
         else:   
             target_image = ImageOps.fit(image=img, 
                                         size=transformationRequest.size, 
@@ -220,7 +208,7 @@ class ImageRequestProcessor(object):
             try:
                 target_image.save(cached_filename)
             except IOError, ex:
-                raise ImageProcessingException(ex)
+                raise imgengine.ImageProcessingException(ex)
         
         derived_image_metadata.status = domain.STATUS_OK
         self.__image_metadata_repository.update(derived_image_metadata)

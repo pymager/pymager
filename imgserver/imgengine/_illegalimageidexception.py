@@ -18,8 +18,9 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.imgengine.imageprocessingexception import ImageProcessingException      
-class IDNotAuthorized(ImageProcessingException):
+from imgserver.imgengine._imageprocessingexception import ImageProcessingException
+  
+class IllegalImageIdException(ImageProcessingException):
     def __init__(self, image_id):
-        super(IDNotAuthorized, self).__init__('ID contains non alpha numeric characters: %s' % (image_id,))
+        super(IllegalImageIdException, self).__init__('ID contains non alpha numeric characters: %s' % (image_id,))
         self.image_id = image_id
