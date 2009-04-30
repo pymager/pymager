@@ -16,17 +16,18 @@
 
     You should have received a copy of the GNU Lesser General Public License
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
-
 """
-from imgserver import domain
+
 from zope.interface import Interface, implements
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
 import logging
 import threading
+from imgserver import persistence
+from imgserver import domain
 
-log = logging.getLogger('persistence.imagemetadatarepository')
+log = logging.getLogger('domain.imagemetadatarepository')
 
 class SqlAlchemyImageMetadataRepository(object):
     implements(domain.ImageMetadataRepository)

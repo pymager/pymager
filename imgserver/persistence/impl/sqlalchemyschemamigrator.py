@@ -19,14 +19,14 @@
 
 """
 import logging
-import threading
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
 from zope.interface import Interface, implements
 from imgserver import domain
+from imgserver import persistence
 
-log = logging.getLogger('persistence.persistenceprovider')
+log = logging.getLogger('persistence.schemamigrator')
 
 class NoUpgradeScriptError(Exception):
     """Thrown when no upgrade script is found for a given schema_version """
@@ -39,90 +39,25 @@ class NoUpgradeScriptError(Exception):
     
     schema_version = property(get_schema_version, None, None, "The ID that lead to the DuplicateEntryException")
 
-class _SessionTemplate(object):
-    """ Simple helper class akin to Spring-JDBC/Hibernate/ORM Template.
-    It doesnt't commit nor releases resources if other do_with_session() calls are pending
-    
-    See http://www.sqlalchemy.org/trac/ticket/1084#comment:3 for suggestions on how to improve this
-    without using a custom threadlocal variable
-     """
-    def __init__(self, sessionmaker):
-        self.__sessionmaker = sessionmaker
-        self.__local = threading.local()
-        
-    def do_with_session(self, session_callback):        
-        session = self.__sessionmaker()
-        self.__local.do_with_session_count = self.__local.do_with_session_count+1 if hasattr(self.__local,'do_with_session_count') and self.__local.do_with_session_count is not None else 1
-        
-        def cleanup_on_exception(f):
-            try:
-                return f()
-            except Exception, ex:
-                del self.__local.do_with_session_count
-                try:
-                    conn = session.connection().invalidate()
-                except sqlalchemy.exceptions.InvalidRequestError:
-                    # ignore the following exception that happens on windows... 
-                    # InvalidRequestError("The transaction is inactive 
-                    # due to a rollback in a subtransaction and should be closed")
-                    #
-                    pass
-                except Exception:
-                    pass
-                #conn.close()
-                session.rollback()
-                session.close()
-                self.__sessionmaker.remove()
-                raise ex
-        
-        def do():
-            o = session_callback(session)
-            count = self.__local.do_with_session_count
-            if count == 1:
-                session.commit()
-                session.close()
-                self.__sessionmaker.remove()
-                del self.__local.do_with_session_count
-            else:
-                self.__local.do_with_session_count = count-1
-            return o
-        
-        return cleanup_on_exception(do)
-    
-    
 class Version(object):
     def __init__(self, name, value):
         self.name = name
         self.value = value
 
-class SchemaMigrator(Interface):
-    """ Manages the Schema, Metadata, and stores references to the Engine and Session Maker """
-    
-    def create_or_upgrade_schema(self):
-        """ Create or Upgrade the database metadata
-        @raise NoUpgradeScriptError: when no upgrade script is found for a given 
-            database schema version """
-            
-    def drop_all_tables(self):
-        """ Drop all tables """
-        
-    def session_template(self):
-        """ Creates a Spring JDBC-like template """
-         
+
 class SqlAlchemySchemaMigrator(object):
-    implements(SchemaMigrator)
-    def __init__(self, dbstring):
-        self.__engine = create_engine(dbstring, encoding='utf-8', echo=False, echo_pool=False, strategy='threadlocal')
+    implements(persistence.SchemaMigrator)
+    def __init__(self, engine, session_template):
+        self.__engine = engine
         self.__metadata = MetaData()
-        self.__sessionmaker = scoped_session(sessionmaker(bind=self.__engine, autoflush=True, transactional=True))
-        self.__template = _SessionTemplate(self.__sessionmaker)
+        self.__template = session_template
         
         version = Table('version', self.__metadata,
             Column('name', String(255), primary_key=True),
             Column('value', Integer)
         )
         
-        abstract_image_metadata = Table('abstract_image_metadata', self.__metadata,
+        abstract_item = Table('abstract_item', self.__metadata,
             Column('id', String(255), primary_key=True),
             Column('status', String(255), index=True, nullable=False),
             Column('last_status_change_date', DateTime, index=True, nullable=False),
@@ -133,16 +68,16 @@ class SqlAlchemySchemaMigrator(object):
         )
         
         original_image_metadata = Table('original_image_metadata', self.__metadata,  
-            Column('id', String(255), ForeignKey('abstract_image_metadata.id'), primary_key=True)
+            Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True)
         )
         
         derived_image_metadata = Table('derived_image_metadata', self.__metadata,
-            Column('id', String(255), ForeignKey('abstract_image_metadata.id'), primary_key=True),
+            Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True),
             Column('original_image_metadata_id', String(255), ForeignKey('original_image_metadata.id', ondelete="CASCADE"))
         )
 
-        mapper(domain.AbstractImageMetadata, abstract_image_metadata, \
-               polymorphic_on=abstract_image_metadata.c.type, \
+        mapper(domain.AbstractImageMetadata, abstract_item, \
+               polymorphic_on=abstract_item.c.type, \
                polymorphic_identity='ABSTRACT_ITEM', \
                column_prefix='_') 
         mapper(domain.OriginalImageMetadata, original_image_metadata, \
@@ -165,8 +100,6 @@ class SqlAlchemySchemaMigrator(object):
                            }, inherits=domain.AbstractImageMetadata , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
         mapper(Version, version)
     
-    def session_template(self):
-        return self.__template;
     
     def drop_all_tables(self):
         self.__metadata.drop_all(self.__engine)

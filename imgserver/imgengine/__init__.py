@@ -23,7 +23,7 @@ from imgserver.imgengine._illegalimageidexception import IllegalImageIdException
 from imgserver.imgengine._imageformatnotrecognizedexception import ImageFormatNotRecognizedException
 from imgserver.imgengine._imageidalreadyexistsexception import ImageIDAlreadyExistsException
 from imgserver.imgengine._imagemetadatanotfoundexception import ImageMetadataNotFoundException
+from imgserver.imgengine.image_transformation_security_decorator import SecurityCheckException
+from imgserver.imgengine._imagerequestprocessor import ImageRequestProcessor
+from imgserver.imgengine._transformationrequest import TransformationRequest
         
-def checkid(image_id):
-    if not image_id.isalnum():
-        raise IllegalImageIdException(image_id)

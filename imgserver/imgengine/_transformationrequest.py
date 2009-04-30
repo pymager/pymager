@@ -18,7 +18,7 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.imgengine import checkid
+from imgserver.imgengine._utils import checkid
 
 class TransformationRequest(object):
     """ Stores the parameters of an image processing request """

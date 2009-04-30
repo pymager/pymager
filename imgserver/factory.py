@@ -25,17 +25,15 @@ from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backre
 from imgserver import imgengine
 from imgserver import persistence
 from imgserver import domain
+from imgserver import resources
 from imgserver.imgengine import image_transformation_security_decorator
-from imgserver.imgengine.transformationrequest import TransformationRequest
-from imgserver.imgengine.imagerequestprocessor import ImageRequestProcessor
-from imgserver.imgengine.imagerequestprocessor import IImageRequestProcessor
-from imgserver.persistence.schemamigrator import SchemaMigrator
-from imgserver.persistence.sqlalchemyschemamigrator import SqlAlchemySchemaMigrator
-from imgserver.persistence.sqlalchemyimagemetadatarepository import SqlAlchemyImageMetadataRepository
-from imgserver.persistence.sessiontemplate import SessionTemplate
+from imgserver.imgengine.impl.defaultimagerequestprocessor import DefaultImageRequestProcessor
+from imgserver.persistence.impl.sqlalchemyschemamigrator import SqlAlchemySchemaMigrator
+from imgserver.persistence.impl.sqlalchemyimagemetadatarepository import SqlAlchemyImageMetadataRepository
+from imgserver.resources.pathgenerator import PathGenerator
 from imgserver.resources.pilimageformatmapper import PilImageFormatMapper
 from imgserver.resources.flatpathgenerator import FlatPathGenerator
-from imgserver.resources.pathgenerator import PathGenerator
+
 
 class ServiceConfiguration(object):
     def __init__(self, data_directory, dburi, allowed_sizes, dev_mode):
@@ -81,17 +79,17 @@ class ImageServerFactory(object):
         return self.__path_generator
     
     def create_image_server(self):
-        self.__image_format_mapper = PilImageFormatMapper()
+        self.__image_format_mapper = resources.ImageFormatMapper(PilImageFormatMapper())
         self.__path_generator = PathGenerator(FlatPathGenerator(self.__image_format_mapper, self.__config.data_directory))
         
         self.__engine = create_engine(self.__config.dburi, encoding='utf-8', echo=False, echo_pool=False) # strategy='threadlocal'
         self.__sessionmaker = scoped_session(sessionmaker(bind=self.__engine, autoflush=True, transactional=True))
-        self.__session_template = SessionTemplate(self.__sessionmaker)
+        self.__session_template = persistence.SessionTemplate(self.__sessionmaker)
         
-        self.__schema_migrator = SchemaMigrator(SqlAlchemySchemaMigrator(self.__engine, self.__session_template))
+        self.__schema_migrator = persistence.SchemaMigrator(SqlAlchemySchemaMigrator(self.__engine, self.__session_template))
         
         self.__image_metadata_repository = domain.ImageMetadataRepository(SqlAlchemyImageMetadataRepository(self.__session_template))
-        self.__image_processor = IImageRequestProcessor(ImageRequestProcessor(self.__image_metadata_repository, self.__path_generator, self.__image_format_mapper, self.__schema_migrator, self.__config.data_directory, self.__session_template, self.__config.dev_mode))
+        self.__image_processor = imgengine.ImageRequestProcessor(DefaultImageRequestProcessor(self.__image_metadata_repository, self.__path_generator, self.__image_format_mapper, self.__schema_migrator, self.__config.data_directory, self.__session_template, self.__config.dev_mode))
         self.__image_processor.prepare_transformation =  image_transformation_security_decorator.image_transformation_security_decorator(self.__config.allowed_sizes)(self.__image_processor.prepare_transformation)
         
         return self.__image_processor

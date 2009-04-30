@@ -27,68 +27,30 @@ import Image, ImageOps
 from zope.interface import Interface, implements
 from imgserver import domain
 from imgserver import persistence
+from imgserver import resources
 from imgserver import imgengine
 from imgserver.resources.path import Path
 from imgserver.resources import flatpathgenerator
 from imgserver.resources.imageformatmapper import ImageFormatMapper
 from imgserver.resources.pathgenerator import PathGenerator
 from imgserver.imgengine._deleteimagescommand import DeleteImagesCommand
+from imgserver.imgengine._utils import checkid
+from imgserver.imgengine._imagerequestprocessor import ImageRequestProcessor
+
 LOCK_MAX_RETRIES = 10
 LOCK_WAIT_SECONDS = 1
-        
-class IImageRequestProcessor(Interface):
-    """ Processes ImageRequest objects and does the required work to prepare the images """
-    
-    def supports_format(self, output_format):
-        """
-        @param output_format: a String that represents an image format (e.g. JPEG) 
-        @return whether the given output_format is supported
-        """
-    
-    def get_original_image_path(self, image_id):
-        """@return: the relative path of the original image that has the given image_id 
-        @rtype: str
-        @raise imgengine.ImageMetadataNotFoundException: if image_id does not exist"""
-        
-    def save_file_to_repository(self, file, image_id):
-        """ save the given file to the image server repository. 
-        It will then be available for transformations
-        @param file: either a filename or a file-like object 
-        that is opened in binary mode
-        @raise imgengine.ImageIDAlreadyExistsException 
-        @raise imgengine.ImageFormatNotRecognizedException
-        @raise imgengine.ImageProcessingException if unknown exceptions happen during the save process
-        """
-    
-    def prepare_transformation(self, transformationRequest):
-        """ Takes an ImageRequest and prepare the output for it. 
-        Updates the database so that it is in sync with the filesystem
-        @return: the path to the generated file (relative to the data directory)
-        @raise imgengine.ImageMetadataNotFoundException: if image_id does not exist
-        @raise imgengine.ImageProcessingException in case of any non-recoverable error 
-        """
-    
-    def delete(self, image_id):
-        """ Deletes the given item, and its associated item (in the case of an original 
-        item that has derived items based on it)
-        @raise imgengine.ImageMetadataNotFoundException: if image_id does not exist
-        """
-    
-    def cleanup_inconsistent_items(self):
-        """ deletes the files and items whose status is not OK (startup cleanup)"""
 
- 
-class ImageRequestProcessor(object):
-    implements(IImageRequestProcessor)
+class DefaultImageRequestProcessor(object):
+    implements(ImageRequestProcessor)
     
     def __init__(self, image_metadata_repository, path_generator, image_format_mapper, schema_migrator, data_directory, session_template, drop_data=False):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
         self.__data_directory = data_directory 
-        self.__image_metadata_repository = image_metadata_repository
-        self.__image_format_mapper = ImageFormatMapper(image_format_mapper)
-        self.__schema_migrator = schema_migrator
-        self.__path_generator = PathGenerator(path_generator)
+        self.__image_metadata_repository = domain.ImageMetadataRepository(image_metadata_repository)
+        self.__image_format_mapper = resources.ImageFormatMapper(image_format_mapper)
+        self.__schema_migrator = persistence.SchemaMigrator(schema_migrator)
+        self.__path_generator = resources.PathGenerator(path_generator)
         self.__session_template = session_template
         
         if drop_data:
@@ -137,7 +99,7 @@ class ImageRequestProcessor(object):
                 shutil.copyfileobj(file, out)
                 out.flush()
 
-        imgengine.checkid(image_id)
+        checkid(image_id)
         
         if type(file) == str:
             save = filename_save_strategy

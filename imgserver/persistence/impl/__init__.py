@@ -18,6 +18,3 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.resources.imageformatmapper import ImageFormatMapper
-from imgserver.resources.path import Path
-from imgserver.resources.pathgenerator import PathGenerator

@@ -18,3 +18,5 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from imgserver.persistence._schemamigrator import SchemaMigrator
+from imgserver.persistence._sessiontemplate import SessionTemplate

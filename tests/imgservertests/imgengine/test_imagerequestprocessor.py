@@ -27,7 +27,6 @@ import exceptions
 from threading import Thread
 from pkg_resources import resource_filename
 from imgserver import imgengine, domain
-from imgserver.imgengine.transformationrequest import TransformationRequest
 from tests.imgservertests.abstractintegrationtestcase import AbstractIntegrationTestCase
 
 #JPG_SAMPLE_IMAGE_FILENAME = os.path.join('..', '..', 'samples', 'sami.jpg')
@@ -86,14 +85,14 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     
     def test_should_not_prepare_transformation_when_id_does_not_exist(self):
         try:
-            request = TransformationRequest('nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)
+            request = imgengine.TransformationRequest('nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)
         except imgengine.ImageMetadataNotFoundException, ex:
             self.assertEquals('nonexisting', ex.image_id)
     
     def test_preparing_transformation_should_update_file_system_and_database(self):
         self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
-        request = TransformationRequest('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
+        request = imgengine.TransformationRequest('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
         result = self._image_server.prepare_transformation(request)
         assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-100x100.jpg')) == True
         
@@ -117,7 +116,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
             self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'item%s' %i)
          
             for size in [(100,100), (200,200), (300,300), (400,400)]:
-                request = TransformationRequest('item%s' % i, size, domain.IMAGE_FORMAT_JPEG)
+                request = imgengine.TransformationRequest('item%s' % i, size, domain.IMAGE_FORMAT_JPEG)
                 self._image_server.prepare_transformation(request)
         
         # now mark 5 of the original items as inconsistent, as well as their associated derived items
@@ -187,8 +186,8 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     def test_deleting_image_should_delete_original_image_and_all_derived_images(self):
         self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
-        self._image_server.prepare_transformation(TransformationRequest('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG))
-        self._image_server.prepare_transformation(TransformationRequest('sampleId', (200,200), domain.IMAGE_FORMAT_JPEG))
+        self._image_server.prepare_transformation(imgengine.TransformationRequest('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG))
+        self._image_server.prepare_transformation(imgengine.TransformationRequest('sampleId', (200,200), domain.IMAGE_FORMAT_JPEG))
         self._image_server.delete('sampleId')
         
         self._sample_original_image_should_not_be_present()
