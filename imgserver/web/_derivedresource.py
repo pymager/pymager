@@ -45,7 +45,7 @@ class DerivedResource(object):
     def default(self, derived_urisegment):
         try:
             derivedItemUrlDecoder = DerivedImageMetadataUrlDecoder(derived_urisegment)
-        except web.UrlDecodingError:
+        except UrlDecodingError:
             raise self.__not_found()
         else:
             request = imgengine.TransformationRequest(
