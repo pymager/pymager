@@ -22,7 +22,7 @@ import os
 import cherrypy
 from imgserver import domain
 from imgserver import imgengine 
-from imgserver.web.derivedimagemetadataurldecoder import DerivedImageMetadataUrlDecoder,UrlDecodingError
+from imgserver import web
 from imgserver.imgengine.imagerequestprocessor import ImageMetadataNotFoundException
 
 
@@ -44,8 +44,8 @@ class DerivedResource(object):
     @cherrypy.expose
     def default(self, derived_urisegment):
         try:
-            derivedItemUrlDecoder = DerivedImageMetadataUrlDecoder(derived_urisegment)
-        except UrlDecodingError:
+            derivedItemUrlDecoder = web.DerivedImageMetadataUrlDecoder(derived_urisegment)
+        except web.UrlDecodingError:
             raise self.__not_found()
         else:
             request = imgengine.TransformationRequest(

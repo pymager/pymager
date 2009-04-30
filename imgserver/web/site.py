@@ -20,7 +20,7 @@
 """
 import shutil
 
-from imgserver.factory import ImageServerFactory, ServiceConfiguration
+from imgserver.bootstrap import ImageServerFactory, ServiceConfiguration
 from imgserver.web.toplevelresource import TopLevelResource
 import imgserver.config
 
