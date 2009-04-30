@@ -20,7 +20,7 @@
 
 """
 from imgserver import config
-from imgserver.web.site import create_site
+from imgserver import web
 import cherrypy
 import os
 
@@ -28,7 +28,7 @@ cherrypy.config.update(config.parse_config(__file__, config.GLOBAL_CONFIG_FILENA
 imgserver_config = config.parse_config(__file__, config.IMGSERVER_CONFIG_FILENAME)
 
 application = cherrypy.tree.mount(
-    create_site(
+    web.create_site(
         imgserver_config['imgserver']), 
         "", 
     imgserver_config)

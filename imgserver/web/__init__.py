@@ -18,5 +18,7 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.web._derivedimagemetadataurldecoder import DerivedImageMetadataUrlDecoder
-from imgserver.web._derivedimagemetadataurldecoder import UrlDecodingError
+
+def create_site(*args, **kwargs):
+    from imgserver.web._site import create_site
+    create_site(*args, **kwargs)

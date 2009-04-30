@@ -22,7 +22,6 @@ import unittest
 from datetime import datetime, timedelta
 from imgserver import domain
 from tests.imgservertests import assertionutils
-
     
 class DerivedImageMetadataTestCase(unittest.TestCase):
     
