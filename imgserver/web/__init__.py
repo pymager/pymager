@@ -21,4 +21,4 @@
 
 def create_site(*args, **kwargs):
     from imgserver.web._site import create_site
-    create_site(*args, **kwargs)
+    return create_site(*args, **kwargs)
