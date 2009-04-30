@@ -1,5 +1,5 @@
 from zope.interface import Interface, implements
-from imgserver.resources.imageformatmapper import ImageFormatMapper
+from imgserver import resources
 
 SUPPORTED_FORMATS = ["BMP", "EPS", "GIF", "IM", "JPEG", "MSP", "PALM", "PCX", "PDF", "PNG", "PPM", "TIFF", "XBM", "XV"]
 FORMATS_TO_EXTENSIONS = { "JPEG" : "jpg" }
@@ -11,7 +11,7 @@ for f in FORMATS_TO_EXTENSIONS:
     
 
 class PilImageFormatMapper(object):
-    implements(ImageFormatMapper)
+    implements(resources.ImageFormatMapper)
     def __init__(self):
         pass
     

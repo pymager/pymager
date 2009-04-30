@@ -30,10 +30,8 @@ from imgserver.imgengine import image_transformation_security_decorator
 from imgserver.imgengine.impl.defaultimagerequestprocessor import DefaultImageRequestProcessor
 from imgserver.persistence.impl.sqlalchemyschemamigrator import SqlAlchemySchemaMigrator
 from imgserver.persistence.impl.sqlalchemyimagemetadatarepository import SqlAlchemyImageMetadataRepository
-from imgserver.resources.pathgenerator import PathGenerator
-from imgserver.resources.pilimageformatmapper import PilImageFormatMapper
-from imgserver.resources.flatpathgenerator import FlatPathGenerator
-
+from imgserver.resources.impl.pilimageformatmapper import PilImageFormatMapper
+from imgserver.resources.impl.flatpathgenerator import FlatPathGenerator
 
 class ServiceConfiguration(object):
     def __init__(self, data_directory, dburi, allowed_sizes, dev_mode):
@@ -80,7 +78,7 @@ class ImageServerFactory(object):
     
     def create_image_server(self):
         self.__image_format_mapper = resources.ImageFormatMapper(PilImageFormatMapper())
-        self.__path_generator = PathGenerator(FlatPathGenerator(self.__image_format_mapper, self.__config.data_directory))
+        self.__path_generator = resources.PathGenerator(FlatPathGenerator(self.__image_format_mapper, self.__config.data_directory))
         
         self.__engine = create_engine(self.__config.dburi, encoding='utf-8', echo=False, echo_pool=False) # strategy='threadlocal'
         self.__sessionmaker = scoped_session(sessionmaker(bind=self.__engine, autoflush=True, transactional=True))
