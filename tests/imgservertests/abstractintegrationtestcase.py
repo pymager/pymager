@@ -19,8 +19,7 @@
 
 """
 import unittest
-from imgserver import factory
-from imgserver.factory import ServiceConfiguration
+from imgserver import bootstrap
 import sqlalchemy 
 import os, shutil
  
@@ -34,13 +33,13 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         unittest.TestCase.setUp(self)
         sqlalchemy.orm.clear_mappers()
         
-        config = ServiceConfiguration(
+        config = bootstrap.ServiceConfiguration(
             data_directory=AbstractIntegrationTestCase.DATA_DIRECTORY, 
             dburi=AbstractIntegrationTestCase.SAURI, 
             allowed_sizes=[(100*i,100*i) for i in range(1,9)],
             dev_mode= True)
         
-        self._imageServerFactory = factory.ImageServerFactory(config)
+        self._imageServerFactory = bootstrap.ImageServerFactory(config)
         self._image_server = self._imageServerFactory.create_image_server()
         self._image_metadata_repository = self._imageServerFactory.image_metadata_repository        
     

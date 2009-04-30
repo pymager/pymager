@@ -29,13 +29,10 @@ from imgserver import domain
 from imgserver import persistence
 from imgserver import resources
 from imgserver import imgengine
-from imgserver.resources.path import Path
-from imgserver.resources import flatpathgenerator
-from imgserver.resources.imageformatmapper import ImageFormatMapper
-from imgserver.resources.pathgenerator import PathGenerator
 from imgserver.imgengine._deleteimagescommand import DeleteImagesCommand
 from imgserver.imgengine._utils import checkid
 from imgserver.imgengine._imagerequestprocessor import ImageRequestProcessor
+from imgserver.resources.impl import flatpathgenerator
 
 LOCK_MAX_RETRIES = 10
 LOCK_WAIT_SECONDS = 1
@@ -208,8 +205,8 @@ class DefaultImageRequestProcessor(object):
         if not os.path.exists(self.__data_directory):
             os.makedirs(self.__data_directory)
         for directory in \
-            [Path(self.__data_directory).append(flatpathgenerator.CACHE_DIRECTORY).absolute(), 
-             Path(self.__data_directory).append(flatpathgenerator.ORIGINAL_DIRECTORY).absolute()]:
+            [resources.Path(self.__data_directory).append(flatpathgenerator.CACHE_DIRECTORY).absolute(), 
+             resources.Path(self.__data_directory).append(flatpathgenerator.ORIGINAL_DIRECTORY).absolute()]:
             if not os.path.exists(directory):
                 os.makedirs(directory)    
     def __init_data(self):
