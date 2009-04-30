@@ -23,8 +23,6 @@ import cherrypy
 from imgserver import domain
 from imgserver import imgengine 
 from imgserver import web
-from imgserver.imgengine.imagerequestprocessor import ImageMetadataNotFoundException
-
 
 from cherrypy.lib.static import serve_file
 
@@ -54,7 +52,7 @@ class DerivedResource(object):
                         derivedItemUrlDecoder.format)
             try:
                 relative_path = self.__image_processor.prepare_transformation(request)
-            except ImageMetadataNotFoundException:
+            except imgengine.ImageMetadataNotFoundException:
                 raise self.__not_found()
             except imgengine.SecurityCheckException:
                 raise cherrypy.HTTPError(status=403, message="The requested image transformation is not allowed (%sx%s)" % (derivedItemUrlDecoder.width,derivedItemUrlDecoder.height))
