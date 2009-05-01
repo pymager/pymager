@@ -12,7 +12,7 @@ HTTP Error Codes that are returned
 * 400 
  - {original} Unsupported Format (POST)
  - DEV: {original} Invalid Multipart request (POST) : only for dev, should never happen if client is coded properly
- - DEV/TODO: {derived} Invalid requested format (GET) (TODO: not implemented yet) : only for dev, should never happen if client does not allow requesting unknown image formats
+ - DEV: {derived} Invalid requested format (GET) : only for dev, should never happen if client does not allow requesting unknown image formats
  - DEPRECATED: {original} Supplied ID does not use the correct ID format (POST) (FIXME: should disappear) : should never happen if client API checks ID format before submitting
 * 403
  - Resize characteristics not allowed (GET)
