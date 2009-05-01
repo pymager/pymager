@@ -18,8 +18,23 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.imgengine._imageprocessingexception import ImageProcessingException
+from zope.interface import Interface, implements
+from imgserver import resources
 
-class ImageFormatNotRecognizedException(ImageProcessingException):
-    def __init__(self, ex):
-        super(ImageFormatNotRecognizedException, self).__init__(ex)
+class FakeImageFormatMapper(object):
+    implements(resources.ImageFormatMapper)
+    def __init__(self):
+        pass
+    
+    def supports_format(self, format):
+        return True
+    
+    def supports_extension(self, extension):
+        return True
+    
+    def extension_to_format(self, extension):
+        return 'JPEG'
+    
+    def format_to_extension(self, format):
+        return 'jpg'
+    

@@ -22,25 +22,36 @@ import exceptions
 import unittest
 from imgserver.web._derivedimagemetadataurldecoder import DerivedImageMetadataUrlDecoder
 from imgserver.web._derivedimagemetadataurldecoder import UrlDecodingError
+from tests.imgservertests import resources as testresources
+import mox
+from mox import IgnoreArg
 
 class DerivedImageMetadataUrlDecoderTestCase(unittest.TestCase):
+    def setUp(self):
+        self.mox = mox.Mox()
         
     def test_should_decode_url_segment(self):
-        url_segment = 'item123-800x600.JPEG'
-        decoded = DerivedImageMetadataUrlDecoder(url_segment)
+        url_segment = 'item123-800x600.jpg'
+        decoded = DerivedImageMetadataUrlDecoder(testresources.FakeImageFormatMapper(), url_segment)
         self.assertEqual('item123', decoded.itemid)
         self.assertEqual(800, decoded.width)
         self.assertEqual(600, decoded.height)
         self.assertEqual('JPEG', decoded.format)
     
-    def test_format_should_be_uppercased(self):
-        url_segment = 'item123-800x600.jpeg'
-        decoded = DerivedImageMetadataUrlDecoder(url_segment)
+    def test_format_should_be_retrieved_using_image_mapper(self):
+        image_mapper = self.mox.CreateMockAnything()
+        image_mapper.__conform__(IgnoreArg()).InAnyOrder().AndReturn(image_mapper)
+        image_mapper.extension_to_format("jpg").InAnyOrder().AndReturn("JPEG")
+        self.mox.ReplayAll()
+        
+        url_segment = 'item123-800x600.jpg'
+        decoded = DerivedImageMetadataUrlDecoder(image_mapper, url_segment)
         self.assertEqual('JPEG', decoded.format)
+        self.mox.VerifyAll()
     
     def test_should_detect_bad_url(self):
         try:
-            decoded = DerivedImageMetadataUrlDecoder('item123800x600.jpg')
+            decoded = DerivedImageMetadataUrlDecoder(testresources.FakeImageFormatMapper(), 'item123800x600.jpg')
             self.fail()
         except UrlDecodingError:
             pass

@@ -117,7 +117,7 @@ class OriginalResource(object):
             self.__image_processor.save_file_to_repository(theFile.file, image_id)
         except imgengine.ImageIDAlreadyExistsException:
             raise cherrypy.HTTPError(status=409, message="Image ID Already Exists")
-        except imgengine.ImageFormatNotRecognizedException:
+        except imgengine.ImageStreamNotRecognizedException:
             raise cherrypy.HTTPError(status=400, message="Unknown Image Format")
         except imgengine.IllegalImageIdException:
             raise cherrypy.HTTPError(status=400, message="Image ID is invalid")

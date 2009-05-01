@@ -29,34 +29,41 @@ from imgserver.web._derivedimagemetadataurldecoder import UrlDecodingError
 from cherrypy.lib.static import serve_file
 
 class DerivedResource(object):
-    def __init__(self, config, image_processor):
+    def __init__(self, config, image_processor, image_format_mapper):
         super(DerivedResource, self).__init__()
         self.__config = config
         self.__image_processor = image_processor
+        self._image_format_mapper = image_format_mapper
     
     def __not_found(self):
         return cherrypy.NotFound(cherrypy.request.path_info)
     
     @cherrypy.expose
     def index(self):
-        return "Original Resource!"
+        return "Derived Resource!"
     
     @cherrypy.expose
     def default(self, derived_urisegment):
         try:
-            derivedItemUrlDecoder = DerivedImageMetadataUrlDecoder(derived_urisegment)
+            derivedItemUrlDecoder = DerivedImageMetadataUrlDecoder(self._image_format_mapper, derived_urisegment)
         except UrlDecodingError:
             raise self.__not_found()
         else:
-            request = imgengine.TransformationRequest(
-                        derivedItemUrlDecoder.itemid, 
-                        (derivedItemUrlDecoder.width,derivedItemUrlDecoder.height),
-                        derivedItemUrlDecoder.format)
             try:
-                relative_path = self.__image_processor.prepare_transformation(request)
-            except imgengine.ImageMetadataNotFoundException:
-                raise self.__not_found()
-            except imgengine.SecurityCheckException:
-                raise cherrypy.HTTPError(status=403, message="The requested image transformation is not allowed (%sx%s)" % (derivedItemUrlDecoder.width,derivedItemUrlDecoder.height))
-            path = os.path.join(self.__config.data_directory,relative_path)
-            return serve_file(path)
+                request = imgengine.TransformationRequest(
+                            self._image_format_mapper,
+                            derivedItemUrlDecoder.itemid, 
+                            (derivedItemUrlDecoder.width,derivedItemUrlDecoder.height),
+                            derivedItemUrlDecoder.format)
+            except imgengine.ImageFormatNotSupportedException, e:
+                print e.image_format
+                raise cherrypy.HTTPError(status=400, message="The requested image format is Invalid: %s" % (e.image_format))
+            else:
+                try:
+                    relative_path = self.__image_processor.prepare_transformation(request)
+                except imgengine.ImageMetadataNotFoundException:
+                    raise self.__not_found()
+                except imgengine.SecurityCheckException:
+                    raise cherrypy.HTTPError(status=403, message="The requested image transformation is not allowed (%sx%s)" % (derivedItemUrlDecoder.width,derivedItemUrlDecoder.height))
+                path = os.path.join(self.__config.data_directory,relative_path)
+                return serve_file(path)

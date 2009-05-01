@@ -41,10 +41,8 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         self._image_metadata_repository = self._imageServerFactory.image_metadata_repository
         self._schema_migrator = self._imageServerFactory.schema_migrator
         self._template = self._imageServerFactory.session_template
-   
-    def test_jpg_should_be_supported(self):
-        self.assertTrue(self._image_server.supports_format('JPEG'))
-        
+        self._image_format_mapper = self._imageServerFactory.image_format_mapper
+
     def test_image_id_should_only_contain_alphanumeric_characters(self):
         try:
             self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId-')
@@ -54,7 +52,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     def test_should_not_save_broken_image(self):
         try:
             self._image_server.save_file_to_repository(BROKEN_IMAGE_FILENAME, 'sampleId')
-        except imgengine.ImageFormatNotRecognizedException, ex:
+        except imgengine.ImageStreamNotRecognizedException, ex:
             pass
     
     def test_should_not_save_image_with_existing_id(self):
@@ -85,14 +83,14 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     
     def test_should_not_prepare_transformation_when_id_does_not_exist(self):
         try:
-            request = imgengine.TransformationRequest('nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)
+            request = imgengine.TransformationRequest(self._image_format_mapper, 'nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)
         except imgengine.ImageMetadataNotFoundException, ex:
             self.assertEquals('nonexisting', ex.image_id)
     
     def test_preparing_transformation_should_update_file_system_and_database(self):
         self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
-        request = imgengine.TransformationRequest('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
+        request = imgengine.TransformationRequest(self._image_format_mapper, 'sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
         result = self._image_server.prepare_transformation(request)
         assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-100x100.jpg')) == True
         
@@ -116,7 +114,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
             self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'item%s' %i)
          
             for size in [(100,100), (200,200), (300,300), (400,400)]:
-                request = imgengine.TransformationRequest('item%s' % i, size, domain.IMAGE_FORMAT_JPEG)
+                request = imgengine.TransformationRequest(self._image_format_mapper, 'item%s' % i, size, domain.IMAGE_FORMAT_JPEG)
                 self._image_server.prepare_transformation(request)
         
         # now mark 5 of the original items as inconsistent, as well as their associated derived items
@@ -186,8 +184,8 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     def test_deleting_image_should_delete_original_image_and_all_derived_images(self):
         self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
-        self._image_server.prepare_transformation(imgengine.TransformationRequest('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG))
-        self._image_server.prepare_transformation(imgengine.TransformationRequest('sampleId', (200,200), domain.IMAGE_FORMAT_JPEG))
+        self._image_server.prepare_transformation(imgengine.TransformationRequest(self._image_format_mapper, 'sampleId', (100,100), domain.IMAGE_FORMAT_JPEG))
+        self._image_server.prepare_transformation(imgengine.TransformationRequest(self._image_format_mapper, 'sampleId', (200,200), domain.IMAGE_FORMAT_JPEG))
         self._image_server.delete('sampleId')
         
         self._sample_original_image_should_not_be_present()

@@ -3,12 +3,6 @@ from zope.interface import Interface, implements
 class ImageRequestProcessor(Interface):
     """ Processes ImageRequest objects and does the required work to prepare the images """
     
-    def supports_format(self, output_format):
-        """
-        @param output_format: a String that represents an image format (e.g. JPEG) 
-        @return whether the given output_format is supported
-        """
-    
     def get_original_image_path(self, image_id):
         """@return: the relative path of the original image that has the given image_id 
         @rtype: str
@@ -20,7 +14,7 @@ class ImageRequestProcessor(Interface):
         @param file: either a filename or a file-like object 
         that is opened in binary mode
         @raise imgengine.ImageIDAlreadyExistsException 
-        @raise imgengine.ImageFormatNotRecognizedException
+        @raise imgengine.ImageStreamNotRecognizedException
         @raise imgengine.ImageProcessingException if unknown exceptions happen during the save process
         """
     

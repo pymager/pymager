@@ -24,19 +24,21 @@ from imgserver.bootstrap import ImageServerFactory, ServiceConfiguration
 from imgserver.web._toplevelresource import TopLevelResource
 import imgserver.config
 
-def _init_imageprocessor(config):    
-    f = ImageServerFactory(config)
-    imageProcessor = \
-        f.create_image_server()
-    #imageProcessor = \
+image_server_factory = None
+
+def _init_imageprocessor(config):
+    global image_server_factory
+    image_server_factory = ImageServerFactory(config)
+    image_request_processor = image_server_factory.create_image_server()
+    #image_request_processor = \
     #    f.create_image_server(
     #        site_config.data_directory, 
     #        'postgres://imgserver:funala@localhost/imgserver',
     #        [(100,100), (800,600)], True)
     from pkg_resources import resource_filename
     if config.dev_mode:
-        imageProcessor.save_file_to_repository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
-    return imageProcessor
+        image_request_processor.save_file_to_repository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
+    return image_request_processor
 
 # allowed_sizes=[(100,100), (800,600)]
 def create_site(config):
@@ -46,5 +48,5 @@ def create_site(config):
         allowed_sizes=config['allowed_sizes'] if (config.__contains__('allowed_sizes')) else None,
         dev_mode= config['dev_mode'] if (config.__contains__('dev_mode')) else False)
     imgserver.config.set_app_config(app_config)
-    top_level_resource = TopLevelResource(app_config, _init_imageprocessor(app_config))
+    top_level_resource = TopLevelResource(app_config, _init_imageprocessor(app_config), image_server_factory.image_format_mapper)
     return top_level_resource 

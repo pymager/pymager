@@ -19,6 +19,7 @@
 
 """
 import re
+from imgserver import resources
 
 # itemId-800x600.jpg
 FILENAME_REGEX = re.compile(r'([a-zA-Z\d]+)\-(\d+)x(\d+)\.([a-zA-Z]+)')
@@ -28,13 +29,14 @@ class UrlDecodingError(Exception):
         self.url_segment = url_segment
 
 class DerivedImageMetadataUrlDecoder(object):
-    def __init__(self, url_segment):
+    def __init__(self, image_format_mapper, url_segment):
         super(DerivedImageMetadataUrlDecoder, self).__init__()
+        self._image_format_mapper = resources.ImageFormatMapper(image_format_mapper)
         match = FILENAME_REGEX.match(url_segment)
         if match and len(match.groups()) == 4:
             self.itemid = match.group(1)
             self.width = int(match.group(2))
             self.height = int(match.group(3))
-            self.format = match.group(4).upper()
+            self.format = self._image_format_mapper.extension_to_format(match.group(4))
         else:
             raise UrlDecodingError(url_segment)

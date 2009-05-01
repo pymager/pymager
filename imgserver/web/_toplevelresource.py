@@ -31,11 +31,11 @@ class TopLevelResource(object):
         'error_page.404': resource_filename('imgserver.web.templates', 'error-default.html'),
         'error_page.409': resource_filename('imgserver.web.templates', 'error-default.html')
     }
-    def __init__(self, app_config, image_processor):
+    def __init__(self, app_config, image_processor, image_format_mapper):
         self.__config = app_config
         self.__image_processor = image_processor
         self.original = OriginalResource(app_config, image_processor)
-        self.derived = DerivedResource(app_config, image_processor)
+        self.derived = DerivedResource(app_config, image_processor, image_format_mapper)
     
     @cherrypy.expose
     def index(self):

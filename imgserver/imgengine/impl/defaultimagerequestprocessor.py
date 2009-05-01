@@ -108,7 +108,7 @@ class DefaultImageRequestProcessor(object):
             img = Image.open(file)
             img.verify()
         except IOError, ex:
-            raise imgengine.ImageFormatNotRecognizedException(ex)
+            raise imgengine.ImageStreamNotRecognizedException(ex)
         
         item = domain.OriginalImageMetadata(image_id, domain.STATUS_INCONSISTENT, img.size, img.format)
 

@@ -18,4 +18,9 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from tests.imgservertests.resources.fake_image_format_mapper import FakeImageFormatMapper
+from imgserver.imgengine._imageprocessingexception import ImageProcessingException
+
+class ImageFormatNotSupportedException(ImageProcessingException):
+    def __init__(self, image_format):
+        super(ImageFormatNotSupportedException, self).__init__("Image Format Not Supported: %s" % (image_format,))
+        self.image_format = image_format

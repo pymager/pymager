@@ -19,13 +19,20 @@
 
 """
 from imgserver.imgengine._utils import checkid
+from imgserver.imgengine._imageformatnotsupportedexception import ImageFormatNotSupportedException 
+
+from imgserver.resources import ImageFormatMapper
 
 class TransformationRequest(object):
     """ Stores the parameters of an image processing request """
-    def __init__(self, image_id, size, target_format):
+    def __init__(self, image_format_mapper, image_id, size, target_format):
         """ @param size: a (width, height) tuple
+            @raise ImageFormatNotSupportedException: when the given format is not supported by the underlying image_format_mapper
         """
+        self._image_format_mapper = ImageFormatMapper(image_format_mapper)
         checkid(image_id)
+        if not self._image_format_mapper.supports_format(target_format):
+            raise ImageFormatNotSupportedException(target_format)
         
         self.image_id = image_id
         self.size = size

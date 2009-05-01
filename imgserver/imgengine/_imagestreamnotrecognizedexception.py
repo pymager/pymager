@@ -18,4 +18,8 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from tests.imgservertests.resources.fake_image_format_mapper import FakeImageFormatMapper
+from imgserver.imgengine._imageprocessingexception import ImageProcessingException
+
+class ImageStreamNotRecognizedException(ImageProcessingException):
+    def __init__(self, ex):
+        super(ImageStreamNotRecognizedException, self).__init__(ex)
