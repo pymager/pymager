@@ -20,5 +20,5 @@ setup(
     include_package_data = True,
     data_files = [('etc', ['etc/imgserver-cherrypy.conf', 'etc/imgserver.conf'])],
     test_suite= "nose.collector",
-	install_requires = ['PIL >= 1.1.6','SQLAlchemy == 0.4.8', 'CherryPy == 3.0.2', 'zope.interface >= 3.4.0', 'nose >= 0.10.4', 'mox >= 0.5.0', 'pysqlite >= 2.5.5'],
+	install_requires = ['PIL >= 1.1.6','SQLAlchemy == 0.4.8', 'CherryPy == 3.0.2', 'zope.interface >= 3.4.0', 'nose >= 0.10.4', 'mox >= 0.5.0'],
 )
