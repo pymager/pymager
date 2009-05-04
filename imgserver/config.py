@@ -75,11 +75,19 @@ def parse_config(current_python_filename, filename):
     confdirs = config_directories(os.path.dirname(current_python_filename))
     for confdir in confdirs:
         try:
-             return cherrypy._cpconfig._Parser().dict_from_file(os.path.join(confdir, filename))
+            parsed_config = cherrypy._cpconfig._Parser().dict_from_file(os.path.join(confdir, filename))
+            _enforce_default_config(parsed_config)
+            return parsed_config
         except IOError, e:
             pass
     raise ConfigFileNotFoundError(confdirs)
 
+def _enforce_default_config(parsed_config):
+    root_config = parsed_config['/'] if '/' in parsed_config else {}
+    root_config['tools.trailing_slash.on'] = False
+    root_config['request.dispatch'] = cherrypy.dispatch.MethodDispatcher()
+    parsed_config['/'] = root_config
+    
 def set_app_config(app_config):
     global _app_config
     _app_config = app_config
