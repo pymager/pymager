@@ -20,7 +20,7 @@ HTTP Error Codes that are returned
  - {original, derived} Resource does not exist (GET, DELETE) 
  - DEV: {derived} URL decoding error (GET) : should never happen if client generates URLs correctly
 * 405
- - TODO: {original, derived}: the supported method is not authorized (e.g. DELETE issues on derived/) (TODO: not implemented yet) : should never happen as clients are not supposed to expose more than is currently available
+ - DEV: {original, derived}: the supported method is not authorized (e.g. DELETE issues on derived/) should never happen as clients are not supposed to expose more than is currently available
 * 409 
  - Image ID already exists (POST)
 * 500
