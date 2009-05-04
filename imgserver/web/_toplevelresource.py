@@ -37,6 +37,6 @@ class TopLevelResource(object):
         self.original = OriginalResource(app_config, image_processor)
         self.derived = DerivedResource(app_config, image_processor, image_format_mapper)
     
-    @cherrypy.expose
-    def index(self):
-        return "Top Level"
+    #@cherrypy.expose
+    #def index(self):
+    #    return "Top Level"

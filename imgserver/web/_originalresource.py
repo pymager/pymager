@@ -37,7 +37,7 @@ def disable_body_processing():
     """Sets cherrypy.request.process_request_body = False, giving
     us direct control of the file upload destination. By default
     cherrypy loads it to memory, we are directing it to disk."""
-    if cherrypy.request.method in ('POST', 'DELETE'):
+    if cherrypy.request.method in ('POST', 'PUT'):
         cherrypy.request.process_request_body = False
 
 def enable_basic_auth():
@@ -48,6 +48,7 @@ def enable_basic_auth():
             m.update(password)
             return m.hexdigest()
         return {'test': md5pass('test')}
+    #if config.app_config().dev_mode:
     if cherrypy.request.method in ('POST','DELETE', 'PUT') and config.app_config().dev_mode:
         cherrypy.tools.basic_auth.callable(realm = BASIC_AUTH_REALM, users = fetch_users)
 
@@ -55,31 +56,30 @@ cherrypy.tools.disable_body_processing = cherrypy.Tool('before_request_body', di
 cherrypy.tools.enable_basic_auth = cherrypy.Tool('before_request_body', enable_basic_auth)
 
 class OriginalResource(object):
+    exposed = True
+    _cp_config = {
+        'tools.disable_body_processing.on' : True,
+        'tools.enable_basic_auth.on' : True
+    }
     def __init__(self, app_config, image_processor):
         super(OriginalResource, self).__init__()
         self.__app_config = app_config
         self.__image_processor = image_processor
         
-    @cherrypy.expose
-    def index(self):
-        return "Original Resource!"
+    #@cherrypy.expose
+    #def index(self):
+    #    return "Original Resource!"
     
-    @cherrypy.expose
-    @cherrypy.tools.enable_basic_auth()
-    @cherrypy.tools.disable_body_processing()
-    def default(self, *args, **kwargs):
-        dispatch_method_name = 'default_%s' %(cherrypy.request.method) 
-        return (getattr(self, dispatch_method_name) if hasattr(self, dispatch_method_name) else (lambda: None))(*args, **kwargs)  
-    
-    def default_DELETE(self, image_id):
-        try:
-            self.__image_processor.delete(image_id)
-        except imgengine.ImageMetadataNotFoundException:
-            raise cherrypy.NotFound(cherrypy.request.path_info)
-    
+    #@cherrypy.expose
+    #@cherrypy.tools.enable_basic_auth()
+    #@cherrypy.tools.disable_body_processing()
+    #def default(self, *args, **kwargs):
+    #    dispatch_method_name = 'default_%s' %(cherrypy.request.method) 
+    #    return (getattr(self, dispatch_method_name) if hasattr(self, dispatch_method_name) else (lambda: None))(*args, **kwargs)  
+   
     # http://tools.cherrypy.org/wiki/DirectToDiskFileUpload
     # @cherrypy.expose
-    def default_GET(self, image_id):
+    def GET(self, image_id):
         try:
             relative_path = self.__image_processor.get_original_image_path(image_id)
         except imgengine.ImageMetadataNotFoundException:
@@ -88,7 +88,17 @@ class OriginalResource(object):
             path = os.path.join(self.__app_config.data_directory,relative_path)
             return serve_file(path)
     
-    def default_POST(self, image_id):
+    #@cherrypy.tools.enable_basic_auth()
+    #@cherrypy.tools.disable_body_processing()
+    def DELETE(self, image_id):
+        try:
+            self.__image_processor.delete(image_id)
+        except imgengine.ImageMetadataNotFoundException:
+            raise cherrypy.NotFound(cherrypy.request.path_info)
+        
+    #@cherrypy.tools.enable_basic_auth()
+    #@cherrypy.tools.disable_body_processing()
+    def POST(self, image_id):
         """ See http://tools.cherrypy.org/wiki/DirectToDiskFileUpload 
         """
         cherrypy.response.timeout = 3600

@@ -29,6 +29,8 @@ from imgserver.web._derivedimagemetadataurldecoder import UrlDecodingError
 from cherrypy.lib.static import serve_file
 
 class DerivedResource(object):
+    exposed = True
+
     def __init__(self, config, image_processor, image_format_mapper):
         super(DerivedResource, self).__init__()
         self.__config = config
@@ -38,12 +40,12 @@ class DerivedResource(object):
     def __not_found(self):
         return cherrypy.NotFound(cherrypy.request.path_info)
     
-    @cherrypy.expose
-    def index(self):
-        return "Derived Resource!"
+    #@cherrypy.expose
+    #def index(self):
+    #    return "Derived Resource!"
     
-    @cherrypy.expose
-    def default(self, derived_urisegment):
+    #@cherrypy.expose
+    def GET(self, derived_urisegment):
         try:
             derivedItemUrlDecoder = DerivedImageMetadataUrlDecoder(self._image_format_mapper, derived_urisegment)
         except UrlDecodingError:

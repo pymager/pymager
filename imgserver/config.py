@@ -86,7 +86,9 @@ def _enforce_default_config(parsed_config):
     root_config = parsed_config['/'] if '/' in parsed_config else {}
     root_config['tools.trailing_slash.on'] = False
     root_config['request.dispatch'] = cherrypy.dispatch.MethodDispatcher()
+    #root_config['request.process_request_body'] = False
     parsed_config['/'] = root_config
+    
     
 def set_app_config(app_config):
     global _app_config
