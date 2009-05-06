@@ -26,9 +26,9 @@ from tests.imgservertests.abstractintegrationtestcase import AbstractIntegration
 class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
     
     def onSetUp(self):
-        self._itemRepository = self._imageServerFactory.image_metadata_repository 
-        self._schema_migrator = self._imageServerFactory.schema_migrator
-        self._template = self._imageServerFactory.session_template
+        self._itemRepository = self._image_server_factory.image_metadata_repository 
+        self._schema_migrator = self._image_server_factory.schema_migrator
+        self._template = self._image_server_factory.session_template
     
     def test_should_not_find_original_image_metadata_because_of_unknown_id(self):
         assert self._itemRepository.find_original_image_metadata_by_id('anyId') is None

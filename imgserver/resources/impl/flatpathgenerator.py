@@ -18,8 +18,10 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+import hashlib
 from zope.interface import implements
 from imgserver import resources
+
 
 CACHE_DIRECTORY = "cache"
 ORIGINAL_DIRECTORY = "pictures"
@@ -34,8 +36,12 @@ class FlatPathGenerator(object):
         return self.__image_format_mapper.format_to_extension(format)
     
     def original_path(self, original_image_metadata):
-        return resources.Path(self.__data_directory).append(ORIGINAL_DIRECTORY).append('%s.%s' % (original_image_metadata.id, self.__extension_for_format(original_image_metadata.format)))
+        return resources.Path(self.__data_directory).append(ORIGINAL_DIRECTORY).append('%s.%s' % (self._hash(original_image_metadata.id), self.__extension_for_format(original_image_metadata.format)))
     
     def derived_path(self, derived_image_metadata):
-        return resources.Path(self.__data_directory).append(CACHE_DIRECTORY).append('%s-%sx%s.%s' % (derived_image_metadata.original_image_metadata.id, derived_image_metadata.size[0], derived_image_metadata.size[1],self.__extension_for_format(derived_image_metadata.format)))
+        return resources.Path(self.__data_directory).append(CACHE_DIRECTORY).append('%s-%sx%s.%s' % (self._hash(derived_image_metadata.original_image_metadata.id), derived_image_metadata.size[0], derived_image_metadata.size[1],self.__extension_for_format(derived_image_metadata.format)))
    
+    def _hash(self, image_id):
+        h = hashlib.sha1()
+        h.update(image_id)
+        return h.hexdigest()

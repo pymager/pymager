@@ -25,6 +25,9 @@ class Path(object):
         self.__reference_directory = reference_directory
         self.__path_elements = path_elements
     
+    def parent_directory(self):
+        return Path(self.__reference_directory, self.__path_elements[:-1])
+    
     def absolute(self):
         return os.path.join(self.__reference_directory, *self.__path_elements)
     
@@ -33,4 +36,7 @@ class Path(object):
 
     def append(self, path_element):
         return Path(self.__reference_directory, self.__path_elements + [path_element])
+    
+    def appendall(self, path_elements):
+        return Path(self.__reference_directory, self.__path_elements + path_elements)
     

@@ -39,9 +39,9 @@ class AbstractIntegrationTestCase(unittest.TestCase):
             allowed_sizes=[(100*i,100*i) for i in range(1,9)],
             dev_mode= True)
         
-        self._imageServerFactory = bootstrap.ImageServerFactory(config)
-        self._image_server = self._imageServerFactory.create_image_server()
-        self._image_metadata_repository = self._imageServerFactory.image_metadata_repository        
+        self._image_server_factory = bootstrap.ImageServerFactory(config)
+        self._image_server = self._image_server_factory.create_image_server()
+        self._image_metadata_repository = self._image_server_factory.image_metadata_repository        
     
         (getattr(self, 'onSetUp') if hasattr(self, 'onSetUp') else (lambda: None))()  
         
@@ -49,7 +49,7 @@ class AbstractIntegrationTestCase(unittest.TestCase):
     def tearDown(self):
         unittest.TestCase.tearDown(self)
         (getattr(self, 'onTearDown') if hasattr(self, 'onTearDown') else (lambda: None))()
-        self._imageServerFactory = None
+        self._image_server_factory = None
         self._image_server = None
         self._image_metadata_repository = None
         self._schema_migrator = None

@@ -38,10 +38,11 @@ JPG_SAMPLE_IMAGE_SIZE = (3264, 2448)
 class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     
     def onSetUp(self):
-        self._image_metadata_repository = self._imageServerFactory.image_metadata_repository
-        self._schema_migrator = self._imageServerFactory.schema_migrator
-        self._template = self._imageServerFactory.session_template
-        self._image_format_mapper = self._imageServerFactory.image_format_mapper
+        self._image_metadata_repository = self._image_server_factory.image_metadata_repository
+        self._schema_migrator = self._image_server_factory.schema_migrator
+        self._template = self._image_server_factory.session_template
+        self._image_format_mapper = self._image_server_factory.image_format_mapper
+        self._path_generator = self._image_server_factory.path_generator
 
     def test_image_id_should_only_contain_alphanumeric_characters(self):
         try:
@@ -52,38 +53,42 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
     def test_should_not_save_broken_image(self):
         try:
             self._image_server.save_file_to_repository(BROKEN_IMAGE_FILENAME, 'sampleId')
+            self.fail()
         except imgengine.ImageStreamNotRecognizedException, ex:
             pass
     
     def test_should_not_save_image_with_existing_id(self):
         self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         try:
-            self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')    
+            self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
+            self.fail()    
         except imgengine.ImageIDAlreadyExistsException, ex:
             assert ex.image_id == 'sampleId'
     
     def test_saving_image_should_update_file_system_and_database(self):
         self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
-        self._sample_file_should_be_saved_correctly()
+        original_image_metadata = self._image_metadata_repository.find_original_image_metadata_by_id('sampleId')
+        assert original_image_metadata is not None
+        assert original_image_metadata.id == 'sampleId'
+        assert original_image_metadata.format == domain.IMAGE_FORMAT_JPEG
+        assert original_image_metadata.size == JPG_SAMPLE_IMAGE_SIZE
+        assert original_image_metadata.status == domain.STATUS_OK
         
-        item = self._image_metadata_repository.find_original_image_metadata_by_id('sampleId')
-        assert item is not None
-        assert item.id == 'sampleId'
-        assert item.format == domain.IMAGE_FORMAT_JPEG
-        assert item.size == JPG_SAMPLE_IMAGE_SIZE
-        assert item.status == domain.STATUS_OK
+        self._original_image_should_exist(original_image_metadata)
     
     
     def test_save_image_should_accept_file_like_object_as_image_source(self):
         with open(JPG_SAMPLE_IMAGE_FILENAME, 'rb') as fobj:
             self._image_server.save_file_to_repository(fobj, 'sampleId')
             
-        self._sample_file_should_be_saved_correctly()
+        self._original_image_should_exist(self._image_metadata_repository.find_original_image_metadata_by_id('sampleId'))
     
     def test_should_not_prepare_transformation_when_id_does_not_exist(self):
         try:
             request = imgengine.TransformationRequest(self._image_format_mapper, 'nonexisting', (100,100), domain.IMAGE_FORMAT_JPEG)
+            self._image_server.prepare_transformation(request)
+            self.fail()
         except imgengine.ImageMetadataNotFoundException, ex:
             self.assertEquals('nonexisting', ex.image_id)
     
@@ -92,23 +97,26 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         
         request = imgengine.TransformationRequest(self._image_format_mapper, 'sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
         result = self._image_server.prepare_transformation(request)
-        assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-100x100.jpg')) == True
         
-        item = self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
-        assert item is not None
-        assert item.id == 'sampleId-100x100-JPEG'
-        assert item.format == domain.IMAGE_FORMAT_JPEG
-        assert item.size == (100,100)
-        assert item.status == domain.STATUS_OK
-        assert item.original_image_metadata.id == 'sampleId'
+        derived_image_metadata = self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
+        assert derived_image_metadata is not None
+        self.assertEquals('sampleId-100x100-JPEG', derived_image_metadata.id)
+        self.assertEquals(domain.IMAGE_FORMAT_JPEG, derived_image_metadata.format)
+        self.assertEquals((100,100), derived_image_metadata.size)
+        self.assertEquals(domain.STATUS_OK, derived_image_metadata.status)
+        self.assertEquals('sampleId', derived_image_metadata.original_image_metadata.id)
         
-        # result should be consistent across calls (caching..)
-        result2 = self._image_server.prepare_transformation(request)
-        assert result == os.path.join('cache', 'sampleId-100x100.jpg')
-        assert result2 == os.path.join('cache', 'sampleId-100x100.jpg')
+        self._derived_image_should_exist(derived_image_metadata)
     
-    def test_cleanup_should_delete_inconsistent_original_and_derived_image_metadatas(self):
+    def test_prepare_transformation_should_always_return_the_same_path(self):
+        self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
         
+        request = imgengine.TransformationRequest(self._image_format_mapper, 'sampleId', (100,100), domain.IMAGE_FORMAT_JPEG)
+        result = self._image_server.prepare_transformation(request)
+        result2 = self._image_server.prepare_transformation(request)
+        self.assertEquals(result, result2)
+    
+    def test_cleanup_should_delete_inconsistent_original_and_derived_image_metadatas(self):    
         # create 10 original items and 4 derived items per original items 
         for i in range(1,11):
             self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'item%s' %i)
@@ -141,28 +149,33 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
             self._image_metadata_repository.update(item)
         
         self._image_server.cleanup_inconsistent_items()
-        
-        # items 1 to 5 should not exist anymore (DB and file)
+
         for i in range(1,6):
-            item = self._image_metadata_repository.find_original_image_metadata_by_id('item%s' % i)
-            assert item is None
-            assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'item%s.jpg' %(i))) == False
+            self._original_image_should_not_exist(self._image_metadata_repository.find_original_image_metadata_by_id('item%s' % i))
         
-        # items 6 to 10 should still be OK
         for i in range(6,11):
-            item = self._image_metadata_repository.find_original_image_metadata_by_id('item%s' % i)
-            assert item is not None
-            assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'item%s.jpg' %(i))) 
+            self._original_image_should_exist(self._image_metadata_repository.find_original_image_metadata_by_id('item%s' % i))
         
-        # a few Derived Items that should be KO
-        assert self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (100,100),domain.IMAGE_FORMAT_JPEG) is None
-        assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'item6-100x100.jpg')) == False
-        assert self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (200,200),domain.IMAGE_FORMAT_JPEG) is None
-        assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'item6-200x200.jpg')) == False
+        self._derived_image_should_not_exist(self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (100,100),domain.IMAGE_FORMAT_JPEG))
+        self._derived_image_should_not_exist(self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (200,200),domain.IMAGE_FORMAT_JPEG))       
+        self._derived_image_should_exist(self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item7', (200,200),domain.IMAGE_FORMAT_JPEG))         
+   
+    def _original_image_should_not_exist(self, original_image_metadata):
+        assert original_image_metadata is None
+        #self.assertFalse(os.path.exists(self._path_generator.original_path(original_image_metadata).absolute())) 
         
-        # a few Derived Items that should be OK
-        assert self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item7', (200,200),domain.IMAGE_FORMAT_JPEG) is not None
-        assert os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'item7-200x200.jpg')) == True
+    def _original_image_should_exist(self, original_image_metadata):
+        assert original_image_metadata is not None
+        self.assertTrue(os.path.exists(self._path_generator.original_path(original_image_metadata).absolute())) 
+        
+    def _derived_image_should_not_exist(self, derived_image_metadata):
+        assert derived_image_metadata is None
+        #self.assertFalse(os.path.exists(self._path_generator.derived_path(derived_image_metadata).absolute())) 
+    
+    def _derived_image_should_exist(self, derived_image_metadata):
+        assert derived_image_metadata is not None
+        self.assertTrue(os.path.exists(self._path_generator.derived_path(derived_image_metadata).absolute())) 
+    
     
     def test_should_return_original_image_path(self):
         self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId')
@@ -193,14 +206,11 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         self._sample_200x200_image_should_not_be_present()
     
     def _sample_original_image_should_not_be_present(self):
-        self.assertFalse(os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'pictures', 'sampleId.jpg')))
         assert self._image_metadata_repository.find_original_image_metadata_by_id('sampleId') is None
             
     def _sample_100x100_image_should_not_be_present(self):
-        self.assertFalse(os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-100x100.jpg')))
         assert self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('sampleId', (100,100), domain.IMAGE_FORMAT_JPEG) is None
     
     def _sample_200x200_image_should_not_be_present(self):
-        self.assertFalse(os.path.exists(os.path.join(AbstractIntegrationTestCase.DATA_DIRECTORY, 'cache', 'sampleId-200x200.jpg')))
         assert self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('sampleId', (200,200), domain.IMAGE_FORMAT_JPEG) is None
                   

@@ -56,9 +56,6 @@ class DefaultImageRequestProcessor(object):
         self.__init_data()
         self.cleanup_inconsistent_items()
     
-    def supports_format(self, output_format):
-        return self.__image_format_mapper.supports_format(output_format)
-        
     def __wait_for_item_status_ok(self, pollingCallback):
         """ Wait for the status property of the object returned by pollingCallback() to be STATUS_OK
         It honors LOCK_MAX_RETRIES and LOCK_WAIT_SECONDS
@@ -119,6 +116,9 @@ class DefaultImageRequestProcessor(object):
             raise imgengine.ImageIDAlreadyExistsException(item.id)
         else:
             try:
+                image_directory = self.__path_generator.original_path(item).parent_directory().absolute()
+                if not os.path.exists(image_directory):
+                    os.makedirs(image_directory)
                 save(file, item)
             except IOError, ex:
                 raise imgengine.ImageProcessingException(ex)
@@ -165,6 +165,9 @@ class DefaultImageRequestProcessor(object):
                                         method=Image.ANTIALIAS,
                                         centering=(0.5,0.5)) 
             try:
+                cached_filename_directory = self.__path_generator.derived_path(derived_image_metadata).parent_directory().absolute()
+                if not os.path.exists(cached_filename_directory):
+                    os.makedirs(cached_filename_directory)
                 target_image.save(cached_filename)
             except IOError, ex:
                 raise imgengine.ImageProcessingException(ex)
@@ -210,5 +213,5 @@ class DefaultImageRequestProcessor(object):
             if not os.path.exists(directory):
                 os.makedirs(directory)    
     def __init_data(self):
-        self.__init_directories()
+        #self.__init_directories()
         self.__schema_migrator.create_or_upgrade_schema()

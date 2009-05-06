@@ -36,8 +36,8 @@ def _init_imageprocessor(config):
     #        'postgres://imgserver:funala@localhost/imgserver',
     #        [(100,100), (800,600)], True)
     from pkg_resources import resource_filename
-    if config.dev_mode:
-        image_request_processor.save_file_to_repository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
+    #if config.dev_mode:
+    #    image_request_processor.save_file_to_repository(resource_filename('imgserver.samples', 'sami.jpg'),'sami')
     return image_request_processor
 
 # allowed_sizes=[(100,100), (800,600)]
