@@ -18,7 +18,6 @@
     along with ImgServer.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-from imgserver.imgengine._utils import checkid
 from imgserver.imgengine._imageformatnotsupportedexception import ImageFormatNotSupportedException 
 
 from imgserver.resources import ImageFormatMapper
@@ -30,7 +29,6 @@ class TransformationRequest(object):
             @raise ImageFormatNotSupportedException: when the given format is not supported by the underlying image_format_mapper
         """
         self._image_format_mapper = ImageFormatMapper(image_format_mapper)
-        checkid(image_id)
         if not self._image_format_mapper.supports_format(target_format):
             raise ImageFormatNotSupportedException(target_format)
         

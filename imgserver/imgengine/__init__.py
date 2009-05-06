@@ -20,7 +20,6 @@
 """
 from imgserver.imgengine._imageprocessingexception import ImageProcessingException
 from imgserver.imgengine._imageformatnotsupportedexception import ImageFormatNotSupportedException 
-from imgserver.imgengine._illegalimageidexception import IllegalImageIdException
 from imgserver.imgengine._imagestreamnotrecognizedexception import ImageStreamNotRecognizedException
 from imgserver.imgengine._imageidalreadyexistsexception import ImageIDAlreadyExistsException
 from imgserver.imgengine._imagemetadatanotfoundexception import ImageMetadataNotFoundException

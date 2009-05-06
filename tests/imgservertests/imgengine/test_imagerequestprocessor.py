@@ -43,12 +43,6 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
         self._template = self._image_server_factory.session_template
         self._image_format_mapper = self._image_server_factory.image_format_mapper
         self._path_generator = self._image_server_factory.path_generator
-
-    def test_image_id_should_only_contain_alphanumeric_characters(self):
-        try:
-            self._image_server.save_file_to_repository(JPG_SAMPLE_IMAGE_FILENAME, 'sampleId-')
-        except imgengine.IllegalImageIdException, ex:
-            assert ex.image_id == 'sampleId-'
     
     def test_should_not_save_broken_image(self):
         try:

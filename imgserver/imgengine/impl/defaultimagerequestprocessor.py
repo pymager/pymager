@@ -30,7 +30,6 @@ from imgserver import persistence
 from imgserver import resources
 from imgserver import imgengine
 from imgserver.imgengine._deleteimagescommand import DeleteImagesCommand
-from imgserver.imgengine._utils import checkid
 from imgserver.imgengine._imagerequestprocessor import ImageRequestProcessor
 from imgserver.resources.impl import flatpathgenerator
 
@@ -93,8 +92,6 @@ class DefaultImageRequestProcessor(object):
                 shutil.copyfileobj(file, out)
                 out.flush()
 
-        checkid(image_id)
-        
         if type(file) == str:
             save = filename_save_strategy
         else:
