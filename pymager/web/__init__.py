@@ -18,3 +18,7 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+
+def create_site(*args, **kwargs):
+    from pymager.web._site import create_site
+    return create_site(*args, **kwargs)

@@ -18,3 +18,6 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from pymager.resources._imageformatmapper import ImageFormatMapper
+from pymager.resources._path import Path
+from pymager.resources._pathgenerator import PathGenerator

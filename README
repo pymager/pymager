@@ -5,7 +5,7 @@ Run unit tests to make sure everything's fine
 $ python setup.py test
 
 Run the service
-$ python imgserver.py 
+$ python pymager.py 
 
 
 HTTP Error Codes that are returned

@@ -1,8 +1,8 @@
 <IfModule mod_wsgi.c>
-	WSGIScriptAlias /imgserver /srv/wsgi/imgserver.wsgi
+	WSGIScriptAlias /pymager /srv/wsgi/pymager.wsgi
 	# WSGIRestrictStdout Off
 
-	<Location "/imgserver">
+	<Location "/pymager">
 		AuthName "Non-Public features"
 		AuthType Basic
 		AuthUserFile /srv/wsgi/htpasswd

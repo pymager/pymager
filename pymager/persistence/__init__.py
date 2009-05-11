@@ -18,3 +18,5 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from pymager.persistence._schemamigrator import SchemaMigrator
+from pymager.persistence._sessiontemplate import SessionTemplate

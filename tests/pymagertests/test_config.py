@@ -18,3 +18,15 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from pymager import config
+import unittest
+
+class ConfigTestCase(unittest.TestCase):
+    
+    def test_should_contain_six_elements(self):
+        dirs = config.config_directories('bla')
+        assert dirs is not None
+        self.assertEquals(6, len(dirs))
+        # not sure what to test besides copy/pasting the logic of the function itself..
+        
+        

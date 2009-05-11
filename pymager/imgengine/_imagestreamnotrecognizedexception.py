@@ -18,3 +18,8 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from pymager.imgengine._imageprocessingexception import ImageProcessingException
+
+class ImageStreamNotRecognizedException(ImageProcessingException):
+    def __init__(self, ex):
+        super(ImageStreamNotRecognizedException, self).__init__(ex)

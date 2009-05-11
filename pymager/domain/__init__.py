@@ -18,3 +18,13 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from pymager.domain._abstractimagemetadata import AbstractImageMetadata
+from pymager.domain._derivedimagemetadata import DerivedImageMetadata
+from pymager.domain._originalimagemetadata import OriginalImageMetadata
+from pymager.domain._imagemetadatarepository import ImageMetadataRepository
+from pymager.domain._imagemetadatarepository import DuplicateEntryException
+# The possible statuses of a domain object
+STATUS_INCONSISTENT = 'INCONSISTENT'
+STATUS_OK = 'OK'
+
+IMAGE_FORMAT_JPEG = 'JPEG'

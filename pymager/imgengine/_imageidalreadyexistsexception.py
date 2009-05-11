@@ -18,3 +18,9 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from pymager.imgengine._imageprocessingexception import ImageProcessingException
+
+class ImageIDAlreadyExistsException(ImageProcessingException):
+    def __init__(self, image_id):
+        super(ImageIDAlreadyExistsException, self).__init__('An image with the given ID already exists in the repository: %s' % image_id)
+        self.image_id = image_id

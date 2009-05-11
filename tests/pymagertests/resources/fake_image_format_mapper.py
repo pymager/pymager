@@ -18,3 +18,23 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from zope.interface import Interface, implements
+from pymager import resources
+
+class FakeImageFormatMapper(object):
+    implements(resources.ImageFormatMapper)
+    def __init__(self):
+        pass
+    
+    def supports_format(self, format):
+        return True
+    
+    def supports_extension(self, extension):
+        return True
+    
+    def extension_to_format(self, extension):
+        return 'JPEG'
+    
+    def format_to_extension(self, format):
+        return 'jpg'
+    

@@ -1,8 +1,8 @@
 # copy the WSGI scripts in a place with read-only access for apache 
 sudo mkdir /srv/wsgi
-sudo cp srv/imgserver-cherrypy.conf /srv/wsgi
-sudo cp srv/imgserver.conf /srv/wsgi
-sudo cp srv/imgserver.wsgi /srv/wsgi
+sudo cp srv/pymager-cherrypy.conf /srv/wsgi
+sudo cp srv/pymager.conf /srv/wsgi
+sudo cp srv/pymager.wsgi /srv/wsgi
 # create the list users that are able to upload new images
 sudo htpasswd -c /srv/wsgi/htpasswd sirika
 ...
@@ -12,12 +12,12 @@ sudo chmod 640 /srv/wsgi/htpasswd
 
 # create a work directory where apache with read+write access for apache
 sudo mkdir /srv/data
-sudo mkdir /srv/data/imgserver
+sudo mkdir /srv/data/pymager
 sudo setfacl -m g:www-data:r-x /srv/data
-sudo setfacl -m g:www-data:rwx /srv/data/imgserver
-sudo setfacl -d -m g:www-data:rwx /srv/data/imgserver
+sudo setfacl -m g:www-data:rwx /srv/data/pymager
+sudo setfacl -d -m g:www-data:rwx /srv/data/pymager
 
-# install the imgserver and apache 
+# install the pymager and apache 
 cd ..
 sudo python setup.py install --prefix /usr/local
 sudo apt-get install libapache2-mod-wsgi
@@ -26,4 +26,4 @@ sudo cp etc_apache_conf.d_wsgi /etc/apache2/conf.d/wsgi
 
 # You can now tweak the settings 
 vi /etc/apache2/conf.d/wsgi
-vi /srv/wsgi/imgserver.conf
+vi /srv/wsgi/pymager.conf

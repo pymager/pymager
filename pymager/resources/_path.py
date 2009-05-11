@@ -18,3 +18,25 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+import os
+
+class Path(object):
+    def __init__(self, reference_directory, path_elements=[]):
+        self.__reference_directory = reference_directory
+        self.__path_elements = path_elements
+    
+    def parent_directory(self):
+        return Path(self.__reference_directory, self.__path_elements[:-1])
+    
+    def absolute(self):
+        return os.path.join(self.__reference_directory, *self.__path_elements)
+    
+    def relative(self):
+        return os.path.join(*self.__path_elements)
+
+    def append(self, path_element):
+        return Path(self.__reference_directory, self.__path_elements + [path_element])
+    
+    def appendall(self, path_elements):
+        return Path(self.__reference_directory, self.__path_elements + path_elements)
+    

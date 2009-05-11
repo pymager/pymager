@@ -18,3 +18,7 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+class ImageProcessingException(Exception):
+    """Thrown when errors happen while processing images """
+    def __init__(self, message):
+        super(ImageProcessingException, self).__init__(message)

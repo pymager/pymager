@@ -18,3 +18,9 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from pymager.imgengine._imageprocessingexception import ImageProcessingException
+
+class ImageFormatNotSupportedException(ImageProcessingException):
+    def __init__(self, image_format):
+        super(ImageFormatNotSupportedException, self).__init__("Image Format Not Supported: %s" % (image_format,))
+        self.image_format = image_format

@@ -18,3 +18,11 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from zope.interface import Interface, implements
+
+class PathGenerator(Interface):
+    def original_path(self, original_image_metadata):
+        """returns a Path object for the given original item"""
+    
+    def derived_path(self, derived_image_metadata):
+        """ returns a Path object for the given derived item"""

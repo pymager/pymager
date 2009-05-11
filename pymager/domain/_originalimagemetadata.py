@@ -18,3 +18,12 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from pymager.domain._abstractimagemetadata import AbstractImageMetadata
+
+class OriginalImageMetadata(AbstractImageMetadata):
+    def __init__(self, itemId, status, size, format):
+        assert itemId is not None
+        super(OriginalImageMetadata, self).__init__(itemId, status, size, format)
+    
+    def associated_image_path(self, path_generator):
+        return path_generator.original_path(self)

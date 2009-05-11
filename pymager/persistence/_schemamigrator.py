@@ -18,3 +18,19 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from zope.interface import Interface, implements
+
+class SchemaMigrator(Interface):
+    """ Manages the Schema, Metadata, and stores references to the Engine and Session Maker """
+    
+    def create_or_upgrade_schema(self):
+        """ Create or Upgrade the database metadata
+        @raise NoUpgradeScriptError: when no upgrade script is found for a given 
+            database schema version """
+            
+    def drop_all_tables(self):
+        """ Drop all tables """
+        
+    def session_template(self):
+        """ Creates a Spring JDBC-like template """
+         

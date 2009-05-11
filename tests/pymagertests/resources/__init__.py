@@ -18,3 +18,4 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+from tests.pymagertests.resources.fake_image_format_mapper import FakeImageFormatMapper
