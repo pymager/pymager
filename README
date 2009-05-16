@@ -1,3 +1,12 @@
+Features
+========
+* Ability to resize and serve any picture supported by PIL
+* HTTP caching support (If-Modified-since / Last-Modified header, + Apache mod_headers)
+* Supports all databases supported by SQL Alchemy
+* can be deployed standalone (for development purposes) as well as behind Apache using mod_wsgi
+* RESTful interface, URLs, and returns HTTP Error codes (see error codes below)
+* Is supposed to handle locking correctly in case of pending requests for the same not-yet-processed derived image
+
 Install Dependencies
 $ sudo apt-get install python2.5 python-imaging python-sqlalchemy python-pysqlite2 python-psycopg2 python-zopeinterface python-twisted-core python-twisted-web2 python-setuptools python-pkg-resources
 
@@ -9,6 +18,7 @@ $ python pymager.py
 
 
 HTTP Error Codes that are returned
+* 304 : (resource not modified)
 * 400 
  - {original} Unsupported Format (POST)
  - DEV: {original} Invalid Multipart request (POST) : only for dev, should never happen if client is coded properly
@@ -25,3 +35,9 @@ HTTP Error Codes that are returned
  - Image ID already exists (POST)
 * 500
  - various, unexpected errors (IO exceptions, etc..)
+
+ 
+What is not tested automatically (using integration or unit tests)
+* everything that is in Apache WSGi configuration (Authentication, Caching, etc..)
+* The image resize algorithm (whether it expands the image correctly, shrinks it correctly, etc..)
+* 

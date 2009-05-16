@@ -24,6 +24,9 @@ sudo apt-get install libapache2-mod-wsgi
 
 sudo cp etc_apache_conf.d_wsgi /etc/apache2/conf.d/wsgi
 
+# enable apache mod-headers
+/etc/apache2/mods-enabled$ sudo ln -s ../mods-available/headers.load ./
+
 # You can now tweak the settings 
 vi /etc/apache2/conf.d/wsgi
 vi /srv/wsgi/pymager.conf

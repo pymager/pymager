@@ -6,7 +6,11 @@
 		AuthName "Non-Public features"
 		AuthType Basic
 		AuthUserFile /srv/wsgi/htpasswd
-		
+		# Use the following line for unlimited caching by the browsers and proxies
+		Header add "Cache-Control" "public, max-age=86400"
+		# Use the following lines to prevent caching
+		# Header add "Cache-Control" "no-cache, max-age=0"
+		# Header add "Expires" "-1"
 		<Limit POST PUT DELETE>
 			require valid-user	
 		</Limit>
