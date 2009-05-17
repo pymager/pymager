@@ -19,6 +19,7 @@ sudo setfacl -d -m g:www-data:rwx /srv/data/pymager
 
 # install the pymager and apache 
 cd ..
+# FIXME: is there a better way (e.g. virtualenv..) ?
 sudo python setup.py install --prefix /usr/local
 sudo apt-get install libapache2-mod-wsgi
 
@@ -29,4 +30,17 @@ sudo cp etc_apache_conf.d_wsgi /etc/apache2/conf.d/wsgi
 
 # You can now tweak the settings 
 vi /etc/apache2/conf.d/wsgi
-vi /srv/wsgi/pymager.conf
+Ti /srv/wsgi/pymager.conf
+
+# To deploy it on postgres, for example :
+ create role pymager LOGIN PASSWORD 'pymager';
+ create database pymager with owner=pymager encoding='UTF8' tablespace=pg_default;
+and change etc/pymager.conf accordingly
+
+# Version-control the database
+cd migration
+python pymager_db/manage.py version_control postgres://pymager:pymager@localhost/pymager
+
+# upgrade the database
+python pymager_db/manage.py upgrade postgres://pymager:pymager@localhost/pymager
+

@@ -8,14 +8,14 @@ Features
 * Is supposed to handle locking correctly in case of pending requests for the same not-yet-processed derived image
 
 Install Dependencies
-$ sudo apt-get install python2.5 python-imaging python-sqlalchemy python-pysqlite2 python-psycopg2 python-zopeinterface python-twisted-core python-twisted-web2 python-setuptools python-pkg-resources
+$ sudo apt-get install python2.5 python-imaging python-sqlalchemy python-psycopg2 \ 
+  python-zopeinterface python-cherrypy3 python-setuptools python-pkg-resources python-nose python-mox
 
 Run unit tests to make sure everything's fine
 $ python setup.py test
 
-Run the service
-$ python pymager.py 
-
+Run the service in standalone mode
+$ python pymager-standalone.py 
 
 HTTP Error Codes that are returned
 * 304 : (resource not modified)

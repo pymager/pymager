@@ -1,6 +1,0 @@
-- ajouter le support de la deletion
-- nettoyer les conventoins de nommage
-- sortir une strategie sur l'acces au disk pour etre capable de mettre les images dans des sous repertoires
-- enlever les restrictions ASCII sur les IDs
-- convertir des images originales
-- informations sur les images (ID, exif data, file size, ...)
