@@ -20,7 +20,7 @@
 """
 import logging
 import sqlalchemy
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
+from sqlalchemy import create_engine, Table, Column, Integer, String, Unicode, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
 from zope.interface import Interface, implements
 from pymager import domain

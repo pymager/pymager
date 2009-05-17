@@ -36,8 +36,21 @@ HTTP Error Codes that are returned
 * 500
  - various, unexpected errors (IO exceptions, etc..)
 
- 
+Returned headers
+- Allowed methods (when 405)
+- Last-Modified
+- Content-Type (FIXME: is it returned ?)
+
+= Interface =
+/original/<ID>
+/derived/<ID>-<width>x<height>.<extension>
+
+- ID should match ([\w_-]+)\-(\d+)x(\d+)\.([a-zA-Z]+)
+- width and height should be integers (allowed sizes are configurable in pymager configuration file)
+- 
+
+
 What is not tested automatically (using integration or unit tests)
 * everything that is in Apache WSGi configuration (Authentication, Caching, etc..)
 * The image resize algorithm (whether it expands the image correctly, shrinks it correctly, etc..)
-* 
+* content type header of served file

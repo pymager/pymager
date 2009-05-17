@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
     PyMager RESTful Image Conversion Service 
     Copyright (C) 2008 Sami Dalouche
@@ -37,6 +38,29 @@ class DerivedImageMetadataUrlDecoderTestCase(unittest.TestCase):
         self.assertEqual(800, decoded.width)
         self.assertEqual(600, decoded.height)
         self.assertEqual('JPEG', decoded.format)
+        
+    def test_should_decode_url_segment_when_id_contains_hyphens(self):
+        url_segment = 'a-complex-id-with-hyphens-800x600.jpg'
+        decoded = DerivedImageMetadataUrlDecoder(testresources.FakeImageFormatMapper(), url_segment)
+        self.assertEqual('a-complex-id-with-hyphens', decoded.itemid)
+        self.assertEqual(800, decoded.width)
+        self.assertEqual(600, decoded.height)
+        self.assertEqual('JPEG', decoded.format)
+    
+    def test_should_decode_url_segment_when_id_contains_underscores(self):
+        url_segment = 'a_complex_id_with_underscores-800x600.jpg'
+        decoded = DerivedImageMetadataUrlDecoder(testresources.FakeImageFormatMapper(), url_segment)
+        self.assertEqual('a_complex_id_with_underscores', decoded.itemid)
+        self.assertEqual(800, decoded.width)
+        self.assertEqual(600, decoded.height)
+        self.assertEqual('JPEG', decoded.format)
+    
+    def test_should_not_decode_url_segment_when_id_contains_non_ascii_characters(self):
+        try:
+            DerivedImageMetadataUrlDecoder(testresources.FakeImageFormatMapper(), 'éèàâùû-800x600.jpg')
+            self.fail()
+        except UrlDecodingError:
+            pass
     
     def test_format_should_be_retrieved_using_image_mapper(self):
         image_mapper = self.mox.CreateMockAnything()

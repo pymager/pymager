@@ -22,7 +22,7 @@ import re
 from pymager import resources
 
 # itemId-800x600.jpg
-FILENAME_REGEX = re.compile(r'([a-zA-Z\d]+)\-(\d+)x(\d+)\.([a-zA-Z]+)')
+FILENAME_REGEX = re.compile(r'([\w_-]+)\-(\d+)x(\d+)\.([a-zA-Z]+)')
 
 class UrlDecodingError(Exception):
     def __init__(self, url_segment):
