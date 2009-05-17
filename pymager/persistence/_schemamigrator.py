@@ -23,10 +23,8 @@ from zope.interface import Interface, implements
 class SchemaMigrator(Interface):
     """ Manages the Schema, Metadata, and stores references to the Engine and Session Maker """
     
-    def create_or_upgrade_schema(self):
-        """ Create or Upgrade the database metadata
-        @raise NoUpgradeScriptError: when no upgrade script is found for a given 
-            database schema version """
+    def create_schema(self):
+        """ Create  the database metadata """
             
     def drop_all_tables(self):
         """ Drop all tables """

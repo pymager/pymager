@@ -39,7 +39,7 @@ LOCK_WAIT_SECONDS = 1
 class DefaultImageRequestProcessor(object):
     implements(ImageRequestProcessor)
     
-    def __init__(self, image_metadata_repository, path_generator, image_format_mapper, schema_migrator, data_directory, session_template, drop_data=False):
+    def __init__(self, image_metadata_repository, path_generator, image_format_mapper, schema_migrator, data_directory, session_template, dev_mode=False):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
         self.__data_directory = data_directory 
@@ -48,8 +48,9 @@ class DefaultImageRequestProcessor(object):
         self.__schema_migrator = persistence.SchemaMigrator(schema_migrator)
         self.__path_generator = resources.PathGenerator(path_generator)
         self.__session_template = session_template
+        self._dev_mode = dev_mode
         
-        if drop_data:
+        if self._dev_mode:
             self.__drop_data()
         
         self.__init_data()
@@ -211,4 +212,6 @@ class DefaultImageRequestProcessor(object):
                 os.makedirs(directory)    
     def __init_data(self):
         #self.__init_directories()
-        self.__schema_migrator.create_or_upgrade_schema()
+        if self._dev_mode:
+            self.__schema_migrator.drop_all_tables()
+            self.__schema_migrator.create_schema()

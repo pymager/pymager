@@ -28,34 +28,12 @@ from pymager import persistence
 
 log = logging.getLogger('persistence.schemamigrator')
 
-class NoUpgradeScriptError(Exception):
-    """Thrown when no upgrade script is found for a given schema_version """
-    def __init__(self, schema_version):
-        self.__schema_version = schema_version
-        Exception.__init__(self, 'No upgrade script is found for Schema Version: %s' % schema_version)
-
-    def get_schema_version(self):
-        return self.__schema_version
-    
-    schema_version = property(get_schema_version, None, None, "The ID that lead to the DuplicateEntryException")
-
-class Version(object):
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-
-
 class SqlAlchemySchemaMigrator(object):
     implements(persistence.SchemaMigrator)
     def __init__(self, engine, session_template):
         self.__engine = engine
         self.__metadata = MetaData()
         self.__template = session_template
-        
-        version = Table('version', self.__metadata,
-            Column('name', String(255), primary_key=True),
-            Column('value', Integer)
-        )
         
         abstract_item = Table('abstract_item', self.__metadata,
             Column('id', String(255), primary_key=True),
@@ -98,37 +76,11 @@ class SqlAlchemySchemaMigrator(object):
                properties={ 
                            #'_originalItem' : relation(domain.OriginalImageMetadata, primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id, backref='derived_image_metadatas')
                            }, inherits=domain.AbstractImageMetadata , polymorphic_identity='DERIVED_ITEM', column_prefix='_')
-        mapper(Version, version)
     
     
     def drop_all_tables(self):
-        self.__metadata.drop_all(self.__engine)
+        self.__metadata.drop_all(self.__engine, checkfirst=True)
     
-    def create_or_upgrade_schema(self):
-        def get_version(session):
-            schema_version = None
-            try:
-                schema_version = session.query(Version)\
-                                    .filter(Version.name=='schema')\
-                                    .first()
-                schema_version = schema_version if schema_version is not None else Version('schema', 0)
-            except sqlalchemy.exceptions.OperationalError:
-                schema_version = Version('schema', 0)
-            except sqlalchemy.exceptions.ProgrammingError:
-                schema_version = Version('schema', 0)  
-            return schema_version
-        
-        def store_latest_version(session):
-            version = get_version(session)
-            version.value = 1
-            session.save_or_update(version)
-        
-        schema_version = self.__template.do_with_session(get_version)
-        if schema_version.value == 0:
-            log.info('Upgrading Database Schema...')
-            self.__metadata.create_all(self.__engine)
-            self.__template.do_with_session(store_latest_version)
-        elif schema_version.value == 1:
-            log.info('Database Schema already up to date')
-        else:
-            raise NoUpgradeScriptError(schema_version)
+    def create_schema(self):
+        log.info("Creating Database Schema")
+        self.__metadata.create_all(self.__engine, checkfirst=True)
