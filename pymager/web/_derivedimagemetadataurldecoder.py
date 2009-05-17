@@ -38,5 +38,10 @@ class DerivedImageMetadataUrlDecoder(object):
             self.width = int(match.group(2))
             self.height = int(match.group(3))
             self.format = self._image_format_mapper.extension_to_format(match.group(4))
+            
+            #try:
+                #self.itemid.decode('ascii')
+            #except UnicodeDecodeError:
+                #raise UrlDecodingError(url_segment)
         else:
             raise UrlDecodingError(url_segment)

@@ -54,3 +54,8 @@ What is not tested automatically (using integration or unit tests)
 * everything that is in Apache WSGi configuration (Authentication, Caching, etc..)
 * The image resize algorithm (whether it expands the image correctly, shrinks it correctly, etc..)
 * content type header of served file
+
+
+FIXME:
+* ASCII / Unicode / ID constraints should be re-checked and enforced.. for now, things are crashing at myscellaneous levels. 
+what kind of constraints do we want to enforce exactly ? Do we want unicode IDs ?
