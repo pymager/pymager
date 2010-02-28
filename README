@@ -9,7 +9,10 @@ Features
 
 Install Dependencies
 $ sudo apt-get install python2.5 python-imaging python-sqlalchemy python-psycopg2 \ 
-  python-zopeinterface python-cherrypy3 python-setuptools python-pkg-resources python-nose python-mox
+  python-zope.interface python-cherrypy3 python-setuptools python-pkg-resources python-nose python-mox python-migrate
+
+Additional dependencies for developers :
+$ sudo apt-get install python-setuptools
 
 Run unit tests to make sure everything's fine
 $ python setup.py test

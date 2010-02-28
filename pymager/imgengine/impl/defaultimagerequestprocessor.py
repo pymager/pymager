@@ -109,7 +109,7 @@ class DefaultImageRequestProcessor(object):
 
         try:
             # atomic creation
-            self.__image_metadata_repository.create(item)
+            self.__image_metadata_repository.add(item)
         except domain.DuplicateEntryException, ex:
             raise imgengine.ImageIDAlreadyExistsException(item.id)
         else:
@@ -122,7 +122,6 @@ class DefaultImageRequestProcessor(object):
                 raise imgengine.ImageProcessingException(ex)
         
         item.status = domain.STATUS_OK
-        self.__image_metadata_repository.update(item)
             
     def prepare_transformation(self, transformationRequest):
         original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(transformationRequest.image_id)
@@ -140,7 +139,7 @@ class DefaultImageRequestProcessor(object):
         
         # otherwise, c'est parti to convert the stuff
         try:
-            self.__image_metadata_repository.create(derived_image_metadata)
+            self.__image_metadata_repository.add(derived_image_metadata)
         except domain.DuplicateEntryException :
             def find():
                 return self.__image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format(original_image_metadata.id, transformationRequest.size, transformationRequest.target_format)
@@ -171,7 +170,6 @@ class DefaultImageRequestProcessor(object):
                 raise imgengine.ImageProcessingException(ex)
         
         derived_image_metadata.status = domain.STATUS_OK
-        self.__image_metadata_repository.update(derived_image_metadata)
         
         return relative_cached_filename
     

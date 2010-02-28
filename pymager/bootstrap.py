@@ -83,7 +83,7 @@ class ImageServerFactory(object):
         self.__path_generator = resources.PathGenerator(NestedPathGenerator(self.__image_format_mapper, self.__config.data_directory))
         
         self.__engine = create_engine(self.__config.dburi, encoding='utf-8', echo=False, echo_pool=False) # strategy='threadlocal'
-        self.__sessionmaker = scoped_session(sessionmaker(bind=self.__engine, autoflush=True, transactional=True))
+        self.__sessionmaker = scoped_session(sessionmaker(bind=self.__engine, autoflush=True, autocommit=False))
         self.__session_template = persistence.SessionTemplate(self.__sessionmaker)
         
         self.__schema_migrator = persistence.SchemaMigrator(SqlAlchemySchemaMigrator(self.__engine, self.__session_template))

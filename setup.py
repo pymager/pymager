@@ -20,5 +20,5 @@ setup(
     include_package_data=True,
     data_files=[('etc', ['etc/pymager-cherrypy.conf', 'etc/pymager.conf'])],
     test_suite="nose.collector",
-	install_requires=['PIL >= 1.1.6', 'SQLAlchemy == 0.4.8', 'CherryPy == 3.0.2', 'zope.interface >= 3.4.0', 'nose >= 0.10.4', 'mox >= 0.5.0'],
+	install_requires=['PIL >= 1.1.6', 'SQLAlchemy >= 0.5.5', 'CherryPy >= 3.1.2', 'zope.interface >= 3.5.2', 'nose >= 0.11.1', 'mox >= 0.5.0'],
 )

@@ -124,9 +124,7 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
             item = self._image_metadata_repository.find_original_image_metadata_by_id('item%s' % itemNumber)
             for di in item.derived_image_metadatas:
                 di.status = domain.STATUS_INCONSISTENT
-                self._image_metadata_repository.update(di)
             item.status = domain.STATUS_INCONSISTENT
-            self._image_metadata_repository.update(item)
         
         for i in range(1, 6):
             def callback(session):
@@ -140,7 +138,6 @@ class ImageRequestProcessorTestCase(AbstractIntegrationTestCase):
                     self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('item6', (400, 400), domain.IMAGE_FORMAT_JPEG) ]
         for item in to_crush:
             item.status = domain.STATUS_INCONSISTENT
-            self._image_metadata_repository.update(item)
         
         self._image_server.cleanup_inconsistent_items()
 

@@ -22,6 +22,7 @@ from zope.interface import Interface, implements
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, backref #, eagerload
+from sqlalchemy.orm import exc
 import logging
 import threading
 from pymager import persistence
@@ -70,21 +71,16 @@ class SqlAlchemyImageMetadataRepository(object):
             return o
         return self.__template.do_with_session(callback)
     
-    def create(self, item):
+    def add(self, item):
         def callback(session):
             session.save(item)
+            session.flush()
         try:
             self.__template.do_with_session(callback)
-        except sqlalchemy.exceptions.IntegrityError, ex: 
-            raise domain.DuplicateEntryException, item.id
-    
-    def update(self, item):
-        def callback(session):
-            session.save_or_update(item)
-        try:
-            self.__template.do_with_session(callback)
-        except sqlalchemy.exceptions.IntegrityError: 
-            raise domain.DuplicateEntryException, item.id
+        except sqlalchemy.exceptions.IntegrityError, e: 
+            raise domain.DuplicateEntryException(item.id)
+        except exc.FlushError, e:
+            raise domain.DuplicateEntryException(item.id)
     
     def delete(self, item):
         def callback(session):
