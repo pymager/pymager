@@ -39,7 +39,7 @@ class FlatPathGenerator(object):
         return resources.Path(self.__data_directory).append(ORIGINAL_DIRECTORY).append('%s.%s' % (self._hash(original_image_metadata.id), self.__extension_for_format(original_image_metadata.format)))
     
     def derived_path(self, derived_image_metadata):
-        return resources.Path(self.__data_directory).append(CACHE_DIRECTORY).append('%s-%sx%s.%s' % (self._hash(derived_image_metadata.original_image_metadata.id), derived_image_metadata.size[0], derived_image_metadata.size[1],self.__extension_for_format(derived_image_metadata.format)))
+        return resources.Path(self.__data_directory).append(CACHE_DIRECTORY).append('%s-%sx%s.%s' % (self._hash(derived_image_metadata.original_image_metadata.id), derived_image_metadata.size[0], derived_image_metadata.size[1], self.__extension_for_format(derived_image_metadata.format)))
    
     def _hash(self, image_id):
         h = hashlib.sha1()

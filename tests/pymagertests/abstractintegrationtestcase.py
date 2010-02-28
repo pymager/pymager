@@ -25,7 +25,7 @@ import os, shutil
  
 class AbstractIntegrationTestCase(unittest.TestCase):
         
-    DATA_DIRECTORY='/tmp/pymager-test'
+    DATA_DIRECTORY = '/tmp/pymager-test'
     SAURI = 'sqlite:///:memory:'
     #SAURI = 'postgres://pymager:funala@localhost/pymager'
     
@@ -34,10 +34,10 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         sqlalchemy.orm.clear_mappers()
         
         config = bootstrap.ServiceConfiguration(
-            data_directory=AbstractIntegrationTestCase.DATA_DIRECTORY, 
-            dburi=AbstractIntegrationTestCase.SAURI, 
-            allowed_sizes=[(100*i,100*i) for i in range(1,9)],
-            dev_mode= True)
+            data_directory=AbstractIntegrationTestCase.DATA_DIRECTORY,
+            dburi=AbstractIntegrationTestCase.SAURI,
+            allowed_sizes=[(100 * i, 100 * i) for i in range(1, 9)],
+            dev_mode=True)
         
         self._image_server_factory = bootstrap.ImageServerFactory(config)
         self._image_server = self._image_server_factory.create_image_server()

@@ -42,7 +42,7 @@ class NestedPathGenerator(object):
         return resources.Path(self.__data_directory) \
             .append(_ORIGINAL_DIRECTORY) \
             .appendall(self._split(self._hash(original_image_metadata.id))) \
-            .append('%s.%s' % (self._hash(original_image_metadata.id), 
+            .append('%s.%s' % (self._hash(original_image_metadata.id),
                                self.__extension_for_format(original_image_metadata.format)))
     
     def derived_path(self, derived_image_metadata):
@@ -57,13 +57,13 @@ class NestedPathGenerator(object):
     def _derived_image_filename(self, derived_image_metadata):
         """ computes a hash on top of the full derived filename, and still add the size and extension to the final name"""
         return '%s-%sx%s.%s' % (self._hash(self._derived_image_filename_without_extension(derived_image_metadata)),
-                                derived_image_metadata.size[0], 
+                                derived_image_metadata.size[0],
                                 derived_image_metadata.size[1],
                                 self.__extension_for_format(derived_image_metadata.format))
     
     def _derived_image_filename_without_extension(self, derived_image_metadata):
-        return '%s-%sx%s.%s' % (derived_image_metadata.original_image_metadata.id, 
-                             derived_image_metadata.size[0], 
+        return '%s-%sx%s.%s' % (derived_image_metadata.original_image_metadata.id,
+                             derived_image_metadata.size[0],
                              derived_image_metadata.size[1],
                              self.__extension_for_format(derived_image_metadata.format))
         
@@ -75,5 +75,5 @@ class NestedPathGenerator(object):
     def _split(self, image_id):
         import math
         # v = value to split, l = size of each chunk
-        f = lambda v, l: [v[i*l:(i+1)*l] for i in range(int(math.ceil(len(v)/float(l))))]
+        f = lambda v, l: [v[i * l:(i + 1) * l] for i in range(int(math.ceil(len(v) / float(l))))]
         return f(image_id[:-2], 2)

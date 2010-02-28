@@ -66,7 +66,7 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
         
         item = domain.DerivedImageMetadata(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_image_metadata)
         self._itemRepository.create(item)
-        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100,100),domain.IMAGE_FORMAT_JPEG)
+        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100, 100), domain.IMAGE_FORMAT_JPEG)
         assert found_item is not None
         assert found_item.status == domain.STATUS_OK
         assert found_item.width == 100
@@ -85,7 +85,7 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
         
         item = domain.DerivedImageMetadata(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_image_metadata)
         self._itemRepository.create(item)
-        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100,100), domain.IMAGE_FORMAT_JPEG)
+        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100, 100), domain.IMAGE_FORMAT_JPEG)
         assert found_item is not None
         assert found_item.status == domain.STATUS_OK
         assert found_item.width == 100
@@ -116,11 +116,11 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
         self._itemRepository.create(item)
         
         def callback(session):
-            session.delete(self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100,100), domain.IMAGE_FORMAT_JPEG))
+            session.delete(self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100, 100), domain.IMAGE_FORMAT_JPEG))
             
         self._template.do_with_session(callback)
         
-        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100,100), domain.IMAGE_FORMAT_JPEG)
+        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100, 100), domain.IMAGE_FORMAT_JPEG)
         assert found_item is None
         
         found_original_image_metadata = self._itemRepository.find_original_image_metadata_by_id('MYID12435')
@@ -138,7 +138,7 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
             
         self._template.do_with_session(callback)
         
-        found_derived_image_metadata = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100,100), domain.IMAGE_FORMAT_JPEG)
+        found_derived_image_metadata = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100, 100), domain.IMAGE_FORMAT_JPEG)
         assert found_derived_image_metadata is None
         
         found_original_image_metadata = self._itemRepository.find_original_image_metadata_by_id('MYID12435')
@@ -166,7 +166,7 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
         
         item = domain.DerivedImageMetadata(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_image_metadata)
         self._itemRepository.create(item)
-        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (101,100), domain.IMAGE_FORMAT_JPEG)
+        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (101, 100), domain.IMAGE_FORMAT_JPEG)
         assert found_item is None
         
     def test_should_not_find_derived_image_metadata_because_of_height(self):
@@ -175,7 +175,7 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
         
         item = domain.DerivedImageMetadata(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_image_metadata)
         self._itemRepository.create(item)
-        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100,101), domain.IMAGE_FORMAT_JPEG)
+        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100, 101), domain.IMAGE_FORMAT_JPEG)
         assert found_item is None
     
     def test_should_not_find_derived_image_metadata_because_of_id(self):
@@ -184,7 +184,7 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
         
         item = domain.DerivedImageMetadata(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_image_metadata)
         self._itemRepository.create(item)
-        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('ANOTHERID', (100,100),domain.IMAGE_FORMAT_JPEG)
+        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('ANOTHERID', (100, 100), domain.IMAGE_FORMAT_JPEG)
         assert found_item is None
         
     def test_should_not_find_derived_image_metadata_because_of_format(self):
@@ -193,7 +193,7 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
         
         item = domain.DerivedImageMetadata(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_image_metadata)
         self._itemRepository.create(item)
-        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100,100),'JPEG2')
+        found_item = self._itemRepository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format('MYID12435', (100, 100), 'JPEG2')
         assert found_item is None
     
     def test_should_not_save_two_original_image_metadatas_with_same_id(self):
@@ -222,18 +222,18 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
             self.fail()
             
     def test_should_find_inconsistent_original_image_metadatas(self):
-        for i in range(1,15):
-            item = domain.OriginalImageMetadata('MYID%s' %i, domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        for i in range(1, 15):
+            item = domain.OriginalImageMetadata('MYID%s' % i, domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
             self._itemRepository.create(item)
         
-        for i in range(16,20):
-            item = domain.OriginalImageMetadata('MYID%s' %i, domain.STATUS_OK, (900, 400), domain.IMAGE_FORMAT_JPEG)
+        for i in range(16, 20):
+            item = domain.OriginalImageMetadata('MYID%s' % i, domain.STATUS_OK, (900, 400), domain.IMAGE_FORMAT_JPEG)
             self._itemRepository.create(item)    
         
-        items =  self._itemRepository.find_inconsistent_original_image_metadatas(10)
+        items = self._itemRepository.find_inconsistent_original_image_metadatas(10)
         assert len(items) == 10
         for i in items:
-            assert i.id in ['MYID%s' %n for n in range(1,15) ]
+            assert i.id in ['MYID%s' % n for n in range(1, 15) ]
             assert i.status == domain.STATUS_INCONSISTENT
             assert i.width == 800
             assert i.height == 600
@@ -241,25 +241,25 @@ class ImageMetadataRepositoryTestCase(AbstractIntegrationTestCase):
     
     def test_should_find_inconsistent_derived_image_metadatas(self):
         
-        for i in range(1,15):
-            original_image_metadata = domain.OriginalImageMetadata('MYID%s' %i, domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
+        for i in range(1, 15):
+            original_image_metadata = domain.OriginalImageMetadata('MYID%s' % i, domain.STATUS_INCONSISTENT, (800, 600), domain.IMAGE_FORMAT_JPEG)
             self._itemRepository.create(original_image_metadata)
         
             item = domain.DerivedImageMetadata(domain.STATUS_INCONSISTENT, (100, 100), domain.IMAGE_FORMAT_JPEG, original_image_metadata)
             self._itemRepository.create(item)
         
         
-        for i in range(16,20):
-            original_image_metadata = domain.OriginalImageMetadata('MYID%s' %i, domain.STATUS_OK, (900, 400), domain.IMAGE_FORMAT_JPEG)
+        for i in range(16, 20):
+            original_image_metadata = domain.OriginalImageMetadata('MYID%s' % i, domain.STATUS_OK, (900, 400), domain.IMAGE_FORMAT_JPEG)
             self._itemRepository.create(original_image_metadata)    
             
             item = domain.DerivedImageMetadata(domain.STATUS_OK, (100, 100), domain.IMAGE_FORMAT_JPEG, original_image_metadata)
             self._itemRepository.create(item)
         
-        items =  self._itemRepository.find_inconsistent_derived_image_metadatas(10)
+        items = self._itemRepository.find_inconsistent_derived_image_metadatas(10)
         assert len(items) == 10
         for i in items:
-            assert i.id in ['MYID%s-100x100-JPEG' %n for n in range(1,15) ]
+            assert i.id in ['MYID%s-100x100-JPEG' % n for n in range(1, 15) ]
             assert i.status == domain.STATUS_INCONSISTENT
             assert i.width == 100
             assert i.height == 100

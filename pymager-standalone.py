@@ -28,8 +28,8 @@ cherrypy.config.update(config.parse_config(__file__, config.GLOBAL_CONFIG_FILENA
 pymager_config = config.parse_config(__file__, config.PYMAGER_CONFIG_FILENAME)
 
 application = cherrypy.tree.mount(
-    web.create_site(pymager_config['pymager']), 
-    "", 
+    web.create_site(pymager_config['pymager']),
+    "",
     pymager_config)
 
 cherrypy.server.quickstart()

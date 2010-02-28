@@ -35,9 +35,9 @@ class TransformationRequestTestCase(unittest.TestCase):
         image_mapper.supports_format("JPEG").AndReturn(True)
         self.mox.ReplayAll()
          
-        transformation_request = imgengine.TransformationRequest(image_mapper, "myimage",(800,600), "JPEG" )
+        transformation_request = imgengine.TransformationRequest(image_mapper, "myimage", (800, 600), "JPEG")
         self.assertEquals("myimage", transformation_request.image_id)
-        self.assertEquals((800,600), transformation_request.size)
+        self.assertEquals((800, 600), transformation_request.size)
         self.assertEquals("JPEG", transformation_request.target_format)
         
         self.mox.VerifyAll()
@@ -49,7 +49,7 @@ class TransformationRequestTestCase(unittest.TestCase):
         self.mox.ReplayAll()
          
         try:
-            imgengine.TransformationRequest(image_mapper, "myimage",(800,600), "PIXAR" )
+            imgengine.TransformationRequest(image_mapper, "myimage", (800, 600), "PIXAR")
         except imgengine.ImageFormatNotSupportedException, e:
             self.assertEquals("PIXAR", e.image_format)
         

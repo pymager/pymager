@@ -12,7 +12,7 @@ abstract_item = Table('abstract_item', meta,
     Column('type', String(255), nullable=False)
 )
 
-original_image_metadata = Table('original_image_metadata', meta,  
+original_image_metadata = Table('original_image_metadata', meta,
     Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True)
 )
 

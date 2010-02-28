@@ -49,8 +49,8 @@ def enable_basic_auth():
             return m.hexdigest()
         return {'test': md5pass('test')}
     #if config.app_config().dev_mode:
-    if cherrypy.request.method in ('POST','DELETE', 'PUT') and config.app_config().dev_mode:
-        cherrypy.tools.basic_auth.callable(realm = BASIC_AUTH_REALM, users = fetch_users)
+    if cherrypy.request.method in ('POST', 'DELETE', 'PUT') and config.app_config().dev_mode:
+        cherrypy.tools.basic_auth.callable(realm=BASIC_AUTH_REALM, users=fetch_users)
 
 cherrypy.tools.disable_body_processing = cherrypy.Tool('before_request_body', disable_body_processing)
 cherrypy.tools.enable_basic_auth = cherrypy.Tool('before_request_body', enable_basic_auth)
@@ -85,7 +85,7 @@ class OriginalResource(object):
         except imgengine.ImageMetadataNotFoundException:
             raise cherrypy.NotFound(cherrypy.request.path_info)
         else:
-            path = os.path.join(self.__app_config.data_directory,relative_path)
+            path = os.path.join(self.__app_config.data_directory, relative_path)
             return serve_file(path)
     
     #@cherrypy.tools.enable_basic_auth()

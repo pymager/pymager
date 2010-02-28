@@ -43,10 +43,10 @@ def _init_imageprocessor(config):
 # allowed_sizes=[(100,100), (800,600)]
 def create_site(config):
     app_config = ServiceConfiguration(
-        data_directory=config['data_directory'] if (config.__contains__('data_directory')) else '/tmp/pymager', 
-        dburi=config['dburi'] if (config.__contains__('dburi')) else 'sqlite:////tmp/db.sqlite', 
+        data_directory=config['data_directory'] if (config.__contains__('data_directory')) else '/tmp/pymager',
+        dburi=config['dburi'] if (config.__contains__('dburi')) else 'sqlite:////tmp/db.sqlite',
         allowed_sizes=config['allowed_sizes'] if (config.__contains__('allowed_sizes')) else None,
-        dev_mode= config['dev_mode'] if (config.__contains__('dev_mode')) else False)
+        dev_mode=config['dev_mode'] if (config.__contains__('dev_mode')) else False)
     pymager.config.set_app_config(app_config)
     top_level_resource = TopLevelResource(app_config, _init_imageprocessor(app_config), image_server_factory.image_format_mapper)
     return top_level_resource 

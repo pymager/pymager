@@ -54,8 +54,8 @@ class DerivedResource(object):
             try:
                 request = imgengine.TransformationRequest(
                             self._image_format_mapper,
-                            derivedItemUrlDecoder.itemid, 
-                            (derivedItemUrlDecoder.width,derivedItemUrlDecoder.height),
+                            derivedItemUrlDecoder.itemid,
+                            (derivedItemUrlDecoder.width, derivedItemUrlDecoder.height),
                             derivedItemUrlDecoder.format)
             except imgengine.ImageFormatNotSupportedException, e:
                 print e.image_format
@@ -66,6 +66,6 @@ class DerivedResource(object):
                 except imgengine.ImageMetadataNotFoundException:
                     raise self.__not_found()
                 except imgengine.SecurityCheckException:
-                    raise cherrypy.HTTPError(status=403, message="The requested image transformation is not allowed (%sx%s)" % (derivedItemUrlDecoder.width,derivedItemUrlDecoder.height))
-                path = os.path.join(self.__config.data_directory,relative_path)
+                    raise cherrypy.HTTPError(status=403, message="The requested image transformation is not allowed (%sx%s)" % (derivedItemUrlDecoder.width, derivedItemUrlDecoder.height))
+                path = os.path.join(self.__config.data_directory, relative_path)
                 return serve_file(path)

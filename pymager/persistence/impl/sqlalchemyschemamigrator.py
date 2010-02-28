@@ -21,7 +21,7 @@
 import logging
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, Unicode, MetaData, ForeignKey, DateTime #, UniqueConstraint
-from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
+from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, backref #, eagerload
 from zope.interface import Interface, implements
 from pymager import domain
 from pymager import persistence
@@ -45,7 +45,7 @@ class SqlAlchemySchemaMigrator(object):
             Column('type', String(255), nullable=False)
         )
         
-        original_image_metadata = Table('original_image_metadata', self.__metadata,  
+        original_image_metadata = Table('original_image_metadata', self.__metadata,
             Column('id', String(255), ForeignKey('abstract_item.id'), primary_key=True)
         )
         
@@ -63,8 +63,8 @@ class SqlAlchemySchemaMigrator(object):
                polymorphic_identity='ORIGINAL_ITEM', \
                column_prefix='_',
                properties={
-                            'derived_image_metadatas' : relation(domain.DerivedImageMetadata, 
-                                                      primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id,
+                            'derived_image_metadatas' : relation(domain.DerivedImageMetadata,
+                                                      primaryjoin=derived_image_metadata.c.original_image_metadata_id == original_image_metadata.c.id,
                                                       cascade='all',
                                                       backref='_original_image_metadata' 
                                                       #backref=backref('_originalItem', 
@@ -72,7 +72,7 @@ class SqlAlchemySchemaMigrator(object):
                                                       #                primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id)
                                                       ) 
                            }) 
-        mapper(domain.DerivedImageMetadata, derived_image_metadata, 
+        mapper(domain.DerivedImageMetadata, derived_image_metadata,
                properties={ 
                            #'_originalItem' : relation(domain.OriginalImageMetadata, primaryjoin=derived_image_metadata.c.original_image_metadata_id==original_image_metadata.c.id, backref='derived_image_metadatas')
                            }, inherits=domain.AbstractImageMetadata , polymorphic_identity='DERIVED_ITEM', column_prefix='_')

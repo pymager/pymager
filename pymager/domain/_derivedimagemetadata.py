@@ -25,7 +25,7 @@ class DerivedImageMetadata(AbstractImageMetadata):
         assert original_image_metadata is not None
         self._original_image_metadata = original_image_metadata
         
-        super(DerivedImageMetadata, self).__init__("%s-%sx%s-%s" % (original_image_metadata.id, size[0], size[1], format),status, size, format)
+        super(DerivedImageMetadata, self).__init__("%s-%sx%s-%s" % (original_image_metadata.id, size[0], size[1], format), status, size, format)
 
     def get_original_image_metadata(self):
         return self._original_image_metadata

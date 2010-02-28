@@ -21,7 +21,7 @@
 import threading
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
-from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
+from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, backref #, eagerload
 
 class SessionTemplate(object):
     """ Simple helper class akin to Spring-JDBC/Hibernate/ORM Template.
@@ -36,7 +36,7 @@ class SessionTemplate(object):
         
     def do_with_session(self, session_callback):        
         session = self.__sessionmaker()
-        self.__local.do_with_session_count = self.__local.do_with_session_count+1 if hasattr(self.__local,'do_with_session_count') and self.__local.do_with_session_count is not None else 1
+        self.__local.do_with_session_count = self.__local.do_with_session_count + 1 if hasattr(self.__local, 'do_with_session_count') and self.__local.do_with_session_count is not None else 1
         
         def cleanup_on_exception(f):
             try:
@@ -68,7 +68,7 @@ class SessionTemplate(object):
                 self.__sessionmaker.remove()
                 del self.__local.do_with_session_count
             else:
-                self.__local.do_with_session_count = count-1
+                self.__local.do_with_session_count = count - 1
             return o
         
         return cleanup_on_exception(do)

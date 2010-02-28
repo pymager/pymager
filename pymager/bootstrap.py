@@ -20,7 +20,7 @@
 """
 import os
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
-from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session,backref #, eagerload
+from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, backref #, eagerload
 
 from pymager import imgengine
 from pymager import persistence
@@ -90,7 +90,7 @@ class ImageServerFactory(object):
         
         self.__image_metadata_repository = domain.ImageMetadataRepository(SqlAlchemyImageMetadataRepository(self.__session_template))
         self.__image_processor = imgengine.ImageRequestProcessor(DefaultImageRequestProcessor(self.__image_metadata_repository, self.__path_generator, self.__image_format_mapper, self.__schema_migrator, self.__config.data_directory, self.__session_template, self.__config.dev_mode))
-        self.__image_processor.prepare_transformation =  image_transformation_security_decorator.image_transformation_security_decorator(self.__config.allowed_sizes)(self.__image_processor.prepare_transformation)
+        self.__image_processor.prepare_transformation = image_transformation_security_decorator.image_transformation_security_decorator(self.__config.allowed_sizes)(self.__image_processor.prepare_transformation)
         
         return self.__image_processor
     

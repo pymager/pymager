@@ -93,7 +93,7 @@ def _item_should_match(item):
     assert item.width == 100
     assert item.height == 100
     assert item.format == domain.IMAGE_FORMAT_JPEG
-    assert item.original_image_metadata.id =='MYID12435'
+    assert item.original_image_metadata.id == 'MYID12435'
     assert item.original_image_metadata.status == domain.STATUS_OK
     assert item.original_image_metadata.width == 800
     assert item.original_image_metadata.height == 600

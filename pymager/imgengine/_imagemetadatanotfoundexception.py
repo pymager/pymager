@@ -21,6 +21,6 @@
 from pymager.imgengine._imageprocessingexception import ImageProcessingException
   
 class ImageMetadataNotFoundException(ImageProcessingException):
-    def __init__(self,image_id):
+    def __init__(self, image_id):
         super(ImageMetadataNotFoundException, self).__init__('Impossible to find any metadata for Image %s' % image_id)
         self.image_id = image_id

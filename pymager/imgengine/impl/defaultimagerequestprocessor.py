@@ -65,7 +65,7 @@ class DefaultImageRequestProcessor(object):
         while i < LOCK_MAX_RETRIES and item is not None and item.status != domain.STATUS_OK:
             time.sleep(LOCK_WAIT_SECONDS)
             item = pollingCallback()
-            i=i+1
+            i = i + 1
         if i == LOCK_MAX_RETRIES:
             raise imgengine.ImageProcessingException('Item seems to be locked forever')
     
@@ -158,10 +158,10 @@ class DefaultImageRequestProcessor(object):
             except IOError, ex:
                 raise imgengine.ImageProcessingException(ex)
         else:   
-            target_image = ImageOps.fit(image=img, 
-                                        size=transformationRequest.size, 
+            target_image = ImageOps.fit(image=img,
+                                        size=transformationRequest.size,
                                         method=Image.ANTIALIAS,
-                                        centering=(0.5,0.5)) 
+                                        centering=(0.5, 0.5)) 
             try:
                 cached_filename_directory = self.__path_generator.derived_path(derived_image_metadata).parent_directory().absolute()
                 if not os.path.exists(cached_filename_directory):
@@ -176,12 +176,12 @@ class DefaultImageRequestProcessor(object):
         return relative_cached_filename
     
     def cleanup_inconsistent_items(self):
-        for command in [DeleteImagesCommand(self.__image_metadata_repository, 
-                                       self.__session_template, 
+        for command in [DeleteImagesCommand(self.__image_metadata_repository,
+                                       self.__session_template,
                                        self.__path_generator,
-                                       lambda: self.__image_metadata_repository.find_inconsistent_derived_image_metadatas()), 
-                        DeleteImagesCommand(self.__image_metadata_repository, 
-                                       self.__session_template, 
+                                       lambda: self.__image_metadata_repository.find_inconsistent_derived_image_metadatas()),
+                        DeleteImagesCommand(self.__image_metadata_repository,
+                                       self.__session_template,
                                        self.__path_generator,
                                        lambda: self.__image_metadata_repository.find_inconsistent_original_image_metadatas())]:
             command.execute()
@@ -192,8 +192,8 @@ class DefaultImageRequestProcessor(object):
             self.__required_original_image_metadata(image_id, original_image_metadata)
             return list(original_image_metadata.derived_image_metadatas) + [original_image_metadata]
         
-        DeleteImagesCommand(self.__image_metadata_repository, 
-                            self.__session_template, 
+        DeleteImagesCommand(self.__image_metadata_repository,
+                            self.__session_template,
                             self.__path_generator,
                             lambda: image_metadatas_to_delete()).execute()
             
@@ -206,7 +206,7 @@ class DefaultImageRequestProcessor(object):
         if not os.path.exists(self.__data_directory):
             os.makedirs(self.__data_directory)
         for directory in \
-            [resources.Path(self.__data_directory).append(flatpathgenerator.CACHE_DIRECTORY).absolute(), 
+            [resources.Path(self.__data_directory).append(flatpathgenerator.CACHE_DIRECTORY).absolute(),
              resources.Path(self.__data_directory).append(flatpathgenerator.ORIGINAL_DIRECTORY).absolute()]:
             if not os.path.exists(directory):
                 os.makedirs(directory)    
