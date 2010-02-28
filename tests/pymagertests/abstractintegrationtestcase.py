@@ -20,7 +20,7 @@
 """
 import unittest
 from pymager import bootstrap
-from pymager.persistence import _transaction
+from pymager import persistence
 import sqlalchemy 
 import os, shutil
  
@@ -44,7 +44,7 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         self._image_server = self._image_server_factory.create_image_server()
         self._image_metadata_repository = self._image_server_factory.image_metadata_repository
         self._sessionmaker = self._image_server_factory.sessionmaker
-        self._session = _transaction.begin_scope(self._sessionmaker)    
+        self._session = persistence.begin_scope(self._sessionmaker)    
     
         (getattr(self, 'onSetUp') if hasattr(self, 'onSetUp') else (lambda: None))()  
         
@@ -56,5 +56,5 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         self._image_server = None
         self._image_metadata_repository = None
         self._schema_migrator = None
-        _transaction.rollback(self._sessionmaker)
+        persistence.rollback(self._sessionmaker)
     

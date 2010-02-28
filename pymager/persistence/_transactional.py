@@ -20,8 +20,49 @@
 """
 import threading
 import sqlalchemy
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
+from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, backref #, eagerload
 
-local = threading.local()
+_sessionmaker = None # should be initialized by bootstrap
+_threadlocal = threading.local()
+
+def init(sessionmaker):
+    global _sessionmaker
+    sessionmaker = sessionmaker
+
+def transactional(f):
+    def do(*args, **kwargs):
+        def callback():
+            f(*args, **kwargs)
+        SessionTemplate(_sessionmaker).do_with_session(callback)
+    return do
+
+class SessionTemplate(object):
+    """ Simple helper class akin to Spring-JDBC/Hibernate/ORM Template.
+    It doesnt't commit nor releases resources if other do_with_session() calls are pending
+    
+    See http://www.sqlalchemy.org/trac/ticket/1084#comment:3 for suggestions on how to improve this
+    without using a custom threadlocal variable
+     """
+    def __init__(self, sessionmaker):
+        self._sessionmaker = sessionmaker
+        
+    def do_with_session(self, session_callback):        
+        session = begin_scope(self._sessionmaker)
+        
+        def do():
+            result = session_callback(session)
+            end_scope(self._sessionmaker)
+            return result
+        
+        return self._do_execute(do)
+
+    def _do_execute(self,f):
+        try:
+            return f()
+        except Exception as ex:
+            rollback(self._sessionmaker)
+            raise ex
 
 class BoundSession(object):
     def __init__(self, session, count=0):
@@ -36,9 +77,9 @@ class BoundSession(object):
         self.count=self.count -1
 
 def begin_scope(session_maker):
-    bound_session = local.current_session if _session_exists() else BoundSession(session_maker())
+    bound_session = _threadlocal.current_session if _session_exists() else BoundSession(session_maker())
     bound_session.increment()
-    local.current_session = bound_session
+    _threadlocal.current_session = bound_session
     return bound_session.session
 
 def end_scope(session_maker):
@@ -48,7 +89,7 @@ def end_scope(session_maker):
         finally:
             _cleanup(session_maker)
     else:
-        local.current_session.decrement()
+        _threadlocal.current_session.decrement()
 
 def rollback(session_maker):
     if not _session_exists():
@@ -76,13 +117,13 @@ def _cleanup(session_maker):
         _session().close()
         session_maker.remove()
     finally:
-        del local.current_session
+        del _threadlocal.current_session
     
 def _session():
-    return local.current_session.session if _session_exists() else None
+    return _threadlocal.current_session.session if _session_exists() else None
 
 def _current_count():
-    return local.current_session.count if _session_exists() else 0
+    return _threadlocal.current_session.count if _session_exists() else 0
 
 def _session_exists():
-    return hasattr(local, 'current_session')
+    return hasattr(_threadlocal, 'current_session')

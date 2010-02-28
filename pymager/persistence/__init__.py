@@ -18,5 +18,14 @@
     along with PyMager.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+
 from pymager.persistence._schemamigrator import SchemaMigrator
-from pymager.persistence._sessiontemplate import SessionTemplate
+from pymager.persistence._transactional import SessionTemplate
+from pymager.persistence._transactional import transactional
+from pymager.persistence._transactional import begin_scope
+from pymager.persistence._transactional import end_scope
+from pymager.persistence._transactional import rollback
+from pymager.persistence import _transactional
+
+def init(sessionmaker):
+    _transactional.init(sessionmaker=sessionmaker)
