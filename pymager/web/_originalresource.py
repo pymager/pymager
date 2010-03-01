@@ -24,6 +24,7 @@ import time
 import tempfile
 import hashlib
 import cherrypy
+import logging
 from cherrypy.lib.static import serve_file
 from pymager import config
 from pymager import imgengine
@@ -32,6 +33,7 @@ FILE_FIELD_NAME = "file"
 PERMISSIONS = 0644
 TMP_DIR = "fileuploads"
 BASIC_AUTH_REALM = "Image Server"
+logger = logging.getLogger("web.originalresource")
 
 def disable_body_processing():
     """Sets cherrypy.request.process_request_body = False, giving
@@ -80,6 +82,7 @@ class OriginalResource(object):
     # http://tools.cherrypy.org/wiki/DirectToDiskFileUpload
     # @cherrypy.expose
     def GET(self, image_id):
+        logger.debug("GET %s" % (image_id,))
         try:
             relative_path = self.__image_processor.get_original_image_path(image_id)
         except imgengine.ImageMetadataNotFoundException:
@@ -91,6 +94,7 @@ class OriginalResource(object):
     #@cherrypy.tools.enable_basic_auth()
     #@cherrypy.tools.disable_body_processing()
     def DELETE(self, image_id):
+        logger.debug("DELETE %s" % (image_id,))
         try:
             self.__image_processor.delete(image_id)
         except imgengine.ImageMetadataNotFoundException:
@@ -101,6 +105,7 @@ class OriginalResource(object):
     def POST(self, image_id):
         """ See http://tools.cherrypy.org/wiki/DirectToDiskFileUpload 
         """
+        logger.debug("POST %s" % (image_id,))
         cherrypy.response.timeout = 3600
     
         # convert the header keys to lower case

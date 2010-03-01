@@ -20,6 +20,7 @@
 """
 import os
 import cherrypy
+import logging
 from pymager import domain
 from pymager import imgengine 
 from pymager import web
@@ -27,7 +28,7 @@ from pymager.web._derivedimagemetadataurldecoder import DerivedImageMetadataUrlD
 from pymager.web._derivedimagemetadataurldecoder import UrlDecodingError
 
 from cherrypy.lib.static import serve_file
-
+logger = logging.getLogger("web.derivedresource")
 class DerivedResource(object):
     exposed = True
 
@@ -46,6 +47,7 @@ class DerivedResource(object):
     
     #@cherrypy.expose
     def GET(self, derived_urisegment):
+        logger.debug("GET %s" % (derived_urisegment,))
         try:
             derivedItemUrlDecoder = DerivedImageMetadataUrlDecoder(self._image_format_mapper, derived_urisegment)
         except UrlDecodingError:

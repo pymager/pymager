@@ -49,4 +49,4 @@ class SessionTemplate(object):
             return f()
         except Exception as ex:
             _transaction.rollback(self.__sessionmaker)
-            raise ex
+            raise

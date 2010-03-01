@@ -30,14 +30,7 @@ def _init_imageprocessor(config):
     global image_server_factory
     image_server_factory = ImageServerFactory(config)
     image_request_processor = image_server_factory.create_image_server()
-    #image_request_processor = \
-    #    f.create_image_server(
-    #        site_config.data_directory, 
-    #        'postgres://pymager:funala@localhost/pymager',
-    #        [(100,100), (800,600)], True)
     from pkg_resources import resource_filename
-    #if config.dev_mode:
-    #    image_request_processor.save_file_to_repository(resource_filename('pymager.samples', 'sami.jpg'),'sami')
     return image_request_processor
 
 # allowed_sizes=[(100,100), (800,600)]

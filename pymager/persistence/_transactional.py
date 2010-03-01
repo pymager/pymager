@@ -19,6 +19,8 @@
 
 """
 import threading
+import logging
+import traceback
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, backref #, eagerload
@@ -26,15 +28,17 @@ from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, backr
 _sessionmaker = None # should be initialized by bootstrap
 _threadlocal = threading.local()
 
+logger = logging.getLogger("transactional")
+
 def init(sessionmaker):
     global _sessionmaker
-    sessionmaker = sessionmaker
+    _sessionmaker = sessionmaker
 
 def transactional(f):
     def do(*args, **kwargs):
-        def callback():
-            f(*args, **kwargs)
-        SessionTemplate(_sessionmaker).do_with_session(callback)
+        def callback(session):
+            return f(*args, **kwargs)
+        return SessionTemplate(_sessionmaker).do_with_session(callback)
     return do
 
 class SessionTemplate(object):
@@ -45,6 +49,7 @@ class SessionTemplate(object):
     without using a custom threadlocal variable
      """
     def __init__(self, sessionmaker):
+        assert sessionmaker is not None
         self._sessionmaker = sessionmaker
         
     def do_with_session(self, session_callback):        
@@ -60,9 +65,15 @@ class SessionTemplate(object):
     def _do_execute(self,f):
         try:
             return f()
-        except Exception as ex:
-            rollback(self._sessionmaker)
-            raise ex
+        except Exception as e1:
+            try:
+                #logger.error("Exception happened in do_execute: %s" % (traceback.format_exc(e1),))
+                rollback(self._sessionmaker)
+            except Exception as e2:
+                pass
+                #logger.error("Initial Exception that forced rollback: %s" % (traceback.format_exc(e1),))
+                #logger.error("Exception raised during rollback: %s" % (traceback.format_exc(e2),))
+            raise
 
 class BoundSession(object):
     def __init__(self, session, count=0):
@@ -97,7 +108,7 @@ def rollback(session_maker):
     
     try:
         conn = _session().connection().invalidate()
-    except sqlalchemy.exceptions.InvalidRequestError:
+    except sqlalchemy.exc.InvalidRequestError:
         # ignore the following exception that happens on windows... 
         # InvalidRequestError("The transaction is inactive 
         # due to a rollback in a subtransaction and should be closed")

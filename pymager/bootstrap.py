@@ -19,6 +19,7 @@
 
 """
 import os
+import logging
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime #, UniqueConstraint
 from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, backref #, eagerload
 
@@ -77,6 +78,7 @@ class ImageServerFactory(object):
         return self._path_generator
     
     def create_image_server(self):
+        configure_logging()
         # 1. make sure to initialize the persistence module
         self._engine = create_engine(self._config.dburi, encoding='utf-8', echo=False, echo_pool=False) # strategy='threadlocal'
         self._sessionmaker = scoped_session(sessionmaker(bind=self._engine, autoflush=True, autocommit=False))
@@ -105,3 +107,8 @@ class ImageServerFactory(object):
     session_template = property(get_session_template, None, None, "ImageProcessor's Docstring")
     image_format_mapper = property(get_image_format_mapper, None, None, "Image Format Mapper")
     path_generator = property(get_path_generator, None, None, "Path Generator")
+
+def configure_logging():
+    logging.basicConfig()
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)

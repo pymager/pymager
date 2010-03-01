@@ -35,3 +35,6 @@ class TransformationRequest(object):
         self.image_id = image_id
         self.size = size
         self.target_format = target_format
+
+    def __str__(self):
+        return "TransformationRequest: %s %s %s" % (self.image_id, self.size, self.target_format)

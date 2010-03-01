@@ -24,7 +24,9 @@ import os.path
 import shutil
 import time
 import Image, ImageOps
+import logging
 from zope.interface import Interface, implements
+from pymager import tx
 from pymager import domain
 from pymager import persistence
 from pymager import resources
@@ -32,6 +34,8 @@ from pymager import imgengine
 from pymager.imgengine._deleteimagescommand import DeleteImagesCommand
 from pymager.imgengine._imagerequestprocessor import ImageRequestProcessor
 from pymager.resources.impl import flatpathgenerator
+
+logger = logging.getLogger("imgengine.imagerequestprocessor")
 
 LOCK_MAX_RETRIES = 10
 LOCK_WAIT_SECONDS = 1
@@ -76,13 +80,16 @@ class DefaultImageRequestProcessor(object):
     def __required_original_image_metadata(self, image_id, original_image_metadata):
         if original_image_metadata is None:
             raise imgengine.ImageMetadataNotFoundException(image_id)
-                    
+    
+    @tx.transactional                
     def get_original_image_path(self, image_id):
+        logger.debug("get_original_image_path")
         original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(image_id)
         self.__required_original_image_metadata(image_id, original_image_metadata)
         self.__wait_for_original_image_metadata(image_id)
         return self.__path_generator.original_path(original_image_metadata).relative()
-                               
+    
+    @tx.transactional                           
     def save_file_to_repository(self, file, image_id):
         def filename_save_strategy(file, item):
             shutil.copyfile(file, self.__path_generator.original_path(item).absolute())
@@ -122,8 +129,10 @@ class DefaultImageRequestProcessor(object):
                 raise imgengine.ImageProcessingException(ex)
         
         item.status = domain.STATUS_OK
-            
+    
+    @tx.transactional        
     def prepare_transformation(self, transformationRequest):
+        logging.debug("prepare transformation: %s" % (transformationRequest,))
         original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(transformationRequest.image_id)
         self.__required_original_image_metadata(transformationRequest.image_id, original_image_metadata)
         
@@ -133,11 +142,12 @@ class DefaultImageRequestProcessor(object):
         cached_filename = self.__path_generator.derived_path(derived_image_metadata).absolute()
         relative_cached_filename = self.__path_generator.derived_path(derived_image_metadata).relative()
 
-        # if image is already cached...
+        logger.debug("Checks cache for existing image")
         if os.path.exists(cached_filename):
+            logger.debug("Already exists in cache: %s " %(relative_cached_filename,))
             return relative_cached_filename
         
-        # otherwise, c'est parti to convert the stuff
+        logger.debug("Add repo metadata for derived image")
         try:
             self.__image_metadata_repository.add(derived_image_metadata)
         except domain.DuplicateEntryException :
@@ -145,12 +155,14 @@ class DefaultImageRequestProcessor(object):
                 return self.__image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format(original_image_metadata.id, transformationRequest.size, transformationRequest.target_format)
             self.__wait_for_item_status_ok(find)
             derived_image_metadata = find()
-            
+
+        logger.debug("Checks that image format is supported")        
         try:
             img = Image.open(self.__path_generator.original_path(original_image_metadata).absolute())
         except IOError, ex: 
             raise imgengine.ImageProcessingException(ex)
         
+        logger.debug("Add derived image to filesystem")
         if transformationRequest.size == img.size and transformationRequest.target_format.upper() == img.format.upper():
             try:
                 shutil.copyfile(self.__path_generator.original_path(original_image_metadata).absolute(), cached_filename)
@@ -173,6 +185,7 @@ class DefaultImageRequestProcessor(object):
         
         return relative_cached_filename
     
+    @tx.transactional
     def cleanup_inconsistent_items(self):
         for command in [DeleteImagesCommand(self.__image_metadata_repository,
                                        self.__session_template,
@@ -184,6 +197,7 @@ class DefaultImageRequestProcessor(object):
                                        lambda: self.__image_metadata_repository.find_inconsistent_original_image_metadatas())]:
             command.execute()
     
+    @tx.transactional
     def delete(self, image_id):
         def image_metadatas_to_delete():
             original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(image_id)

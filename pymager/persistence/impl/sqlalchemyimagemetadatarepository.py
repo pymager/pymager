@@ -73,13 +73,13 @@ class SqlAlchemyImageMetadataRepository(object):
     
     def add(self, item):
         def callback(session):
-            session.save(item)
+            session.add(item)
             session.flush()
         try:
             self.__template.do_with_session(callback)
-        except sqlalchemy.exceptions.IntegrityError, e: 
+        except sqlalchemy.exc.IntegrityError as e: 
             raise domain.DuplicateEntryException(item.id)
-        except exc.FlushError, e:
+        except exc.FlushError as e:
             raise domain.DuplicateEntryException(item.id)
     
     def delete(self, item):
