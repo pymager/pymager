@@ -56,5 +56,5 @@ class AbstractIntegrationTestCase(unittest.TestCase):
         self._image_server = None
         self._image_metadata_repository = None
         self._schema_migrator = None
-        persistence.rollback(self._sessionmaker)
+        persistence.end_scope(self._sessionmaker, force_rollback=True)
     

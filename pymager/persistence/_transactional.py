@@ -53,39 +53,34 @@ class SessionTemplate(object):
         self._sessionmaker = sessionmaker
         
     def do_with_session(self, session_callback):        
-        session = begin_scope(self._sessionmaker)
-        
-        def do():
-            result = session_callback(session)
-            end_scope(self._sessionmaker)
-            return result
-        
-        return self._do_execute(do)
-
-    def _do_execute(self,f):
         try:
-            return f()
+            session = begin_scope(self._sessionmaker)
+            result = session_callback(session)
         except Exception as e1:
             try:
-                #logger.error("Exception happened in do_execute: %s" % (traceback.format_exc(e1),))
-                rollback(self._sessionmaker)
+                _mark_as_rollback(self._sessionmaker)
             except Exception as e2:
                 pass
-                #logger.error("Initial Exception that forced rollback: %s" % (traceback.format_exc(e1),))
-                #logger.error("Exception raised during rollback: %s" % (traceback.format_exc(e2),))
             raise
+        finally:
+            end_scope(self._sessionmaker)
+        return result
 
 class BoundSession(object):
     def __init__(self, session, count=0):
         assert count >= 0
         self.session = session
         self.count = count
+        self.should_commit = True
     
     def increment(self):
         self.count=self.count+1
     
     def decrement(self):
         self.count=self.count -1
+    
+    def rollback(self):
+        self.should_commit = False
 
 def begin_scope(session_maker):
     bound_session = _threadlocal.current_session if _session_exists() else BoundSession(session_maker())
@@ -93,18 +88,21 @@ def begin_scope(session_maker):
     _threadlocal.current_session = bound_session
     return bound_session.session
 
-def end_scope(session_maker):
+def end_scope(session_maker, force_rollback=False):
     if _current_count() == 1:
         try:
-            _session().commit()
+            if (not force_rollback) and _should_commit():
+                _session().commit()
+            else:
+                _rollback(session_maker)
         finally:
             _cleanup(session_maker)
     else:
         _threadlocal.current_session.decrement()
 
-def rollback(session_maker):
-    if not _session_exists():
-        return
+def _rollback(session_maker):
+    #if not _session_exists():
+    #    return
     
     try:
         conn = _session().connection().invalidate()
@@ -116,11 +114,8 @@ def rollback(session_maker):
         pass
     except Exception:
         pass
-    #conn.close()
-    try:
-        _session().rollback()
-    finally:
-        _cleanup(session_maker)
+    
+    _session().rollback()
 
 def _cleanup(session_maker):
     
@@ -136,5 +131,11 @@ def _session():
 def _current_count():
     return _threadlocal.current_session.count if _session_exists() else 0
 
+def _should_commit():
+    return _threadlocal.current_session.should_commit
+
 def _session_exists():
     return hasattr(_threadlocal, 'current_session')
+
+def _mark_as_rollback(session_maker):
+    _threadlocal.current_session.rollback()

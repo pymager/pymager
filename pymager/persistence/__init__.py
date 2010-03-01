@@ -24,7 +24,6 @@ from pymager.persistence._transactional import SessionTemplate
 from pymager.persistence._transactional import transactional
 from pymager.persistence._transactional import begin_scope
 from pymager.persistence._transactional import end_scope
-from pymager.persistence._transactional import rollback
 from pymager.persistence import _transactional
 
 def init(sessionmaker):

@@ -46,21 +46,22 @@ class DefaultImageRequestProcessor(object):
     def __init__(self, image_metadata_repository, path_generator, image_format_mapper, schema_migrator, data_directory, session_template, dev_mode=False):
         """ @param data_directory: the directory that this 
             ImageRequestProcessor will use for its work files """
-        self.__data_directory = data_directory 
-        self.__image_metadata_repository = domain.ImageMetadataRepository(image_metadata_repository)
-        self.__image_format_mapper = resources.ImageFormatMapper(image_format_mapper)
-        self.__schema_migrator = persistence.SchemaMigrator(schema_migrator)
-        self.__path_generator = resources.PathGenerator(path_generator)
-        self.__session_template = session_template
+        self._data_directory = data_directory 
+        self._image_metadata_repository = domain.ImageMetadataRepository(image_metadata_repository)
+        self._image_format_mapper = resources.ImageFormatMapper(image_format_mapper)
+        self._schema_migrator = persistence.SchemaMigrator(schema_migrator)
+        self._path_generator = resources.PathGenerator(path_generator)
+        self._session_template = session_template
         self._dev_mode = dev_mode
         
         if self._dev_mode:
-            self.__drop_data()
+            self._drop_data()
         
-        self.__init_data()
+        self._init_data()
         self.cleanup_inconsistent_items()
     
-    def __wait_for_item_status_ok(self, pollingCallback):
+    @tx.transactional
+    def _wait_for_item_status_ok(self, pollingCallback):
         """ Wait for the status property of the object returned by pollingCallback() to be STATUS_OK
         It honors LOCK_MAX_RETRIES and LOCK_WAIT_SECONDS
         """
@@ -73,30 +74,30 @@ class DefaultImageRequestProcessor(object):
         if i == LOCK_MAX_RETRIES:
             raise imgengine.ImageProcessingException('Item seems to be locked forever')
     
-    def __wait_for_original_image_metadata(self, image_id):
+    def _wait_for_original_image_metadata(self, image_id):
         """ Wait for the given original item to have a status of STATUS_OK """
-        self.__wait_for_item_status_ok(lambda: self.__image_metadata_repository.find_original_image_metadata_by_id(image_id))
+        self._wait_for_item_status_ok(lambda: self._image_metadata_repository.find_original_image_metadata_by_id(image_id))
     
-    def __required_original_image_metadata(self, image_id, original_image_metadata):
+    def _required_original_image_metadata(self, image_id, original_image_metadata):
         if original_image_metadata is None:
             raise imgengine.ImageMetadataNotFoundException(image_id)
     
     @tx.transactional                
     def get_original_image_path(self, image_id):
         logger.debug("get_original_image_path")
-        original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(image_id)
-        self.__required_original_image_metadata(image_id, original_image_metadata)
-        self.__wait_for_original_image_metadata(image_id)
-        return self.__path_generator.original_path(original_image_metadata).relative()
+        original_image_metadata = self._image_metadata_repository.find_original_image_metadata_by_id(image_id)
+        self._required_original_image_metadata(image_id, original_image_metadata)
+        self._wait_for_original_image_metadata(image_id)
+        return self._path_generator.original_path(original_image_metadata).relative()
     
     @tx.transactional                           
     def save_file_to_repository(self, file, image_id):
         def filename_save_strategy(file, item):
-            shutil.copyfile(file, self.__path_generator.original_path(item).absolute())
+            shutil.copyfile(file, self._path_generator.original_path(item).absolute())
         
         def file_like_save_strategy(file, item):
             file.seek(0)
-            with open(self.__path_generator.original_path(item).absolute(), "w+b") as out:
+            with open(self._path_generator.original_path(item).absolute(), "w+b") as out:
                 shutil.copyfileobj(file, out)
                 out.flush()
 
@@ -116,12 +117,12 @@ class DefaultImageRequestProcessor(object):
 
         try:
             # atomic creation
-            self.__image_metadata_repository.add(item)
+            self._image_metadata_repository.add(item)
         except domain.DuplicateEntryException, ex:
             raise imgengine.ImageIDAlreadyExistsException(item.id)
         else:
             try:
-                image_directory = self.__path_generator.original_path(item).parent_directory().absolute()
+                image_directory = self._path_generator.original_path(item).parent_directory().absolute()
                 if not os.path.exists(image_directory):
                     os.makedirs(image_directory)
                 save(file, item)
@@ -133,39 +134,42 @@ class DefaultImageRequestProcessor(object):
     @tx.transactional        
     def prepare_transformation(self, transformationRequest):
         logging.debug("prepare transformation: %s" % (transformationRequest,))
-        original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(transformationRequest.image_id)
-        self.__required_original_image_metadata(transformationRequest.image_id, original_image_metadata)
+        original_image_metadata = self._image_metadata_repository.find_original_image_metadata_by_id(transformationRequest.image_id)
+        self._required_original_image_metadata(transformationRequest.image_id, original_image_metadata)
         
-        self.__wait_for_original_image_metadata(transformationRequest.image_id)
+        self._wait_for_original_image_metadata(transformationRequest.image_id)
         derived_image_metadata = domain.DerivedImageMetadata(domain.STATUS_INCONSISTENT, transformationRequest.size, transformationRequest.target_format, original_image_metadata)
         
-        cached_filename = self.__path_generator.derived_path(derived_image_metadata).absolute()
-        relative_cached_filename = self.__path_generator.derived_path(derived_image_metadata).relative()
+        cached_filename = self._path_generator.derived_path(derived_image_metadata).absolute()
+        relative_cached_filename = self._path_generator.derived_path(derived_image_metadata).relative()
 
         logger.debug("Checks cache for existing image")
         if os.path.exists(cached_filename):
             logger.debug("Already exists in cache: %s " %(relative_cached_filename,))
+            def expunge_callback(session):
+                session.expunge_all()
+            self._session_template.do_with_session(expunge_callback)
             return relative_cached_filename
         
         logger.debug("Add repo metadata for derived image")
         try:
-            self.__image_metadata_repository.add(derived_image_metadata)
+            self._image_metadata_repository.add(derived_image_metadata)
         except domain.DuplicateEntryException :
             def find():
-                return self.__image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format(original_image_metadata.id, transformationRequest.size, transformationRequest.target_format)
-            self.__wait_for_item_status_ok(find)
+                return self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format(original_image_metadata.id, transformationRequest.size, transformationRequest.target_format)
+            self._wait_for_item_status_ok(find)
             derived_image_metadata = find()
 
         logger.debug("Checks that image format is supported")        
         try:
-            img = Image.open(self.__path_generator.original_path(original_image_metadata).absolute())
+            img = Image.open(self._path_generator.original_path(original_image_metadata).absolute())
         except IOError, ex: 
             raise imgengine.ImageProcessingException(ex)
         
         logger.debug("Add derived image to filesystem")
         if transformationRequest.size == img.size and transformationRequest.target_format.upper() == img.format.upper():
             try:
-                shutil.copyfile(self.__path_generator.original_path(original_image_metadata).absolute(), cached_filename)
+                shutil.copyfile(self._path_generator.original_path(original_image_metadata).absolute(), cached_filename)
             except IOError, ex:
                 raise imgengine.ImageProcessingException(ex)
         else:   
@@ -174,7 +178,7 @@ class DefaultImageRequestProcessor(object):
                                         method=Image.ANTIALIAS,
                                         centering=(0.5, 0.5)) 
             try:
-                cached_filename_directory = self.__path_generator.derived_path(derived_image_metadata).parent_directory().absolute()
+                cached_filename_directory = self._path_generator.derived_path(derived_image_metadata).parent_directory().absolute()
                 if not os.path.exists(cached_filename_directory):
                     os.makedirs(cached_filename_directory)
                 target_image.save(cached_filename)
@@ -187,43 +191,43 @@ class DefaultImageRequestProcessor(object):
     
     @tx.transactional
     def cleanup_inconsistent_items(self):
-        for command in [DeleteImagesCommand(self.__image_metadata_repository,
-                                       self.__session_template,
-                                       self.__path_generator,
-                                       lambda: self.__image_metadata_repository.find_inconsistent_derived_image_metadatas()),
-                        DeleteImagesCommand(self.__image_metadata_repository,
-                                       self.__session_template,
-                                       self.__path_generator,
-                                       lambda: self.__image_metadata_repository.find_inconsistent_original_image_metadatas())]:
+        for command in [DeleteImagesCommand(self._image_metadata_repository,
+                                       self._session_template,
+                                       self._path_generator,
+                                       lambda: self._image_metadata_repository.find_inconsistent_derived_image_metadatas()),
+                        DeleteImagesCommand(self._image_metadata_repository,
+                                       self._session_template,
+                                       self._path_generator,
+                                       lambda: self._image_metadata_repository.find_inconsistent_original_image_metadatas())]:
             command.execute()
     
     @tx.transactional
     def delete(self, image_id):
         def image_metadatas_to_delete():
-            original_image_metadata = self.__image_metadata_repository.find_original_image_metadata_by_id(image_id)
-            self.__required_original_image_metadata(image_id, original_image_metadata)
+            original_image_metadata = self._image_metadata_repository.find_original_image_metadata_by_id(image_id)
+            self._required_original_image_metadata(image_id, original_image_metadata)
             return list(original_image_metadata.derived_image_metadatas) + [original_image_metadata]
         
-        DeleteImagesCommand(self.__image_metadata_repository,
-                            self.__session_template,
-                            self.__path_generator,
+        DeleteImagesCommand(self._image_metadata_repository,
+                            self._session_template,
+                            self._path_generator,
                             lambda: image_metadatas_to_delete()).execute()
             
-    def __drop_data(self):
-        self.__schema_migrator.drop_all_tables()
-        if os.path.exists(self.__data_directory):
-            shutil.rmtree(self.__data_directory)
+    def _drop_data(self):
+        self._schema_migrator.drop_all_tables()
+        if os.path.exists(self._data_directory):
+            shutil.rmtree(self._data_directory)
     
-    def __init_directories(self):
-        if not os.path.exists(self.__data_directory):
-            os.makedirs(self.__data_directory)
+    def _init_directories(self):
+        if not os.path.exists(self._data_directory):
+            os.makedirs(self._data_directory)
         for directory in \
-            [resources.Path(self.__data_directory).append(flatpathgenerator.CACHE_DIRECTORY).absolute(),
-             resources.Path(self.__data_directory).append(flatpathgenerator.ORIGINAL_DIRECTORY).absolute()]:
+            [resources.Path(self._data_directory).append(flatpathgenerator.CACHE_DIRECTORY).absolute(),
+             resources.Path(self._data_directory).append(flatpathgenerator.ORIGINAL_DIRECTORY).absolute()]:
             if not os.path.exists(directory):
                 os.makedirs(directory)    
-    def __init_data(self):
-        #self.__init_directories()
+    def _init_data(self):
+        #self._init_directories()
         if self._dev_mode:
-            self.__schema_migrator.drop_all_tables()
-            self.__schema_migrator.create_schema()
+            self._schema_migrator.drop_all_tables()
+            self._schema_migrator.create_schema()
