@@ -156,7 +156,7 @@ class DefaultImageRequestProcessor(object):
             self._image_metadata_repository.add(derived_image_metadata)
         except domain.DuplicateEntryException :
             def find():
-                return self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format(original_image_metadata.id, transformationRequest.size, transformationRequest.target_format)
+                return self._image_metadata_repository.find_derived_image_metadata_by_original_image_metadata_id_size_and_format(transformationRequest.image_id, transformationRequest.size, transformationRequest.target_format)
             self._wait_for_item_status_ok(find)
             derived_image_metadata = find()
 

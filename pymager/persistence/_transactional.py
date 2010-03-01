@@ -28,7 +28,7 @@ from sqlalchemy.orm import mapper, relation, sessionmaker, scoped_session, backr
 _sessionmaker = None # should be initialized by bootstrap
 _threadlocal = threading.local()
 
-logger = logging.getLogger("transactional")
+logger = logging.getLogger("persistence.transactional")
 
 def init(sessionmaker):
     global _sessionmaker
@@ -57,10 +57,7 @@ class SessionTemplate(object):
             session = begin_scope(self._sessionmaker)
             result = session_callback(session)
         except Exception as e1:
-            try:
-                _mark_as_rollback(self._sessionmaker)
-            except Exception as e2:
-                pass
+            _mark_for_rollback(self._sessionmaker)
             raise
         finally:
             end_scope(self._sessionmaker)
@@ -72,6 +69,7 @@ class BoundSession(object):
         self.session = session
         self.count = count
         self.should_commit = True
+        self.should_renew = False
     
     def increment(self):
         self.count=self.count+1
@@ -79,26 +77,40 @@ class BoundSession(object):
     def decrement(self):
         self.count=self.count -1
     
-    def rollback(self):
+    def mark_for_rollback(self):
         self.should_commit = False
+    
+    def mark_for_renewal(self):
+        self.should_renew = True
 
 def begin_scope(session_maker):
     bound_session = _threadlocal.current_session if _session_exists() else BoundSession(session_maker())
     bound_session.increment()
     _threadlocal.current_session = bound_session
+    
+    if _threadlocal.current_session.should_renew:
+        _threadlocal.current_session.session = session_maker()
+    
     return bound_session.session
 
 def end_scope(session_maker, force_rollback=False):
-    if _current_count() == 1:
+    if _current_count() == 1 : # top level, we either commit or rollback
         try:
-            if (not force_rollback) and _should_commit():
+            if _should_commit() and (not force_rollback):
                 _session().commit()
             else:
                 _rollback(session_maker)
         finally:
             _cleanup(session_maker)
     else:
+        if not _should_commit() or force_rollback:
+            _rollback_and_mark_for_renewal(session_maker)
+        
         _threadlocal.current_session.decrement()
+
+def _rollback_and_mark_for_renewal(session_maker):
+    _rollback(session_maker)
+    _threadlocal.current_session.mark_for_renewal()
 
 def _rollback(session_maker):
     #if not _session_exists():
@@ -137,5 +149,5 @@ def _should_commit():
 def _session_exists():
     return hasattr(_threadlocal, 'current_session')
 
-def _mark_as_rollback(session_maker):
-    _threadlocal.current_session.rollback()
+def _mark_for_rollback(session_maker):
+    _threadlocal.current_session.mark_for_rollback()
