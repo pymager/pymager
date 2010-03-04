@@ -1,6 +1,7 @@
 *.pyc
 .pydevproject
-pymager.egg-info/
 .settings
 *.egg
 dist/
+build/
+pymager.egg-info/
