@@ -3,3 +3,4 @@
 pymager.egg-info/
 .settings
 *.egg
+dist/
