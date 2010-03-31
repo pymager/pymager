@@ -1,4 +1,4 @@
-include *.txt README CHANGELOG COPYING* CREDITS
+include *.txt README CHANGELOG LICENSE NOTICE CREDITS
 include *.sh
 include *.py
 recursive-include etc *.conf
