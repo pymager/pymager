@@ -16,9 +16,9 @@ setup(
         "it is possible to request any derivative of the image based on "
         "a different size or image format.",
     packages=find_packages(exclude=('tests', 'tests.*')),
-    scripts=['pymager-standalone.py'],
+#    scripts=['pymager-standalone.py'],
     include_package_data=True,
-    data_files=[('etc', ['etc/pymager-cherrypy.conf', 'etc/pymager.conf'])],
+#    data_files=[('etc', ['etc/pymager-cherrypy.conf', 'etc/pymager.conf'])],
     test_suite="nose.collector",
     tests_require=['nose >= 0.11.1', 'mox >= 0.5.0'],
     install_requires=['PIL >= 1.1.6', 'SQLAlchemy >= 0.5.5', 'CherryPy >= 3.1.2', 'zope.interface >= 3.5.2'],
