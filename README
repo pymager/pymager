@@ -8,11 +8,11 @@ Features
 * Is supposed to handle locking correctly in case of pending requests for the same not-yet-processed derived image
 
 Install Dependencies
-$ sudo apt-get install python2.5 python-imaging python-sqlalchemy python-psycopg2 \ 
-  python-zope.interface python-cherrypy3 python-setuptools python-pkg-resources python-nose python-mox python-migrate
+$ sudo apt-get install  python-imaging python-sqlalchemy python-psycopg2 \ 
+  python-zope.interface python-cherrypy3 python-setuptools python-pkg-resources python-migrate
 
 Additional dependencies for developers :
-$ sudo apt-get install python-setuptools
+$ sudo apt-get install python-setuptools python-nose python-mox
 
 Run unit tests to make sure everything's fine
 $ python setup.py test
