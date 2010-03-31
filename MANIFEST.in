@@ -1,7 +1,7 @@
 include *.txt README CHANGELOG COPYING* CREDITS
 include *.sh
 include *.py
-recursive-include etc *.py
+recursive-include etc *.conf
 recursive-include examples *.py
 recursive-include legal *.py
 recursive-include migration *.py
