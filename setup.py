@@ -5,7 +5,7 @@ ez_setup.use_setuptools()
 from setuptools import setup, find_packages
 setup(
     name="pymager",
-    version="0.3",
+    version="0.4",
     author='Sami Dalouche',
     author_email='sami.dalouche@gmail.com',
     license='LGPLv3',
