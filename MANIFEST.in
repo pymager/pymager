@@ -5,5 +5,5 @@ recursive-include etc *.conf
 recursive-include examples *
 recursive-include legal *.py
 recursive-include migration *.py
-recursive-include pymager *.py *.jpg
+recursive-include pymager *.py *.jpg *.html
 recursive-include tests *.py
