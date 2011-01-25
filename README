@@ -50,7 +50,10 @@ Returned headers
 
 - ID should match ([\w_-]+)\-(\d+)x(\d+)\.([a-zA-Z]+)
 - width and height should be integers (allowed sizes are configurable in pymager configuration file)
-- 
+
+Examples:
+  http://localhost:8000/derived/sample-100x100.jpg
+  http://localhost:8000/derived/sample-800x600.jpg
 
 
 What is not tested automatically (using integration or unit tests)
@@ -62,3 +65,14 @@ What is not tested automatically (using integration or unit tests)
 FIXME:
 * ASCII / Unicode / ID constraints should be re-checked and enforced.. for now, things are crashing at myscellaneous levels. 
 what kind of constraints do we want to enforce exactly ? Do we want unicode IDs ?
+
+
+
+IDE Setup
+=========
+
+Pydev
+* Install eclipse
+* Install Pydev
+* Activate Python interpreter
+* Setup test runner to 'nose'
