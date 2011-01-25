@@ -67,6 +67,11 @@ FIXME:
 what kind of constraints do we want to enforce exactly ? Do we want unicode IDs ?
 
 
+Create release 
+==============
+git tag v0.5
+git push origin --tags
+python setup
 
 IDE Setup
 =========

@@ -5,10 +5,10 @@ ez_setup.use_setuptools()
 from setuptools import setup, find_packages
 setup(
     name="pymager",
-    version="0.4",
+    version="0.5",
     author='Sami Dalouche',
     author_email='sami.dalouche@gmail.com',
-    license='LGPLv3',
+    license='Apache-2.0',
     url='http://opensource.sirika.com/pymager',
     description='image conversion and rescaling RESTful web service',
     long_description="pymager is an image processing web service." 
