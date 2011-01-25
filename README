@@ -71,7 +71,8 @@ Create release
 ==============
 git tag v0.5
 git push origin --tags
-python setup
+python setup sdist
+re-create debian package
 
 IDE Setup
 =========
