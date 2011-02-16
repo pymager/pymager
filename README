@@ -82,3 +82,19 @@ Pydev
 * Install Pydev
 * Activate Python interpreter
 * Setup test runner to 'nose'
+
+
+
+= Backlog =
+* Fix Multi-Thread issue
+* DB data should be reset in dev mode, in addition to deleting the files
+* Extract caching code and plug other caching engines (memcache, ..)
+* Create Scala API to access Pymager (and other languages ?)
+* Better logging
+* Pythonize the *Templates, ...
+* Create website
+* Push to Pypi
+* Cleanup debian package (add samples, default configuration files, apache scripts, ..) 
+  and (try to) push it to the main repositories (Ubuntu PPA)
+* Add additional NoSQL Backends
+* Better Advertisement on MFU's website
