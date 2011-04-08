@@ -89,6 +89,7 @@ Pydev
 * Upgrade to python-distribute
 * Upload to Pypi
 * Fix exception handling to include complete stack traces
+* Complete Debian package that configures apache2 + Database
 * Fix Multi-Thread issue
 * DB data should be reset in dev mode, in addition to deleting the files
 * Extract caching code and plug other caching engines (memcache, ..)
